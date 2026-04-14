@@ -65,7 +65,26 @@ Abrir [http://localhost:3000](http://localhost:3000)
 
 ## Variables de Entorno
 
-Ver `.env.local.example` para la lista completa de variables requeridas.
+Crea un archivo `.env.local` con las siguientes variables:
+
+```env
+# NextAuth Configuration
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=<generar-con-openssl-rand-base64-32>
+
+# Google OAuth
+GOOGLE_CLIENT_ID=<tu-client-id>.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-<tu-secret>
+
+# InsForge Backend
+NEXT_PUBLIC_INSFORGE_URL=https://<tu-proyecto>.us-east.insforge.app
+INSFORGE_API_KEY=if_live_<tu-api-key>
+
+# Claude API (para funcionalidad de IA)
+ANTHROPIC_API_KEY=sk-ant-<tu-key>
+```
+
+Ver `.env.local.example` para referencia completa.
 
 ## Deploy
 

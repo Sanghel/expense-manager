@@ -16,15 +16,15 @@ npx @insforge/cli compute deploy [directory] [options]
 
 ## Options
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `[directory]` | Path to directory containing the Dockerfile | current directory |
-| `--name <name>` | Service name (DNS-safe) | **required** |
-| `--port <port>` | Container internal port | auto-detect from `fly.toml` or `8080` |
-| `--cpu <tier>` | CPU tier | auto-detect from `fly.toml` or `shared-1x` |
-| `--memory <mb>` | Memory in MB | auto-detect from `fly.toml` or `512` |
-| `--region <region>` | Fly.io region | auto-detect from `fly.toml` or `iad` |
-| `--env <json>` | Environment variables as JSON | none |
+| Option              | Description                                 | Default                                    |
+| ------------------- | ------------------------------------------- | ------------------------------------------ |
+| `[directory]`       | Path to directory containing the Dockerfile | current directory                          |
+| `--name <name>`     | Service name (DNS-safe)                     | **required**                               |
+| `--port <port>`     | Container internal port                     | auto-detect from `fly.toml` or `8080`      |
+| `--cpu <tier>`      | CPU tier                                    | auto-detect from `fly.toml` or `shared-1x` |
+| `--memory <mb>`     | Memory in MB                                | auto-detect from `fly.toml` or `512`       |
+| `--region <region>` | Fly.io region                               | auto-detect from `fly.toml` or `iad`       |
+| `--env <json>`      | Environment variables as JSON               | none                                       |
 
 ## What It Does
 
@@ -63,28 +63,29 @@ npx @insforge/cli compute deploy ./api --name audio-analyzer
 
 If the target directory contains a `fly.toml`, the command reads it for defaults:
 
-| fly.toml field | CLI option | Precedence |
-|---------------|------------|------------|
-| `internal_port` in `[http_service]` | `--port` | CLI wins if specified |
-| `primary_region` | `--region` | CLI wins if specified |
-| `memory` in `[[vm]]` | `--memory` | CLI wins if specified |
-| `cpu_kind` + `cpus` in `[[vm]]` | `--cpu` | CLI wins if specified |
+| fly.toml field                      | CLI option | Precedence            |
+| ----------------------------------- | ---------- | --------------------- |
+| `internal_port` in `[http_service]` | `--port`   | CLI wins if specified |
+| `primary_region`                    | `--region` | CLI wins if specified |
+| `memory` in `[[vm]]`                | `--memory` | CLI wins if specified |
+| `cpu_kind` + `cpus` in `[[vm]]`     | `--cpu`    | CLI wins if specified |
 
 The original `fly.toml` is backed up during deploy and restored afterward. The generated `fly.toml` used for the deploy is temporary.
 
 ## Create vs Deploy
 
-| | `compute create` | `compute deploy` |
-|---|---|---|
-| **Input** | Pre-built Docker image from registry | Dockerfile in local directory |
-| **Requires flyctl** | No | Yes |
-| **Requires FLY_API_TOKEN** | No (backend has it) | Yes (local flyctl needs it) |
-| **Build** | None (image pulled by Fly) | Remote build on Fly's builders |
-| **Use when** | Image already in registry | Building from source |
+|                            | `compute create`                     | `compute deploy`               |
+| -------------------------- | ------------------------------------ | ------------------------------ |
+| **Input**                  | Pre-built Docker image from registry | Dockerfile in local directory  |
+| **Requires flyctl**        | No                                   | Yes                            |
+| **Requires FLY_API_TOKEN** | No (backend has it)                  | Yes (local flyctl needs it)    |
+| **Build**                  | None (image pulled by Fly)           | Remote build on Fly's builders |
+| **Use when**               | Image already in registry            | Building from source           |
 
 ## Output
 
 Text mode:
+
 ```
 Checking for existing service "audio-analyzer"...
 Creating service "audio-analyzer"...
@@ -98,12 +99,12 @@ JSON mode (`--json`): same schema as `compute create` output.
 
 ## Common Errors
 
-| Error | Cause | Solution |
-|-------|-------|----------|
-| `flyctl is not installed` | Missing CLI | Install: `brew install flyctl` |
-| `FLY_API_TOKEN environment variable is required` | Missing token | Set: `export FLY_API_TOKEN=<token>` |
-| `No Dockerfile found in <dir>` | Wrong directory | Check path, ensure Dockerfile exists |
-| `flyctl deploy failed with exit code N` | Build or deploy error | Check flyctl output for details (shown in terminal) |
+| Error                                            | Cause                 | Solution                                            |
+| ------------------------------------------------ | --------------------- | --------------------------------------------------- |
+| `flyctl is not installed`                        | Missing CLI           | Install: `brew install flyctl`                      |
+| `FLY_API_TOKEN environment variable is required` | Missing token         | Set: `export FLY_API_TOKEN=<token>`                 |
+| `No Dockerfile found in <dir>`                   | Wrong directory       | Check path, ensure Dockerfile exists                |
+| `flyctl deploy failed with exit code N`          | Build or deploy error | Check flyctl output for details (shown in terminal) |
 
 ## Notes
 

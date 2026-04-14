@@ -10,25 +10,25 @@ npx @insforge/cli compute create [options]
 
 ## Options
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--name <name>` | Service name (DNS-safe: lowercase, numbers, dashes) | **required** |
-| `--image <image>` | Docker image URL (e.g. `nginx:alpine`, `my-registry/my-app:latest`) | **required** |
-| `--port <port>` | Container internal port | `8080` |
-| `--cpu <tier>` | CPU tier | `shared-1x` |
-| `--memory <mb>` | Memory in MB | `512` |
-| `--region <region>` | Fly.io region | `iad` |
-| `--env <json>` | Environment variables as JSON object | none |
+| Option              | Description                                                         | Default      |
+| ------------------- | ------------------------------------------------------------------- | ------------ |
+| `--name <name>`     | Service name (DNS-safe: lowercase, numbers, dashes)                 | **required** |
+| `--image <image>`   | Docker image URL (e.g. `nginx:alpine`, `my-registry/my-app:latest`) | **required** |
+| `--port <port>`     | Container internal port                                             | `8080`       |
+| `--cpu <tier>`      | CPU tier                                                            | `shared-1x`  |
+| `--memory <mb>`     | Memory in MB                                                        | `512`        |
+| `--region <region>` | Fly.io region                                                       | `iad`        |
+| `--env <json>`      | Environment variables as JSON object                                | none         |
 
 ## CPU Tiers
 
-| Tier | Description |
-|------|-------------|
-| `shared-1x` | Shared CPU, 1 vCPU (default) |
-| `shared-2x` | Shared CPU, 2 vCPU |
-| `performance-1x` | Dedicated CPU, 1 vCPU |
-| `performance-2x` | Dedicated CPU, 2 vCPU |
-| `performance-4x` | Dedicated CPU, 4 vCPU |
+| Tier             | Description                  |
+| ---------------- | ---------------------------- |
+| `shared-1x`      | Shared CPU, 1 vCPU (default) |
+| `shared-2x`      | Shared CPU, 2 vCPU           |
+| `performance-1x` | Dedicated CPU, 1 vCPU        |
+| `performance-2x` | Dedicated CPU, 2 vCPU        |
+| `performance-4x` | Dedicated CPU, 4 vCPU        |
 
 ## Memory Options
 
@@ -36,15 +36,15 @@ npx @insforge/cli compute create [options]
 
 ## Regions
 
-| Code | Location |
-|------|----------|
+| Code  | Location              |
+| ----- | --------------------- |
 | `iad` | Ashburn, VA (default) |
-| `sin` | Singapore |
-| `lax` | Los Angeles |
-| `lhr` | London |
-| `nrt` | Tokyo |
-| `ams` | Amsterdam |
-| `syd` | Sydney |
+| `sin` | Singapore             |
+| `lax` | Los Angeles           |
+| `lhr` | London                |
+| `nrt` | Tokyo                 |
+| `ams` | Amsterdam             |
+| `syd` | Sydney                |
 
 ## What It Does
 
@@ -77,12 +77,14 @@ npx @insforge/cli compute create --name my-api --image node:20-alpine --port 300
 ## Output
 
 Text mode:
+
 ```
 Service "my-proxy" created [running]
   Endpoint: https://my-proxy-default.fly.dev
 ```
 
 JSON mode (`--json`):
+
 ```json
 {
   "id": "uuid",
@@ -102,6 +104,7 @@ JSON mode (`--json`):
 ## Endpoint URL Format
 
 Services get a public HTTPS endpoint at:
+
 ```
 https://{name}-{projectId}.fly.dev
 ```
@@ -114,12 +117,12 @@ Env var keys must match `[A-Z_][A-Z0-9_]*`. Values are encrypted at rest in the 
 
 ## Common Errors
 
-| Error | Cause | Solution |
-|-------|-------|----------|
-| `COMPUTE_SERVICE_NOT_CONFIGURED` | Compute services not enabled | Set `COMPUTE_SERVICES_ENABLED=true` and `FLY_API_TOKEN` in backend |
-| `COMPUTE_SERVICE_ALREADY_EXISTS` | Duplicate name in project | Choose a different name or delete the existing service |
-| `COMPUTE_SERVICE_DEPLOY_FAILED` | Fly.io API rejected the request | Check image URL is valid and accessible, verify region has capacity |
-| `Name has already been taken` | Fly app name collision | The app name is globally unique on Fly. Try a different service name |
+| Error                            | Cause                           | Solution                                                             |
+| -------------------------------- | ------------------------------- | -------------------------------------------------------------------- |
+| `COMPUTE_SERVICE_NOT_CONFIGURED` | Compute services not enabled    | Set `COMPUTE_SERVICES_ENABLED=true` and `FLY_API_TOKEN` in backend   |
+| `COMPUTE_SERVICE_ALREADY_EXISTS` | Duplicate name in project       | Choose a different name or delete the existing service               |
+| `COMPUTE_SERVICE_DEPLOY_FAILED`  | Fly.io API rejected the request | Check image URL is valid and accessible, verify region has capacity  |
+| `Name has already been taken`    | Fly app name collision          | The app name is globally unique on Fly. Try a different service name |
 
 ## Notes
 

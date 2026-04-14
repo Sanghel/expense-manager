@@ -20,7 +20,7 @@ export function createInsForgeServerClient(accessToken?: string) {
     baseUrl: process.env.NEXT_PUBLIC_INSFORGE_URL!,
     anonKey: process.env.INSFORGE_ANON_KEY!,
     isServerMode: true,
-    edgeFunctionToken: accessToken
+    edgeFunctionToken: accessToken,
   })
 }
 ```
@@ -37,13 +37,22 @@ const authCookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
   sameSite: 'lax' as const,
-  path: '/'
+  path: '/',
 }
 
-export async function setAuthCookies(accessToken: string, refreshToken: string) {
+export async function setAuthCookies(
+  accessToken: string,
+  refreshToken: string
+) {
   const cookieStore = await cookies()
-  cookieStore.set(accessCookie, accessToken, { ...authCookieOptions, maxAge: 60 * 15 })
-  cookieStore.set(refreshCookie, refreshToken, { ...authCookieOptions, maxAge: 60 * 60 * 24 * 7 })
+  cookieStore.set(accessCookie, accessToken, {
+    ...authCookieOptions,
+    maxAge: 60 * 15,
+  })
+  cookieStore.set(refreshCookie, refreshToken, {
+    ...authCookieOptions,
+    maxAge: 60 * 60 * 24 * 7,
+  })
 }
 ```
 
@@ -56,7 +65,7 @@ export async function signIn(formData: FormData) {
   const insforge = createInsForgeServerClient()
   const { data, error } = await insforge.auth.signInWithPassword({
     email: String(formData.get('email') ?? '').trim(),
-    password: String(formData.get('password') ?? '')
+    password: String(formData.get('password') ?? ''),
   })
 
   if (error || !data?.accessToken || !data?.refreshToken) {
@@ -94,10 +103,10 @@ export async function getCurrentUser() {
 
 ## Common Mistakes
 
-| Mistake | Solution |
-|---------|----------|
-| Creating the SDK client in client components for SSR auth flows | Create the client in server actions, route handlers, loaders, or API routes with `isServerMode: true` |
-| Storing tokens in client-readable storage | Keep `accessToken` and `refreshToken` in httpOnly cookies |
-| Calling authenticated server-side APIs without the current access token | Pass the token with `createClient({ edgeFunctionToken: accessToken })` |
-| Handling the OAuth code exchange in the browser | Exchange the OAuth code on the server, then set cookies on the response |
-| Redirecting to arbitrary external URLs after sign-in or refresh | Validate redirects and only allow safe internal paths |
+| Mistake                                                                 | Solution                                                                                              |
+| ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Creating the SDK client in client components for SSR auth flows         | Create the client in server actions, route handlers, loaders, or API routes with `isServerMode: true` |
+| Storing tokens in client-readable storage                               | Keep `accessToken` and `refreshToken` in httpOnly cookies                                             |
+| Calling authenticated server-side APIs without the current access token | Pass the token with `createClient({ edgeFunctionToken: accessToken })`                                |
+| Handling the OAuth code exchange in the browser                         | Exchange the OAuth code on the server, then set cookies on the response                               |
+| Redirecting to arbitrary external URLs after sign-in or refresh         | Validate redirects and only allow safe internal paths                                                 |

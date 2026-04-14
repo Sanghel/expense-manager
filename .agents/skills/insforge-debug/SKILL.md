@@ -13,7 +13,7 @@ description: >-
 license: Apache-2.0
 metadata:
   author: insforge
-  version: "1.0.0"
+  version: '1.0.0'
   organization: InsForge
   date: March 2026
 ---
@@ -28,17 +28,17 @@ Diagnose problems in InsForge projects — from frontend SDK errors to backend i
 
 Match the symptom to a scenario, then follow that scenario's steps.
 
-| Symptom | Scenario |
-|---------|----------|
-| SDK returns `{ data: null, error: {...} }` | [#1 SDK Error](#scenario-1-sdk-returns-error-object) |
-| HTTP 400 / 401 / 403 / 404 / 429 / 500 | [#2 HTTP Status Code](#scenario-2-http-status-code-anomaly) |
-| Function throws or times out | [#3 Edge Function Failure](#scenario-3-edge-function-execution-failuretimeout) |
-| Query slow or hangs | [#4 Database Slow](#scenario-4-database-query-slow-or-unresponsive) |
-| Login fails / token expired / RLS denied | [#5 Auth Failure](#scenario-5-authenticationauthorization-failure) |
-| Channel won't connect / messages missing | [#6 Realtime Issues](#scenario-6-realtime-channel-issues) |
-| High CPU/memory, all responses slow | [#7 Backend Performance](#scenario-7-backend-performance-degradation) |
-| `functions deploy` fails | [#8 Function Deploy](#scenario-8-edge-function-deploy-failure) |
-| `deployments deploy` fails / Vercel error | [#9 Frontend Deploy](#scenario-9-frontend-vercel-deploy-failure) |
+| Symptom                                    | Scenario                                                                       |
+| ------------------------------------------ | ------------------------------------------------------------------------------ |
+| SDK returns `{ data: null, error: {...} }` | [#1 SDK Error](#scenario-1-sdk-returns-error-object)                           |
+| HTTP 400 / 401 / 403 / 404 / 429 / 500     | [#2 HTTP Status Code](#scenario-2-http-status-code-anomaly)                    |
+| Function throws or times out               | [#3 Edge Function Failure](#scenario-3-edge-function-execution-failuretimeout) |
+| Query slow or hangs                        | [#4 Database Slow](#scenario-4-database-query-slow-or-unresponsive)            |
+| Login fails / token expired / RLS denied   | [#5 Auth Failure](#scenario-5-authenticationauthorization-failure)             |
+| Channel won't connect / messages missing   | [#6 Realtime Issues](#scenario-6-realtime-channel-issues)                      |
+| High CPU/memory, all responses slow        | [#7 Backend Performance](#scenario-7-backend-performance-degradation)          |
+| `functions deploy` fails                   | [#8 Function Deploy](#scenario-8-edge-function-deploy-failure)                 |
+| `deployments deploy` fails / Vercel error  | [#9 Frontend Deploy](#scenario-9-frontend-vercel-deploy-failure)               |
 
 ---
 
@@ -57,11 +57,11 @@ npx @insforge/cli diagnose logs
 
 3. Based on the error code prefix, drill into the relevant log source:
 
-| Error pattern | Log source | Command |
-|---------------|------------|---------|
-| `PGRST*` (PostgREST) | postgREST.logs | `npx @insforge/cli logs postgREST.logs --limit 50` |
-| Database/SQL errors | postgres.logs | `npx @insforge/cli logs postgres.logs --limit 50` |
-| Generic 500 / server error | insforge.logs | `npx @insforge/cli logs insforge.logs --limit 50` |
+| Error pattern              | Log source     | Command                                            |
+| -------------------------- | -------------- | -------------------------------------------------- |
+| `PGRST*` (PostgREST)       | postgREST.logs | `npx @insforge/cli logs postgREST.logs --limit 50` |
+| Database/SQL errors        | postgres.logs  | `npx @insforge/cli logs postgres.logs --limit 50`  |
+| Generic 500 / server error | insforge.logs  | `npx @insforge/cli logs insforge.logs --limit 50`  |
 
 4. If the error is DB-related, check database health for additional context:
 
@@ -82,14 +82,14 @@ npx @insforge/cli diagnose db --check connections,locks,slow-queries
 1. Identify the status code from the response.
 2. Follow the path for that status code:
 
-| Status | What to check | Command |
-|--------|---------------|---------|
-| 400 | Request payload/params malformed | `npx @insforge/cli logs postgREST.logs --limit 50` |
-| 401 | Auth token missing or expired | `npx @insforge/cli logs insforge.logs --limit 50` |
-| 403 | RLS policy or permission denied | `npx @insforge/cli logs insforge.logs --limit 50` |
-| 404 | Endpoint or resource doesn't exist | `npx @insforge/cli metadata --json` |
-| 429 | Rate limit hit — **no backend logs recorded** | See 429 note below |
-| 500 | Server-side error | `npx @insforge/cli diagnose logs` |
+| Status | What to check                                 | Command                                            |
+| ------ | --------------------------------------------- | -------------------------------------------------- |
+| 400    | Request payload/params malformed              | `npx @insforge/cli logs postgREST.logs --limit 50` |
+| 401    | Auth token missing or expired                 | `npx @insforge/cli logs insforge.logs --limit 50`  |
+| 403    | RLS policy or permission denied               | `npx @insforge/cli logs insforge.logs --limit 50`  |
+| 404    | Endpoint or resource doesn't exist            | `npx @insforge/cli metadata --json`                |
+| 429    | Rate limit hit — **no backend logs recorded** | See 429 note below                                 |
+| 500    | Server-side error                             | `npx @insforge/cli diagnose logs`                  |
 
 3. For 500 errors, also check aggregate error logs across all sources:
 
@@ -339,12 +339,12 @@ npm run build
 npx @insforge/cli logs <source> [--limit <n>]
 ```
 
-| Source | Description |
-|--------|-------------|
-| `insforge.logs` | Main backend logs |
-| `postgREST.logs` | PostgREST API layer logs |
-| `postgres.logs` | PostgreSQL database logs |
-| `function.logs` | Edge function execution logs |
+| Source                 | Description                   |
+| ---------------------- | ----------------------------- |
+| `insforge.logs`        | Main backend logs             |
+| `postgREST.logs`       | PostgREST API layer logs      |
+| `postgres.logs`        | PostgreSQL database logs      |
+| `function.logs`        | Edge function execution logs  |
 | `function-deploy.logs` | Edge function deployment logs |
 
 Source names are case-insensitive.

@@ -10,12 +10,12 @@ npx @insforge/cli create [options]
 
 ## Options
 
-| Option | Description |
-|--------|-------------|
-| `--name <name>` | Project name |
-| `--org-id <id>` | Organization ID |
-| `--region <region>` | Region: `us-east`, `us-west`, `eu-central`, `ap-southeast` |
-| `--template <template>` | Template: `react`, `nextjs`, `empty` |
+| Option                  | Description                                                |
+| ----------------------- | ---------------------------------------------------------- |
+| `--name <name>`         | Project name                                               |
+| `--org-id <id>`         | Organization ID                                            |
+| `--region <region>`     | Region: `us-east`, `us-west`, `eu-central`, `ap-southeast` |
+| `--template <template>` | Template: `react`, `nextjs`, `empty`                       |
 
 ## Interactive Mode
 

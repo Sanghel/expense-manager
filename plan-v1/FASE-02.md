@@ -70,13 +70,13 @@ git checkout -b feature/9-insforge-client
 1. Crear `lib/insforge.ts`:
 
 ```typescript
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from '@supabase/supabase-js'
 
 if (!process.env.NEXT_PUBLIC_INSFORGE_URL) {
-  throw new Error("Missing env.NEXT_PUBLIC_INSFORGE_URL");
+  throw new Error('Missing env.NEXT_PUBLIC_INSFORGE_URL')
 }
 if (!process.env.INSFORGE_API_KEY) {
-  throw new Error("Missing env.INSFORGE_API_KEY");
+  throw new Error('Missing env.INSFORGE_API_KEY')
 }
 
 export const insforge = createClient(
@@ -86,21 +86,21 @@ export const insforge = createClient(
     auth: {
       persistSession: false, // NextAuth maneja la sesión
     },
-  },
-);
+  }
+)
 
 // Helper para verificar conexión
 export async function testInsforgeConnection() {
   try {
-    const { error } = await insforge.from("users").select("count").single();
-    if (error && error.code !== "PGRST116") {
+    const { error } = await insforge.from('users').select('count').single()
+    if (error && error.code !== 'PGRST116') {
       // PGRST116 = tabla no existe aún (esperado)
-      throw error;
+      throw error
     }
-    return true;
+    return true
   } catch (error) {
-    console.error("InsForge connection failed:", error);
-    return false;
+    console.error('InsForge connection failed:', error)
+    return false
   }
 }
 ```
@@ -145,15 +145,15 @@ openssl rand -base64 32
 Crear `scripts/test-insforge.ts`:
 
 ```typescript
-import { testInsforgeConnection } from "../lib/insforge";
+import { testInsforgeConnection } from '../lib/insforge'
 
 async function test() {
-  console.log("Testing InsForge connection...");
-  const result = await testInsforgeConnection();
-  console.log("Connection:", result ? "✅ Success" : "❌ Failed");
+  console.log('Testing InsForge connection...')
+  const result = await testInsforgeConnection()
+  console.log('Connection:', result ? '✅ Success' : '❌ Failed')
 }
 
-test();
+test()
 ```
 
 ```bash
@@ -200,15 +200,15 @@ git checkout -b feature/10-nextauth-config
 1. Crear `lib/auth.ts`:
 
 ```typescript
-import { NextAuthOptions } from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
-import { insforge } from "./insforge";
+import { NextAuthOptions } from 'next-auth'
+import GoogleProvider from 'next-auth/providers/google'
+import { insforge } from './insforge'
 
 if (!process.env.GOOGLE_CLIENT_ID) {
-  throw new Error("Missing GOOGLE_CLIENT_ID");
+  throw new Error('Missing GOOGLE_CLIENT_ID')
 }
 if (!process.env.GOOGLE_CLIENT_SECRET) {
-  throw new Error("Missing GOOGLE_CLIENT_SECRET");
+  throw new Error('Missing GOOGLE_CLIENT_SECRET')
 }
 
 export const authOptions: NextAuthOptions = {
@@ -218,9 +218,9 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       authorization: {
         params: {
-          prompt: "consent",
-          access_type: "offline",
-          response_type: "code",
+          prompt: 'consent',
+          access_type: 'offline',
+          response_type: 'code',
         },
       },
     }),
@@ -229,13 +229,13 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account, profile }) {
       // Verificar si el email está en la whitelist
       if (!user.email) {
-        return false;
+        return false
       }
 
       try {
         // Buscar en tabla de whitelist (la crearemos en FASE 03)
         // Por ahora, permitir cualquier email para testing
-        console.log("User attempting to sign in:", user.email);
+        console.log('User attempting to sign in:', user.email)
 
         // TODO: En FASE 03 implementaremos la verificación real:
         // const { data } = await insforge
@@ -248,50 +248,50 @@ export const authOptions: NextAuthOptions = {
         //   return false // Email no está en whitelist
         // }
 
-        return true;
+        return true
       } catch (error) {
-        console.error("SignIn error:", error);
-        return false;
+        console.error('SignIn error:', error)
+        return false
       }
     },
     async session({ session, token }) {
       // Agregar info adicional a la sesión
       if (session.user) {
-        session.user.id = token.sub as string;
+        session.user.id = token.sub as string
       }
-      return session;
+      return session
     },
     async jwt({ token, user, account }) {
       if (user) {
-        token.id = user.id;
+        token.id = user.id
       }
-      return token;
+      return token
     },
   },
   pages: {
-    signIn: "/login",
-    error: "/login",
+    signIn: '/login',
+    error: '/login',
   },
   session: {
-    strategy: "jwt",
+    strategy: 'jwt',
   },
   secret: process.env.NEXTAUTH_SECRET,
-};
+}
 ```
 
 2. Crear tipos extendidos de NextAuth en `types/next-auth.d.ts`:
 
 ```typescript
-import "next-auth";
+import 'next-auth'
 
-declare module "next-auth" {
+declare module 'next-auth' {
   interface Session {
     user: {
-      id: string;
-      name?: string | null;
-      email?: string | null;
-      image?: string | null;
-    };
+      id: string
+      name?: string | null
+      email?: string | null
+      image?: string | null
+    }
   }
 }
 ```
@@ -335,12 +335,12 @@ git checkout -b feature/11-nextauth-api-route
 Crear `app/api/auth/[...nextauth]/route.ts`:
 
 ```typescript
-import NextAuth from "next-auth";
-import { authOptions } from "@/lib/auth";
+import NextAuth from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
-const handler = NextAuth(authOptions);
+const handler = NextAuth(authOptions)
 
-export { handler as GET, handler as POST };
+export { handler as GET, handler as POST }
 ```
 
 **Verificar que funciona:**
@@ -580,22 +580,22 @@ git checkout -b feature/14-auth-middleware
 Crear `middleware.ts` en la raíz:
 
 ```typescript
-import { withAuth } from "next-auth/middleware";
-import { NextResponse } from "next/server";
+import { withAuth } from 'next-auth/middleware'
+import { NextResponse } from 'next/server'
 
 export default withAuth(
   function middleware(req) {
-    return NextResponse.next();
+    return NextResponse.next()
   },
   {
     callbacks: {
       authorized: ({ token }) => !!token,
     },
     pages: {
-      signIn: "/login",
+      signIn: '/login',
     },
-  },
-);
+  }
+)
 
 export const config = {
   matcher: [
@@ -606,9 +606,9 @@ export const config = {
      * - /_next (Next.js internals)
      * - /favicon.ico, /robots.txt (static files)
      */
-    "/((?!login|api/auth|_next|favicon.ico|robots.txt).*)",
+    '/((?!login|api/auth|_next|favicon.ico|robots.txt).*)',
   ],
-};
+}
 ```
 
 **Probar:**

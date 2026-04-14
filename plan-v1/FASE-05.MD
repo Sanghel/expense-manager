@@ -89,58 +89,58 @@ git checkout -b feature/37-custom-theme
 Crear `theme/index.ts`:
 
 ```typescript
-import { extendTheme, type ThemeConfig } from "@chakra-ui/react";
+import { extendTheme, type ThemeConfig } from '@chakra-ui/react'
 
 const config: ThemeConfig = {
-  initialColorMode: "light",
+  initialColorMode: 'light',
   useSystemColorMode: false,
-};
+}
 
 export const theme = extendTheme({
   config,
   colors: {
     brand: {
-      50: "#E6F6FF",
-      100: "#BAE3FF",
-      200: "#7CC4FA",
-      300: "#47A3F3",
-      400: "#2186EB",
-      500: "#0967D2",
-      600: "#0552B5",
-      700: "#03449E",
-      800: "#01337D",
-      900: "#002159",
+      50: '#E6F6FF',
+      100: '#BAE3FF',
+      200: '#7CC4FA',
+      300: '#47A3F3',
+      400: '#2186EB',
+      500: '#0967D2',
+      600: '#0552B5',
+      700: '#03449E',
+      800: '#01337D',
+      900: '#002159',
     },
     income: {
-      50: "#E6FAF5",
-      500: "#2ECC71",
-      600: "#27AE60",
+      50: '#E6FAF5',
+      500: '#2ECC71',
+      600: '#27AE60',
     },
     expense: {
-      50: "#FFE6E6",
-      500: "#E74C3C",
-      600: "#C0392B",
+      50: '#FFE6E6',
+      500: '#E74C3C',
+      600: '#C0392B',
     },
   },
   fonts: {
-    heading: "var(--font-inter)",
-    body: "var(--font-inter)",
+    heading: 'var(--font-inter)',
+    body: 'var(--font-inter)',
   },
   styles: {
     global: {
       body: {
-        bg: "gray.50",
+        bg: 'gray.50',
       },
     },
   },
   components: {
     Button: {
       defaultProps: {
-        colorScheme: "brand",
+        colorScheme: 'brand',
       },
     },
   },
-});
+})
 ```
 
 ```bash

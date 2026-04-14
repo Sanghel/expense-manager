@@ -401,79 +401,79 @@ git checkout -b feature/25-database-types
 Crear `types/database.types.ts`:
 
 ```typescript
-export type Currency = "COP" | "USD" | "BOB";
-export type TransactionType = "income" | "expense";
-export type BudgetPeriod = "monthly" | "yearly";
-export type TransactionSource = "manual" | "conversational";
+export type Currency = 'COP' | 'USD' | 'BOB'
+export type TransactionType = 'income' | 'expense'
+export type BudgetPeriod = 'monthly' | 'yearly'
+export type TransactionSource = 'manual' | 'conversational'
 
 export interface Whitelist {
-  id: string;
-  email: string;
-  created_at: string;
+  id: string
+  email: string
+  created_at: string
 }
 
 export interface User {
-  id: string;
-  email: string;
-  name: string | null;
-  avatar_url: string | null;
-  preferred_currency: Currency;
-  created_at: string;
-  updated_at: string;
+  id: string
+  email: string
+  name: string | null
+  avatar_url: string | null
+  preferred_currency: Currency
+  created_at: string
+  updated_at: string
 }
 
 export interface Category {
-  id: string;
-  user_id: string | null; // null = predefined
-  name: string;
-  type: TransactionType;
-  icon: string | null;
-  color: string | null;
-  created_at: string;
+  id: string
+  user_id: string | null // null = predefined
+  name: string
+  type: TransactionType
+  icon: string | null
+  color: string | null
+  created_at: string
 }
 
 export interface Transaction {
-  id: string;
-  user_id: string;
-  amount: number;
-  currency: Currency;
-  type: TransactionType;
-  category_id: string;
-  description: string;
-  date: string; // ISO date
-  source: TransactionSource;
-  notes: string | null;
-  created_at: string;
-  updated_at: string;
+  id: string
+  user_id: string
+  amount: number
+  currency: Currency
+  type: TransactionType
+  category_id: string
+  description: string
+  date: string // ISO date
+  source: TransactionSource
+  notes: string | null
+  created_at: string
+  updated_at: string
 }
 
 export interface Budget {
-  id: string;
-  user_id: string;
-  category_id: string;
-  amount: number;
-  currency: Currency;
-  period: BudgetPeriod;
-  start_date: string; // ISO date
-  created_at: string;
+  id: string
+  user_id: string
+  category_id: string
+  amount: number
+  currency: Currency
+  period: BudgetPeriod
+  start_date: string // ISO date
+  created_at: string
 }
 
 export interface ExchangeRate {
-  id: string;
-  from_currency: Currency;
-  to_currency: Currency;
-  rate: number;
-  date: string; // ISO date
-  created_at: string;
+  id: string
+  from_currency: Currency
+  to_currency: Currency
+  rate: number
+  date: string // ISO date
+  created_at: string
 }
 
 // With relations
 export interface TransactionWithCategory extends Transaction {
-  category: Category;
+  category: Category
 }
 
 export interface BudgetWithCategory extends Budget {
-  category: Category;
+  category: Category
 }
 ```
 
@@ -495,82 +495,77 @@ gh pr merge --squash && git checkout develop && git pull && git branch -d featur
 Crear `scripts/test-database.ts`:
 
 ```typescript
-import { insforge } from "../lib/insforge";
+import { insforge } from '../lib/insforge'
 
 async function testDatabase() {
-  console.log("🔍 Testing database schema...\n");
+  console.log('🔍 Testing database schema...\n')
 
   // Test whitelist
   const { data: whitelist, error: wError } = await insforge
-    .from("whitelist")
-    .select("*")
-    .limit(1);
+    .from('whitelist')
+    .select('*')
+    .limit(1)
   console.log(
-    "Whitelist:",
-    wError ? "❌" : "✅",
+    'Whitelist:',
+    wError ? '❌' : '✅',
     whitelist?.length || 0,
-    "records",
-  );
+    'records'
+  )
 
   // Test users
   const { data: users, error: uError } = await insforge
-    .from("users")
-    .select("*")
-    .limit(1);
-  console.log("Users:", uError ? "❌" : "✅", users?.length || 0, "records");
+    .from('users')
+    .select('*')
+    .limit(1)
+  console.log('Users:', uError ? '❌' : '✅', users?.length || 0, 'records')
 
   // Test categories
   const { data: categories, error: cError } = await insforge
-    .from("categories")
-    .select("*")
-    .limit(5);
+    .from('categories')
+    .select('*')
+    .limit(5)
   console.log(
-    "Categories:",
-    cError ? "❌" : "✅",
+    'Categories:',
+    cError ? '❌' : '✅',
     categories?.length || 0,
-    "records",
-  );
+    'records'
+  )
 
   // Test transactions
   const { data: transactions, error: tError } = await insforge
-    .from("transactions")
-    .select("*")
-    .limit(1);
+    .from('transactions')
+    .select('*')
+    .limit(1)
   console.log(
-    "Transactions:",
-    tError ? "❌" : "✅",
+    'Transactions:',
+    tError ? '❌' : '✅',
     transactions?.length || 0,
-    "records",
-  );
+    'records'
+  )
 
   // Test budgets
   const { data: budgets, error: bError } = await insforge
-    .from("budgets")
-    .select("*")
-    .limit(1);
-  console.log(
-    "Budgets:",
-    bError ? "❌" : "✅",
-    budgets?.length || 0,
-    "records",
-  );
+    .from('budgets')
+    .select('*')
+    .limit(1)
+  console.log('Budgets:', bError ? '❌' : '✅', budgets?.length || 0, 'records')
 
   // Test exchange_rates
   const { data: rates, error: rError } = await insforge
-    .from("exchange_rates")
-    .select("*")
-    .limit(1);
+    .from('exchange_rates')
+    .select('*')
+    .limit(1)
   console.log(
-    "Exchange Rates:",
-    rError ? "❌" : "✅",
+    'Exchange Rates:',
+    rError ? '❌' : '✅',
     rates?.length || 0,
-    "records",
-  );
+    'records'
+  )
 
-  console.log("\n✅ Database schema test complete!");
+  console.log('\n✅ Database schema test complete!')
 }
 
-testDatabase();
+testDatabase()
 ```
 
 Ejecutar:

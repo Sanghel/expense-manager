@@ -26,8 +26,8 @@ First, ensure your `.env` file is configured with your InsForge URL and anon key
 import { createClient } from '@insforge/sdk'
 
 const insforge = createClient({
-  baseUrl: process.env.NEXT_PUBLIC_INSFORGE_URL,       // adjust prefix for your framework
-  anonKey: process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY   // adjust prefix for your framework
+  baseUrl: process.env.NEXT_PUBLIC_INSFORGE_URL, // adjust prefix for your framework
+  anonKey: process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY, // adjust prefix for your framework
 })
 ```
 
@@ -42,9 +42,7 @@ const insforge = createClient({
 // or: npx @insforge/cli db query "SELECT model_id FROM ai.configs WHERE is_active = true"
 const completion = await insforge.ai.chat.completions.create({
   model: MODEL_ID, // e.g., 'anthropic/claude-sonnet-4.5' — from metadata, NOT hardcoded
-  messages: [
-    { role: 'user', content: 'What is the capital of France?' }
-  ]
+  messages: [{ role: 'user', content: 'What is the capital of France?' }],
 })
 console.log(completion.choices[0].message.content)
 ```
@@ -56,10 +54,10 @@ const completion = await insforge.ai.chat.completions.create({
   model: MODEL_ID, // from metadata or ai.configs query
   messages: [
     { role: 'system', content: 'You are a helpful assistant.' },
-    { role: 'user', content: 'Explain quantum computing.' }
+    { role: 'user', content: 'Explain quantum computing.' },
   ],
   temperature: 0.7,
-  maxTokens: 1000
+  maxTokens: 1000,
 })
 ```
 
@@ -69,13 +67,15 @@ const completion = await insforge.ai.chat.completions.create({
 // Verify model supports image input_modality via metadata before using
 const completion = await insforge.ai.chat.completions.create({
   model: MODEL_ID, // must have 'image' in input_modality
-  messages: [{
-    role: 'user',
-    content: [
-      { type: 'text', text: 'What is in this image?' },
-      { type: 'image_url', image_url: { url: 'https://...' } }
-    ]
-  }]
+  messages: [
+    {
+      role: 'user',
+      content: [
+        { type: 'text', text: 'What is in this image?' },
+        { type: 'image_url', image_url: { url: 'https://...' } },
+      ],
+    },
+  ],
 })
 ```
 
@@ -84,15 +84,20 @@ const completion = await insforge.ai.chat.completions.create({
 ```javascript
 const completion = await insforge.ai.chat.completions.create({
   model: MODEL_ID, // from metadata or ai.configs query
-  messages: [{
-    role: 'user',
-    content: [
-      { type: 'text', text: 'Analyze this PDF' },
-      { type: 'file', file: { filename: 'doc.pdf', file_data: 'https://...' } }
-    ]
-  }],
+  messages: [
+    {
+      role: 'user',
+      content: [
+        { type: 'text', text: 'Analyze this PDF' },
+        {
+          type: 'file',
+          file: { filename: 'doc.pdf', file_data: 'https://...' },
+        },
+      ],
+    },
+  ],
   fileParser: { enabled: true },
-  webSearch: { enabled: true, maxResults: 5 }
+  webSearch: { enabled: true, maxResults: 5 },
 })
 ```
 
@@ -102,15 +107,17 @@ const completion = await insforge.ai.chat.completions.create({
 // Use embedding model_id from metadata (e.g., 'openai/text-embedding-3-small')
 const response = await insforge.ai.embeddings.create({
   model: EMBEDDING_MODEL_ID, // from metadata or ai.configs query
-  input: 'Hello world'
+  input: 'Hello world',
 })
 console.log(response.data[0].embedding) // number[]
 
 // Store in database with pgvector
-await insforge.database.from('documents').insert([{
-  content: 'Important document',
-  embedding: response.data[0].embedding
-}])
+await insforge.database.from('documents').insert([
+  {
+    content: 'Important document',
+    embedding: response.data[0].embedding,
+  },
+])
 ```
 
 ### Image Generation
@@ -120,7 +127,7 @@ await insforge.database.from('documents').insert([{
 const response = await insforge.ai.images.generate({
   model: IMAGE_MODEL_ID, // from metadata or ai.configs query
   prompt: 'A mountain landscape at sunset',
-  size: '1024x1024'
+  size: '1024x1024',
 })
 
 // Upload to storage
@@ -156,12 +163,12 @@ const { data } = await insforge.storage.from('ai-images').uploadAuto(blob)
 
 ## Common Mistakes
 
-| Mistake | Solution |
-|---------|----------|
-| ❌ Using unconfigured model IDs | ✅ Check `ai.configs` table or CLI metadata first |
+| Mistake                                      | Solution                                                      |
+| -------------------------------------------- | ------------------------------------------------------------- |
+| ❌ Using unconfigured model IDs              | ✅ Check `ai.configs` table or CLI metadata first             |
 | ❌ Hardcoding model IDs without verification | ✅ Query available models, use exact `model_id` from response |
-| ❌ Ignoring errors | ✅ Always handle `error` in response |
-| ❌ Storing base64 image data in database | ✅ Upload to storage, save URL/key to database |
+| ❌ Ignoring errors                           | ✅ Always handle `error` in response                          |
+| ❌ Storing base64 image data in database     | ✅ Upload to storage, save URL/key to database                |
 
 ## When AI Requests Fail
 

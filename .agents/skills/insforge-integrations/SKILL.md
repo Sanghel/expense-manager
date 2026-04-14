@@ -8,7 +8,7 @@ description: >-
 license: Apache-2.0
 metadata:
   author: insforge
-  version: "1.0.0"
+  version: '1.0.0'
   organization: InsForge
   date: April 2026
 ---
@@ -19,13 +19,13 @@ This skill covers integrating **third-party authentication providers** with InsF
 
 ## Supported Providers
 
-| Provider | Guide | When to use |
-|----------|-------|-------------|
-| [Clerk](references/clerk.md) | Clerk JWT Templates + InsForge RLS | Clerk signs tokens directly via JWT Template — no server-side signing needed |
-| [Auth0](references/auth0.md) | Auth0 Actions + InsForge RLS | Auth0 uses a post-login Action to embed claims into the access token |
-| [WorkOS](references/workos.md) | WorkOS AuthKit + InsForge RLS | WorkOS AuthKit middleware + server-side JWT signing with `jsonwebtoken` |
-| [Kinde](references/kinde.md) | Kinde + InsForge RLS | Kinde token customization for InsForge integration |
-| [Stytch](references/stytch.md) | Stytch + InsForge RLS | Stytch session tokens for InsForge integration |
+| Provider                       | Guide                              | When to use                                                                  |
+| ------------------------------ | ---------------------------------- | ---------------------------------------------------------------------------- |
+| [Clerk](references/clerk.md)   | Clerk JWT Templates + InsForge RLS | Clerk signs tokens directly via JWT Template — no server-side signing needed |
+| [Auth0](references/auth0.md)   | Auth0 Actions + InsForge RLS       | Auth0 uses a post-login Action to embed claims into the access token         |
+| [WorkOS](references/workos.md) | WorkOS AuthKit + InsForge RLS      | WorkOS AuthKit middleware + server-side JWT signing with `jsonwebtoken`      |
+| [Kinde](references/kinde.md)   | Kinde + InsForge RLS               | Kinde token customization for InsForge integration                           |
+| [Stytch](references/stytch.md) | Stytch + InsForge RLS              | Stytch session tokens for InsForge integration                               |
 
 ## Common Pattern
 
@@ -53,6 +53,7 @@ All integrations follow the same core pattern:
 ## Usage Examples
 
 Each provider guide includes full code examples for:
+
 - Auth provider dashboard configuration
 - InsForge client utility with `edgeFunctionToken`
 - `requesting_user_id()` SQL function and RLS policies
@@ -69,9 +70,9 @@ Refer to the specific `references/<provider>.md` file for complete examples.
 
 ## Common Mistakes
 
-| Mistake | Solution |
-|---------|----------|
-| Using `auth.uid()` for RLS | Use `requesting_user_id()` — third-party IDs are strings, not UUIDs |
-| Using UUID columns for `user_id` | Use `TEXT` — all supported providers use string-format IDs |
-| Hardcoding the JWT secret | Always retrieve via `npx @insforge/cli secrets get JWT_SECRET` |
-| Missing `requesting_user_id()` function | Must be created before RLS policies will work |
+| Mistake                                 | Solution                                                            |
+| --------------------------------------- | ------------------------------------------------------------------- |
+| Using `auth.uid()` for RLS              | Use `requesting_user_id()` — third-party IDs are strings, not UUIDs |
+| Using UUID columns for `user_id`        | Use `TEXT` — all supported providers use string-format IDs          |
+| Hardcoding the JWT secret               | Always retrieve via `npx @insforge/cli secrets get JWT_SECRET`      |
+| Missing `requesting_user_id()` function | Must be created before RLS policies will work                       |

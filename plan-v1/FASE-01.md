@@ -228,7 +228,7 @@ export default function Home() {
         Sistema de gestión de finanzas personales
       </p>
     </main>
-  );
+  )
 }
 ```
 

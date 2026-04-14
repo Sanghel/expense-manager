@@ -12,11 +12,11 @@ Row Level Security (RLS) provides defense-in-depth for data isolation. When impl
 
 InsForge uses two built-in PostgreSQL roles:
 
-| Role | Description | When active |
-|------|-------------|-------------|
-| `anon` | Unauthenticated users | No valid session token |
-| `authenticated` | Logged-in users | Valid session token present |
-| `project_admin` | Project admin | Only used for admin tasks |
+| Role            | Description           | When active                 |
+| --------------- | --------------------- | --------------------------- |
+| `anon`          | Unauthenticated users | No valid session token      |
+| `authenticated` | Logged-in users       | Valid session token present |
+| `project_admin` | Project admin         | Only used for admin tasks   |
 
 The current user's ID is available via `auth.uid()`. All user foreign keys should reference `auth.users(id)`.
 
@@ -76,6 +76,7 @@ companies → is_company_member() → queries company_memberships
 ```
 
 **How to detect:**
+
 - Database connection hangs, then the server crashes
 - PostgreSQL logs show `SIGKILL` or out-of-memory errors
 - `EXPLAIN` on the query runs forever
@@ -107,6 +108,7 @@ $$ LANGUAGE sql STABLE SECURITY DEFINER;
 **Rule: Any helper function called from an RLS policy MUST be `SECURITY DEFINER`** if it queries tables that also have RLS enabled.
 
 **Checklist:**
+
 - [ ] Map all RLS policy → function → table dependencies
 - [ ] Every helper function that queries RLS-enabled tables is `SECURITY DEFINER`
 - [ ] No circular chains: table A RLS → table B RLS → table A RLS
@@ -129,6 +131,7 @@ CREATE POLICY "owner access" ON posts
 ```
 
 **Checklist:**
+
 - [ ] INSERT/UPDATE policies always include `WITH CHECK`
 - [ ] `FOR ALL` policies include both `USING` and `WITH CHECK`
 
@@ -147,6 +150,7 @@ CREATE POLICY "tenant isolation" ON orders
 ```
 
 **Checklist:**
+
 - [ ] Audit all policies per table — they combine with OR
 - [ ] No `USING (true)` on sensitive tables unless intentional (e.g., public blog posts)
 

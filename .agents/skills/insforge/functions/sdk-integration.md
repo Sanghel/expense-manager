@@ -10,8 +10,8 @@ First, ensure your `.env` file is configured with your InsForge URL and anon key
 import { createClient } from '@insforge/sdk'
 
 const insforge = createClient({
-  baseUrl: process.env.NEXT_PUBLIC_INSFORGE_URL,       // adjust prefix for your framework
-  anonKey: process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY   // adjust prefix for your framework
+  baseUrl: process.env.NEXT_PUBLIC_INSFORGE_URL, // adjust prefix for your framework
+  anonKey: process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY, // adjust prefix for your framework
 })
 ```
 
@@ -20,19 +20,19 @@ const insforge = createClient({
 ```javascript
 // POST with body (default)
 const { data, error } = await insforge.functions.invoke('hello-world', {
-  body: { name: 'World' }
+  body: { name: 'World' },
 })
 
 // GET request
 const { data, error } = await insforge.functions.invoke('get-stats', {
-  method: 'GET'
+  method: 'GET',
 })
 
 // With custom headers
 const { data, error } = await insforge.functions.invoke('api-endpoint', {
   method: 'PUT',
   body: { id: '123', status: 'active' },
-  headers: { 'X-Custom-Header': 'value' }
+  headers: { 'X-Custom-Header': 'value' },
 })
 ```
 
@@ -57,11 +57,11 @@ const { data, error } = await insforge.functions.invoke('api-endpoint', {
 
 ## Common Mistakes
 
-| Mistake | Solution |
-|---------|----------|
-| ❌ Invoking without checking function exists | ✅ Verify function via admin API first |
-| ❌ Invoking a draft function | ✅ Ensure function status is `"active"` |
-| ❌ Ignoring errors | ✅ Always handle `error` in response |
+| Mistake                                      | Solution                                |
+| -------------------------------------------- | --------------------------------------- |
+| ❌ Invoking without checking function exists | ✅ Verify function via admin API first  |
+| ❌ Invoking a draft function                 | ✅ Ensure function status is `"active"` |
+| ❌ Ignoring errors                           | ✅ Always handle `error` in response    |
 
 ## Recommended Workflow
 

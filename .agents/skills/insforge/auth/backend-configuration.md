@@ -5,6 +5,7 @@ HTTP endpoints to configure auth settings and manage users. Requires admin authe
 ## Authentication
 
 All admin endpoints require:
+
 ```
 Authorization: Bearer {admin-token-or-api-key}
 ```
@@ -14,16 +15,19 @@ Authorization: Bearer {admin-token-or-api-key}
 Check current auth settings and enabled OAuth providers before implementing authentication flows.
 
 **Preferred**: Use the CLI to get all backend metadata (includes auth config):
+
 ```bash
 insforge metadata --json
 ```
 
 Alternatively, this is a **public endpoint** (no auth required):
+
 ```
 GET /api/auth/public-config
 ```
 
 Response example:
+
 ```json
 {
   "requireEmailVerification": true,
@@ -36,14 +40,15 @@ Response example:
 
 ### Key Configuration Fields
 
-| Field | Description |
-|-------|-------------|
-| `requireEmailVerification` | If `true`, users must verify email before accessing the app |
-| `verifyEmailMethod` | `"code"` = user enters a 6-digit code; `"link"` = backend emails a link that verifies on the backend first, then redirects to your app |
-| `resetPasswordMethod` | `"code"` = user enters a code; `"link"` = backend emails a link that validates on the backend first, then redirects to your app |
-| `oAuthProviders` | Array of enabled OAuth provider names (only enabled providers are listed) |
+| Field                      | Description                                                                                                                            |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `requireEmailVerification` | If `true`, users must verify email before accessing the app                                                                            |
+| `verifyEmailMethod`        | `"code"` = user enters a 6-digit code; `"link"` = backend emails a link that verifies on the backend first, then redirects to your app |
+| `resetPasswordMethod`      | `"code"` = user enters a code; `"link"` = backend emails a link that validates on the backend first, then redirects to your app        |
+| `oAuthProviders`           | Array of enabled OAuth provider names (only enabled providers are listed)                                                              |
 
 When either method is `link`, the app passes `redirectTo` per request with the SDK:
+
 - use your app's sign-in page for email verification
 - use your app's dedicated reset-password page for password reset
 
@@ -67,12 +72,12 @@ Content-Type: application/json
 
 ### Configuration Options
 
-| Option | Values | Description |
-|--------|--------|-------------|
-| `requireEmailVerification` | `true/false` | Require email verification before login |
-| `passwordMinLength` | number | Minimum password length |
-| `verifyEmailMethod` | `"code"`, `"link"` | Email verification method |
-| `resetPasswordMethod` | `"code"`, `"link"` | Password reset method |
+| Option                     | Values             | Description                             |
+| -------------------------- | ------------------ | --------------------------------------- |
+| `requireEmailVerification` | `true/false`       | Require email verification before login |
+| `passwordMinLength`        | number             | Minimum password length                 |
+| `verifyEmailMethod`        | `"code"`, `"link"` | Email verification method               |
+| `resetPasswordMethod`      | `"code"`, `"link"` | Password reset method                   |
 
 ## List Users
 
@@ -82,6 +87,7 @@ Authorization: Bearer {admin-token}
 ```
 
 Query parameters:
+
 - `offset`: Pagination offset
 - `limit`: Number of results
 - `search`: Search by name or email
@@ -108,6 +114,7 @@ Authorization: Bearer {admin-token}
 ```
 
 Response:
+
 ```json
 {
   "anonKey": "eyJhbGciOiJIUzI1NiIs..."
@@ -116,13 +123,13 @@ Response:
 
 ## Quick Reference
 
-| Task | Endpoint |
-|------|----------|
+| Task                                    | Endpoint                      |
+| --------------------------------------- | ----------------------------- |
 | Get public auth config (includes OAuth) | `GET /api/auth/public-config` |
-| Update auth settings (admin) | `PUT /api/auth/config` |
-| List users (admin) | `GET /api/auth/users` |
-| Delete users (admin) | `DELETE /api/auth/users` |
-| Generate anon token (admin) | `POST /api/auth/tokens/anon` |
+| Update auth settings (admin)            | `PUT /api/auth/config`        |
+| List users (admin)                      | `GET /api/auth/users`         |
+| Delete users (admin)                    | `DELETE /api/auth/users`      |
+| Generate anon token (admin)             | `POST /api/auth/tokens/anon`  |
 
 ---
 
@@ -144,12 +151,12 @@ Response:
 
 ## Common Mistakes
 
-| Mistake | Solution |
-|---------|----------|
+| Mistake                                                    | Solution                                                         |
+| ---------------------------------------------------------- | ---------------------------------------------------------------- |
 | Implementing OAuth without checking if provider is enabled | Check `oAuthProviders` array - only listed providers are enabled |
-| Building wrong verification UI | Check `verifyEmailMethod` - code vs link |
-| Skipping email verification flow | Check `requireEmailVerification` flag |
-| Assuming all OAuth providers are available | Only providers in `oAuthProviders` array are configured |
+| Building wrong verification UI                             | Check `verifyEmailMethod` - code vs link                         |
+| Skipping email verification flow                           | Check `requireEmailVerification` flag                            |
+| Assuming all OAuth providers are available                 | Only providers in `oAuthProviders` array are configured          |
 
 ## Recommended Workflow
 

@@ -10,8 +10,8 @@ First, ensure your `.env` file is configured with your InsForge URL and anon key
 import { createClient } from '@insforge/sdk'
 
 const insforge = createClient({
-  baseUrl: process.env.NEXT_PUBLIC_INSFORGE_URL,       // adjust prefix for your framework
-  anonKey: process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY   // adjust prefix for your framework
+  baseUrl: process.env.NEXT_PUBLIC_INSFORGE_URL, // adjust prefix for your framework
+  anonKey: process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY, // adjust prefix for your framework
 })
 ```
 
@@ -55,7 +55,7 @@ insforge.realtime.off('status_changed', handler)
 // Must be subscribed to channel first
 await insforge.realtime.publish('chat:room-1', 'new_message', {
   text: 'Hello!',
-  sender: 'Alice'
+  sender: 'Alice',
 })
 ```
 
@@ -70,9 +70,13 @@ insforge.realtime.disconnect()
 
 ```javascript
 insforge.realtime.on('connect', () => console.log('Connected'))
-insforge.realtime.on('disconnect', (reason) => console.log('Disconnected:', reason))
+insforge.realtime.on('disconnect', (reason) =>
+  console.log('Disconnected:', reason)
+)
 insforge.realtime.on('connect_error', (err) => console.error('Error:', err))
-insforge.realtime.on('error', ({ code, message }) => console.error(code, message))
+insforge.realtime.on('error', ({ code, message }) =>
+  console.error(code, message)
+)
 ```
 
 Error codes: `UNAUTHORIZED`, `NOT_SUBSCRIBED`, `INTERNAL_ERROR`
@@ -80,9 +84,9 @@ Error codes: `UNAUTHORIZED`, `NOT_SUBSCRIBED`, `INTERNAL_ERROR`
 ## Properties
 
 ```javascript
-insforge.realtime.isConnected           // boolean
-insforge.realtime.connectionState       // 'disconnected' | 'connecting' | 'connected'
-insforge.realtime.socketId              // string
+insforge.realtime.isConnected // boolean
+insforge.realtime.connectionState // 'disconnected' | 'connecting' | 'connected'
+insforge.realtime.socketId // string
 insforge.realtime.getSubscribedChannels() // string[]
 ```
 
@@ -115,7 +119,7 @@ insforge.realtime.on('status_changed', (payload) => {
 
 // Client can also publish
 await insforge.realtime.publish(`order:${orderId}`, 'viewed', {
-  viewedAt: new Date().toISOString()
+  viewedAt: new Date().toISOString(),
 })
 ```
 
@@ -137,12 +141,12 @@ await insforge.realtime.publish(`order:${orderId}`, 'viewed', {
 
 ## Common Mistakes
 
-| Mistake | Solution |
-|---------|----------|
-| ❌ Subscribing without channel pattern configured | ✅ Create channel pattern in backend first |
-| ❌ Not handling connection errors | ✅ Listen for `connect_error` and `disconnect` events |
-| ❌ Forgetting to unsubscribe | ✅ Clean up subscriptions on component unmount |
-| ❌ Publishing without subscribing | ✅ Subscribe to channel before publishing |
+| Mistake                                           | Solution                                              |
+| ------------------------------------------------- | ----------------------------------------------------- |
+| ❌ Subscribing without channel pattern configured | ✅ Create channel pattern in backend first            |
+| ❌ Not handling connection errors                 | ✅ Listen for `connect_error` and `disconnect` events |
+| ❌ Forgetting to unsubscribe                      | ✅ Clean up subscriptions on component unmount        |
+| ❌ Publishing without subscribing                 | ✅ Subscribe to channel before publishing             |
 
 ## Recommended Workflow
 

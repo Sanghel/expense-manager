@@ -1,4 +1,3 @@
-
 # InsForge + Auth0 Integration Guide
 
 Auth0 signs an InsForge-compatible JWT inside a **Post Login Action**, embeds it as a custom claim on the ID token, and the Next.js app extracts it to pass to the InsForge client as `edgeFunctionToken`. InsForge validates the token and uses the `sub` claim for Row Level Security.
@@ -25,12 +24,14 @@ Auth0 signs an InsForge-compatible JWT inside a **Post Login Action**, embeds it
 ## Dashboard setup (manual, cannot be automated)
 
 ### Auth0 Application
+
 - Create a **Regular Web Application** in Auth0 Dashboard > Applications
 - Set **Allowed Callback URLs** to `http://localhost:3000/auth/callback`
 - Set **Allowed Logout URLs** to `http://localhost:3000`
 - Note down **Domain**, **Client ID**, **Client Secret**
 
 ### Auth0 Post Login Action
+
 - Create in Auth0 Dashboard > Actions > Library > Build Custom
 - Name: `Generate InsForge Token`, trigger: **Post Login**
 - Add `jsonwebtoken` as a dependency in the action editor
@@ -38,6 +39,7 @@ Auth0 signs an InsForge-compatible JWT inside a **Post Login Action**, embeds it
 - Deploy the action and drag it into the **post-login** trigger flow
 
 ### InsForge Project
+
 - Create via `npx @insforge/cli create` or link via `npx @insforge/cli link --project-id <id>`
 - Get the JWT secret via CLI: `npx @insforge/cli secrets get JWT_SECRET`
 - Note down **URL** and **Anon Key** from InsForge, then store the CLI value in Auth0 as `INSFORGE_JWT_SECRET`
@@ -47,7 +49,7 @@ Auth0 signs an InsForge-compatible JWT inside a **Post Login Action**, embeds it
 This code runs in Auth0's environment (not your app). The action must sign a JWT with the InsForge secret and attach it as a namespaced custom claim on the ID token.
 
 ```javascript
-const jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken')
 
 exports.onExecutePostLogin = async (event, api) => {
   const insforgeToken = jwt.sign(
@@ -59,10 +61,13 @@ exports.onExecutePostLogin = async (event, api) => {
     },
     event.secrets.INSFORGE_JWT_SECRET,
     { expiresIn: '1h' }
-  );
+  )
 
-  api.idToken.setCustomClaim('https://insforge.dev/insforge_token', insforgeToken);
-};
+  api.idToken.setCustomClaim(
+    'https://insforge.dev/insforge_token',
+    insforgeToken
+  )
+}
 ```
 
 ## Auth0 v4 SDK — `beforeSessionSaved`
@@ -75,14 +80,15 @@ Auth0 v4 SDK **filters out custom claims** from the ID token by default. You **m
 // lib/auth0.ts
 beforeSessionSaved: async (session, idToken) => {
   if (idToken) {
-    const parts = idToken.split(".");
-    const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString());
-    const insforgeToken = payload["https://insforge.dev/insforge_token"];
+    const parts = idToken.split('.')
+    const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString())
+    const insforgeToken = payload['https://insforge.dev/insforge_token']
     if (insforgeToken) {
-      (session.user ??= {})["https://insforge.dev/insforge_token"] = insforgeToken;
+      ;(session.user ??= {})['https://insforge.dev/insforge_token'] =
+        insforgeToken
     }
   }
-  return session;
+  return session
 }
 ```
 
@@ -94,13 +100,13 @@ beforeSessionSaved: async (session, idToken) => {
 
 ```typescript
 // middleware.ts
-import { auth0 } from "@/lib/auth0";
+import { auth0 } from '@/lib/auth0'
 
-export const middleware = auth0.middleware();
+export const middleware = auth0.middleware()
 
 export const config = {
-  matcher: ["/auth/:path*", "/protected/:path*"],
-};
+  matcher: ['/auth/:path*', '/protected/:path*'],
+}
 ```
 
 ## Layout
@@ -127,17 +133,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 ```typescript
 // lib/insforge.ts
-import { createClient } from '@insforge/sdk';
-import { auth0 } from '@/lib/auth0';
+import { createClient } from '@insforge/sdk'
+import { auth0 } from '@/lib/auth0'
 
 export async function createInsForgeClient() {
-  const session = await auth0.getSession();
-  const insforgeToken = session?.user?.["https://insforge.dev/insforge_token"];
+  const session = await auth0.getSession()
+  const insforgeToken = session?.user?.['https://insforge.dev/insforge_token']
 
   return createClient({
     baseUrl: process.env.NEXT_PUBLIC_INSFORGE_URL,
     edgeFunctionToken: insforgeToken,
-  });
+  })
 }
 ```
 
@@ -162,22 +168,22 @@ $$;
 
 ## Environment variables
 
-| Variable | Source |
-|----------|--------|
-| `AUTH0_SECRET` | Generate with `openssl rand -hex 32` |
-| `APP_BASE_URL` | `http://localhost:3000` |
-| `AUTH0_DOMAIN` | Auth0 Dashboard |
-| `AUTH0_CLIENT_ID` | Auth0 Dashboard |
-| `AUTH0_CLIENT_SECRET` | Auth0 Dashboard |
-| `NEXT_PUBLIC_INSFORGE_URL` | InsForge Dashboard |
-| `NEXT_PUBLIC_INSFORGE_ANON_KEY` | InsForge Dashboard |
-| `INSFORGE_JWT_SECRET` | InsForge CLI (`npx @insforge/cli secrets get JWT_SECRET`) |
+| Variable                        | Source                                                    |
+| ------------------------------- | --------------------------------------------------------- |
+| `AUTH0_SECRET`                  | Generate with `openssl rand -hex 32`                      |
+| `APP_BASE_URL`                  | `http://localhost:3000`                                   |
+| `AUTH0_DOMAIN`                  | Auth0 Dashboard                                           |
+| `AUTH0_CLIENT_ID`               | Auth0 Dashboard                                           |
+| `AUTH0_CLIENT_SECRET`           | Auth0 Dashboard                                           |
+| `NEXT_PUBLIC_INSFORGE_URL`      | InsForge Dashboard                                        |
+| `NEXT_PUBLIC_INSFORGE_ANON_KEY` | InsForge Dashboard                                        |
+| `INSFORGE_JWT_SECRET`           | InsForge CLI (`npx @insforge/cli secrets get JWT_SECRET`) |
 
 ## Common Mistakes
 
-| Mistake | Solution |
-|---------|----------|
-| ❌ Forgetting `beforeSessionSaved` | ✅ Always configure it — without it the InsForge token is silently dropped |
-| ❌ Treating `idToken` as a decoded object | ✅ It's a raw JWT string — split and base64url-decode the payload |
-| ❌ Using `auth.uid()` for RLS policies | ✅ Use `requesting_user_id()` — Auth0 IDs are strings, not UUIDs |
-| ❌ Creating `app/api/auth/[auth0]/route.js` | ✅ Not needed in v4 — `auth0.middleware()` handles it |
+| Mistake                                     | Solution                                                                   |
+| ------------------------------------------- | -------------------------------------------------------------------------- |
+| ❌ Forgetting `beforeSessionSaved`          | ✅ Always configure it — without it the InsForge token is silently dropped |
+| ❌ Treating `idToken` as a decoded object   | ✅ It's a raw JWT string — split and base64url-decode the payload          |
+| ❌ Using `auth.uid()` for RLS policies      | ✅ Use `requesting_user_id()` — Auth0 IDs are strings, not UUIDs           |
+| ❌ Creating `app/api/auth/[auth0]/route.js` | ✅ Not needed in v4 — `auth0.middleware()` handles it                      |

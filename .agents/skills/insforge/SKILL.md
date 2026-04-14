@@ -5,7 +5,7 @@ description: >-
 license: MIT
 metadata:
   author: insforge
-  version: "1.1.0"
+  version: '1.1.0'
   organization: InsForge
   date: February 2026
 ---
@@ -32,6 +32,7 @@ Before using the SDK, create a `.env` file (or `.env.local` for Next.js) in your
    - If it doesn't exist, run `npx @insforge/cli link` (existing project) or `npx @insforge/cli create` (new project) to generate it.
 
 2. **Get the anon key** via the CLI:
+
    ```bash
    npx @insforge/cli secrets get ANON_KEY
    ```
@@ -42,16 +43,17 @@ Before using the SDK, create a `.env` file (or `.env.local` for Next.js) in your
 
 Use the correct environment variable prefix and access pattern for your framework:
 
-| Framework | `.env` file | Variables | Access Pattern |
-|-----------|-------------|-----------|----------------|
-| **Next.js** | `.env.local` | `NEXT_PUBLIC_INSFORGE_URL`, `NEXT_PUBLIC_INSFORGE_ANON_KEY` | `process.env.NEXT_PUBLIC_*` |
-| **Vite** (React, Vue, Svelte) | `.env` | `VITE_INSFORGE_URL`, `VITE_INSFORGE_ANON_KEY` | `import.meta.env.VITE_*` |
-| **Astro** | `.env` | `PUBLIC_INSFORGE_URL`, `PUBLIC_INSFORGE_ANON_KEY` | `import.meta.env.PUBLIC_*` |
-| **SvelteKit** | `.env` | `PUBLIC_INSFORGE_URL`, `PUBLIC_INSFORGE_ANON_KEY` | `import { env } from '$env/dynamic/public'` |
-| **Create React App** | `.env` | `REACT_APP_INSFORGE_URL`, `REACT_APP_INSFORGE_ANON_KEY` | `process.env.REACT_APP_*` |
-| **Node.js / Server** | `.env` | `INSFORGE_URL`, `INSFORGE_ANON_KEY` | `process.env.*` |
+| Framework                     | `.env` file  | Variables                                                   | Access Pattern                              |
+| ----------------------------- | ------------ | ----------------------------------------------------------- | ------------------------------------------- |
+| **Next.js**                   | `.env.local` | `NEXT_PUBLIC_INSFORGE_URL`, `NEXT_PUBLIC_INSFORGE_ANON_KEY` | `process.env.NEXT_PUBLIC_*`                 |
+| **Vite** (React, Vue, Svelte) | `.env`       | `VITE_INSFORGE_URL`, `VITE_INSFORGE_ANON_KEY`               | `import.meta.env.VITE_*`                    |
+| **Astro**                     | `.env`       | `PUBLIC_INSFORGE_URL`, `PUBLIC_INSFORGE_ANON_KEY`           | `import.meta.env.PUBLIC_*`                  |
+| **SvelteKit**                 | `.env`       | `PUBLIC_INSFORGE_URL`, `PUBLIC_INSFORGE_ANON_KEY`           | `import { env } from '$env/dynamic/public'` |
+| **Create React App**          | `.env`       | `REACT_APP_INSFORGE_URL`, `REACT_APP_INSFORGE_ANON_KEY`     | `process.env.REACT_APP_*`                   |
+| **Node.js / Server**          | `.env`       | `INSFORGE_URL`, `INSFORGE_ANON_KEY`                         | `process.env.*`                             |
 
 Example `.env.local` for Next.js:
+
 ```bash
 NEXT_PUBLIC_INSFORGE_URL=https://your-appkey.us-east.insforge.app
 NEXT_PUBLIC_INSFORGE_ANON_KEY=eyJhbGciOiJIUzI1NiIs...
@@ -67,42 +69,42 @@ import { createClient } from '@insforge/sdk'
 // Next.js / CRA: use process.env
 const insforge = createClient({
   baseUrl: process.env.NEXT_PUBLIC_INSFORGE_URL,
-  anonKey: process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY
+  anonKey: process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY,
 })
 
 // Vite / Astro: use import.meta.env
 const insforge = createClient({
   baseUrl: import.meta.env.VITE_INSFORGE_URL,
-  anonKey: import.meta.env.VITE_INSFORGE_ANON_KEY
+  anonKey: import.meta.env.VITE_INSFORGE_ANON_KEY,
 })
 ```
 
 ## Module Reference
 
-| Module | SDK Integration |
-|--------|-----------------|
-| **Database** | [database/sdk-integration.md](database/sdk-integration.md) |
-| **Auth** | [auth/sdk-integration.md](auth/sdk-integration.md) |
-| **Storage** | [storage/sdk-integration.md](storage/sdk-integration.md) |
+| Module        | SDK Integration                                              |
+| ------------- | ------------------------------------------------------------ |
+| **Database**  | [database/sdk-integration.md](database/sdk-integration.md)   |
+| **Auth**      | [auth/sdk-integration.md](auth/sdk-integration.md)           |
+| **Storage**   | [storage/sdk-integration.md](storage/sdk-integration.md)     |
 | **Functions** | [functions/sdk-integration.md](functions/sdk-integration.md) |
-| **AI** | [ai/sdk-integration.md](ai/sdk-integration.md) |
-| **Real-time** | [realtime/sdk-integration.md](realtime/sdk-integration.md) |
+| **AI**        | [ai/sdk-integration.md](ai/sdk-integration.md)               |
+| **Real-time** | [realtime/sdk-integration.md](realtime/sdk-integration.md)   |
 
 ### What Each Module Covers
 
-| Module | Content |
-|--------|---------|
-| **Database** | CRUD operations, filters, pagination, RPC calls |
-| **Auth** | Sign up/in, OAuth, sessions, profiles, password reset |
-| **Storage** | Upload, download, delete files |
-| **Functions** | Invoke edge functions |
-| **AI** | Chat completions, image generation, embeddings |
-| **Real-time** | Connect, subscribe, publish events |
+| Module        | Content                                               |
+| ------------- | ----------------------------------------------------- |
+| **Database**  | CRUD operations, filters, pagination, RPC calls       |
+| **Auth**      | Sign up/in, OAuth, sessions, profiles, password reset |
+| **Storage**   | Upload, download, delete files                        |
+| **Functions** | Invoke edge functions                                 |
+| **AI**        | Chat completions, image generation, embeddings        |
+| **Real-time** | Connect, subscribe, publish events                    |
 
 ### Guides
 
-| Guide | When to Use |
-|-------|-------------|
+| Guide                                                | When to Use                                                                                                                                               |
+| ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [database/postgres-rls.md](database/postgres-rls.md) | Writing or reviewing RLS policies — covers infinite recursion prevention, `SECURITY DEFINER` patterns, performance tips, and common InsForge RLS patterns |
 
 ### Real-time Configuration
@@ -205,13 +207,12 @@ WITH CHECK (
 
 - **Quick Reference**
 
-| Task | SQL |
-|------|-----|
-| Create channel | `INSERT INTO realtime.channels (pattern, description, enabled) VALUES (...)` |
-| Create trigger | `CREATE TRIGGER ... EXECUTE FUNCTION ...` |
-| Publish from SQL | `PERFORM realtime.publish(channel, event, payload)` |
-| Enable RLS | `ALTER TABLE realtime.channels ENABLE ROW LEVEL SECURITY` |
-
+| Task             | SQL                                                                          |
+| ---------------- | ---------------------------------------------------------------------------- |
+| Create channel   | `INSERT INTO realtime.channels (pattern, description, enabled) VALUES (...)` |
+| Create trigger   | `CREATE TRIGGER ... EXECUTE FUNCTION ...`                                    |
+| Publish from SQL | `PERFORM realtime.publish(channel, event, payload)`                          |
+| Enable RLS       | `ALTER TABLE realtime.channels ENABLE ROW LEVEL SECURITY`                    |
 
 #### Best Practices
 
@@ -225,11 +226,11 @@ WITH CHECK (
 
 #### Common Mistakes
 
-| Mistake | Solution |
-|---------|----------|
+| Mistake                                  | Solution                                            |
+| ---------------------------------------- | --------------------------------------------------- |
 | Subscribing to undefined channel pattern | Create channel pattern in `realtime.channels` first |
-| Channel not receiving messages | Ensure channel `enabled` is `true` |
-| Publishing without trigger | Create database trigger to auto-publish on changes |
+| Channel not receiving messages           | Ensure channel `enabled` is `true`                  |
+| Publishing without trigger               | Create database trigger to auto-publish on changes  |
 
 #### Recommended Workflow
 
@@ -244,23 +245,23 @@ WITH CHECK (
 
 These modules still require HTTP API calls because the CLI does not yet support them:
 
-| Module | Backend Configuration |
-|--------|----------------------|
+| Module   | Backend Configuration                                          |
+| -------- | -------------------------------------------------------------- |
 | **Auth** | [auth/backend-configuration.md](auth/backend-configuration.md) |
-| **AI** | [ai/backend-configuration.md](ai/backend-configuration.md) |
+| **AI**   | [ai/backend-configuration.md](ai/backend-configuration.md)     |
 
 ## SDK Quick Reference
 
 All SDK methods return `{ data, error }`.
 
-| Module | Methods |
-|--------|---------|
-| `insforge.database` | `.from().select()`, `.insert()`, `.update()`, `.delete()`, `.rpc()` |
-| `insforge.auth` | `.signUp()`, `.signInWithPassword()`, `.signInWithOAuth()`, `.signOut()`, `.getCurrentUser()` |
-| `insforge.storage` | `.from().upload()`, `.uploadAuto()`, `.download()`, `.remove()` |
-| `insforge.functions` | `.invoke()` |
-| `insforge.ai` | `.chat.completions.create()`, `.images.generate()`, `.embeddings.create()` |
-| `insforge.realtime` | `.connect()`, `.subscribe()`, `.publish()`, `.on()`, `.disconnect()` |
+| Module               | Methods                                                                                       |
+| -------------------- | --------------------------------------------------------------------------------------------- |
+| `insforge.database`  | `.from().select()`, `.insert()`, `.update()`, `.delete()`, `.rpc()`                           |
+| `insforge.auth`      | `.signUp()`, `.signInWithPassword()`, `.signInWithOAuth()`, `.signOut()`, `.getCurrentUser()` |
+| `insforge.storage`   | `.from().upload()`, `.uploadAuto()`, `.download()`, `.remove()`                               |
+| `insforge.functions` | `.invoke()`                                                                                   |
+| `insforge.ai`        | `.chat.completions.create()`, `.images.generate()`, `.embeddings.create()`                    |
+| `insforge.realtime`  | `.connect()`, `.subscribe()`, `.publish()`, `.on()`, `.disconnect()`                          |
 
 ## Important Notes
 

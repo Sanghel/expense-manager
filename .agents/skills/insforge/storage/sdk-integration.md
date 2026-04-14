@@ -10,8 +10,8 @@ First, ensure your `.env` file is configured with your InsForge URL and anon key
 import { createClient } from '@insforge/sdk'
 
 const insforge = createClient({
-  baseUrl: process.env.NEXT_PUBLIC_INSFORGE_URL,       // adjust prefix for your framework
-  anonKey: process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY   // adjust prefix for your framework
+  baseUrl: process.env.NEXT_PUBLIC_INSFORGE_URL, // adjust prefix for your framework
+  anonKey: process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY, // adjust prefix for your framework
 })
 ```
 
@@ -29,7 +29,7 @@ await insforge.database
   .from('posts')
   .update({
     image_url: data.url,
-    image_key: data.key  // Required for download/delete
+    image_key: data.key, // Required for download/delete
   })
   .eq('id', 'post-123')
 ```
@@ -96,11 +96,11 @@ await insforge.database
 
 ## Common Mistakes
 
-| Mistake | Solution |
-|---------|----------|
-| ❌ Uploading without checking bucket exists | ✅ Verify bucket via admin API first |
-| ❌ Only saving URL, not key | ✅ Save both `data.url` and `data.key` to database |
-| ❌ Using URL for download/delete | ✅ Use the stored `key` for these operations |
+| Mistake                                     | Solution                                           |
+| ------------------------------------------- | -------------------------------------------------- |
+| ❌ Uploading without checking bucket exists | ✅ Verify bucket via admin API first               |
+| ❌ Only saving URL, not key                 | ✅ Save both `data.url` and `data.key` to database |
+| ❌ Using URL for download/delete            | ✅ Use the stored `key` for these operations       |
 
 ## Recommended Workflow
 

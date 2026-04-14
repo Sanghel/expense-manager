@@ -1,4 +1,3 @@
-
 # InsForge + Clerk Integration Guide
 
 Clerk signs tokens with InsForge's JWT secret directly via a **JWT Template** — no server-side signing needed. The app calls `getToken({ template: 'insforge' })` and passes the result to the InsForge client as `edgeFunctionToken`.
@@ -23,10 +22,12 @@ Clerk signs tokens with InsForge's JWT secret directly via a **JWT Template** �
 ## Dashboard setup (manual, cannot be automated)
 
 ### Clerk Application
+
 - Create an application in Clerk Dashboard
 - Note down **Publishable Key** and **Secret Key**
 
 ### Clerk JWT Template
+
 - Create in Clerk Dashboard > Configure > JWT Templates > New template > Blank
 - Name: `insforge`
 - Signing algorithm: `HS256`
@@ -35,6 +36,7 @@ Clerk signs tokens with InsForge's JWT secret directly via a **JWT Template** �
 - Do NOT add `sub` or `iss` — they are reserved and auto-included
 
 ### InsForge Project
+
 - Create via `npx @insforge/cli create` or link via `npx @insforge/cli link --project-id <id>`
 - Get the JWT secret via CLI: `npx @insforge/cli secrets get JWT_SECRET`
 - Note down **URL** and **Anon Key** from InsForge, then use the CLI output as the signing key in Clerk
@@ -48,18 +50,18 @@ Clerk signs tokens with InsForge's JWT secret directly via a **JWT Template** �
 - Next.js: use `@clerk/nextjs`, env vars prefixed with `NEXT_PUBLIC_`
 
 ```javascript
-import { createClient } from '@insforge/sdk';
-import { useAuth } from '@clerk/clerk-react';
+import { createClient } from '@insforge/sdk'
+import { useAuth } from '@clerk/clerk-react'
 
-const { getToken } = useAuth();
+const { getToken } = useAuth()
 
 const insforge = createClient({
   baseUrl: 'YOUR_INSFORGE_URL',
   edgeFunctionToken: async () => {
-    const token = await getToken({ template: 'insforge' });
-    return token;
+    const token = await getToken({ template: 'insforge' })
+    return token
   },
-});
+})
 ```
 
 ## Database setup
@@ -83,20 +85,20 @@ $$;
 
 ## Environment variables
 
-| Variable | Source | Framework |
-|----------|--------|-----------|
-| `VITE_CLERK_PUBLISHABLE_KEY` | Clerk Dashboard | React + Vite |
-| `VITE_INSFORGE_BASE_URL` | InsForge Dashboard | React + Vite |
-| `VITE_INSFORGE_ANON_KEY` | InsForge Dashboard | React + Vite |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk Dashboard | Next.js |
-| `CLERK_SECRET_KEY` | Clerk Dashboard | Next.js |
-| `NEXT_PUBLIC_INSFORGE_URL` | InsForge Dashboard | Next.js |
-| `NEXT_PUBLIC_INSFORGE_ANON_KEY` | InsForge Dashboard | Next.js |
+| Variable                            | Source             | Framework    |
+| ----------------------------------- | ------------------ | ------------ |
+| `VITE_CLERK_PUBLISHABLE_KEY`        | Clerk Dashboard    | React + Vite |
+| `VITE_INSFORGE_BASE_URL`            | InsForge Dashboard | React + Vite |
+| `VITE_INSFORGE_ANON_KEY`            | InsForge Dashboard | React + Vite |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk Dashboard    | Next.js      |
+| `CLERK_SECRET_KEY`                  | Clerk Dashboard    | Next.js      |
+| `NEXT_PUBLIC_INSFORGE_URL`          | InsForge Dashboard | Next.js      |
+| `NEXT_PUBLIC_INSFORGE_ANON_KEY`     | InsForge Dashboard | Next.js      |
 
 ## Common Mistakes
 
-| Mistake | Solution |
-|---------|----------|
-| ❌ Passing the token as a string | ✅ Pass an async function — ensures token refresh on expiry |
-| ❌ Adding `sub` or `iss` to the JWT template | ✅ These are reserved claims, auto-included by Clerk |
-| ❌ Using `auth.uid()` for RLS policies | ✅ Use `requesting_user_id()` — Clerk IDs are strings, not UUIDs |
+| Mistake                                      | Solution                                                         |
+| -------------------------------------------- | ---------------------------------------------------------------- |
+| ❌ Passing the token as a string             | ✅ Pass an async function — ensures token refresh on expiry      |
+| ❌ Adding `sub` or `iss` to the JWT template | ✅ These are reserved claims, auto-included by Clerk             |
+| ❌ Using `auth.uid()` for RLS policies       | ✅ Use `requesting_user_id()` — Clerk IDs are strings, not UUIDs |

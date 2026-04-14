@@ -5,7 +5,7 @@ description: >-
 license: Apache-2.0
 metadata:
   author: insforge
-  version: "1.1.0"
+  version: '1.1.0'
   organization: InsForge
   date: February 2026
 ---
@@ -36,43 +36,45 @@ If no project linked: `npx @insforge/cli create` (new) or `npx @insforge/cli lin
 
 ## Global Options
 
-| Flag | Description |
-|------|-------------|
-| `--json` | Structured JSON output (for scripts and agents) |
-| `-y, --yes` | Skip confirmation prompts |
+| Flag        | Description                                     |
+| ----------- | ----------------------------------------------- |
+| `--json`    | Structured JSON output (for scripts and agents) |
+| `-y, --yes` | Skip confirmation prompts                       |
 
 > All examples below use `npx @insforge/cli`. **Never** call `insforge` directly.
 
 ## Exit Codes
 
-| Code | Meaning |
-|------|---------|
-| 0 | Success |
-| 1 | General error (e.g., HTTP 400+ from function invoke) |
-| 2 | Not authenticated |
-| 3 | Project not linked |
-| 4 | Resource not found |
-| 5 | Permission denied |
+| Code | Meaning                                              |
+| ---- | ---------------------------------------------------- |
+| 0    | Success                                              |
+| 1    | General error (e.g., HTTP 400+ from function invoke) |
+| 2    | Not authenticated                                    |
+| 3    | Project not linked                                   |
+| 4    | Resource not found                                   |
+| 5    | Permission denied                                    |
 
 ## Environment Variables
 
-| Variable | Description |
-|----------|-------------|
-| `INSFORGE_ACCESS_TOKEN` | Override stored access token |
-| `INSFORGE_PROJECT_ID` | Override linked project ID |
-| `INSFORGE_EMAIL` | Email for non-interactive login |
-| `INSFORGE_PASSWORD` | Password for non-interactive login |
+| Variable                | Description                        |
+| ----------------------- | ---------------------------------- |
+| `INSFORGE_ACCESS_TOKEN` | Override stored access token       |
+| `INSFORGE_PROJECT_ID`   | Override linked project ID         |
+| `INSFORGE_EMAIL`        | Email for non-interactive login    |
+| `INSFORGE_PASSWORD`     | Password for non-interactive login |
 
 ---
 
 ## Commands
 
 ### Authentication
+
 - `npx @insforge/cli login` — OAuth (browser) or `--email` for password login. See [references/login.md](references/login.md)
 - `npx @insforge/cli logout` — clear stored credentials
 - `npx @insforge/cli whoami` — show current user
 
 ### Project Management
+
 - `npx @insforge/cli create` — create new project. See [references/create.md](references/create.md)
 - `npx @insforge/cli link` — link directory to existing project
 - `npx @insforge/cli current` — show current user + linked project
@@ -80,6 +82,7 @@ If no project linked: `npx @insforge/cli create` (new) or `npx @insforge/cli lin
 - `npx @insforge/cli metadata` — show backend metadata (auth config, database tables, storage buckets, edge functions, AI models, realtime channels). Use `--json` for structured output. **Run this first** to discover what's configured before building features.
 
 ### Database — `npx @insforge/cli db`
+
 - `npx @insforge/cli db query <sql>` — execute raw SQL. See [references/db-query.md](references/db-query.md)
 - `npx @insforge/cli db tables / indexes / policies / triggers / functions` — inspect schema
 - `npx @insforge/cli db rpc <fn> [--data <json>]` — call database function (GET if no data, POST if data)
@@ -87,6 +90,7 @@ If no project linked: `npx @insforge/cli create` (new) or `npx @insforge/cli lin
 - `npx @insforge/cli db import <file>` — import from SQL file. See [references/db-import.md](references/db-import.md)
 
 ### Edge Functions — `npx @insforge/cli functions`
+
 - `npx @insforge/cli functions list` — list deployed functions
 - `npx @insforge/cli functions code <slug>` — view function source
 - `npx @insforge/cli functions deploy <slug>` — deploy or update. See [references/functions-deploy.md](references/functions-deploy.md)
@@ -94,6 +98,7 @@ If no project linked: `npx @insforge/cli create` (new) or `npx @insforge/cli lin
 - `npx @insforge/cli functions delete <slug>` — delete an edge function (with confirmation)
 
 ### Storage — `npx @insforge/cli storage`
+
 - `npx @insforge/cli storage buckets` — list buckets
 - `npx @insforge/cli storage create-bucket <name> [--private]` — create bucket (default: public)
 - `npx @insforge/cli storage delete-bucket <name>` — delete bucket and **all its objects** (destructive)
@@ -102,6 +107,7 @@ If no project linked: `npx @insforge/cli create` (new) or `npx @insforge/cli lin
 - `npx @insforge/cli storage download <objectKey> --bucket <name> [--output <path>]` — download file
 
 ### Deployments — `npx @insforge/cli deployments`
+
 - `npx @insforge/cli deployments deploy [dir]` — deploy frontend app. See [references/deployments-deploy.md](references/deployments-deploy.md)
 - `npx @insforge/cli deployments list` — list deployments
 - `npx @insforge/cli deployments status <id> [--sync]` — get deployment status (--sync fetches from Vercel)
@@ -125,6 +131,7 @@ If no project linked: `npx @insforge/cli create` (new) or `npx @insforge/cli lin
 - `npx @insforge/cli compute delete <id>` — delete service and destroy Fly.io resources
 
 ### Secrets — `npx @insforge/cli secrets`
+
 - `npx @insforge/cli secrets list [--all]` — list secrets (values hidden; `--all` includes deleted)
 - `npx @insforge/cli secrets get <key>` — get decrypted value
 - `npx @insforge/cli secrets add <key> <value> [--reserved] [--expires <ISO date>]` — create secret
@@ -132,6 +139,7 @@ If no project linked: `npx @insforge/cli create` (new) or `npx @insforge/cli lin
 - `npx @insforge/cli secrets delete <key>` — **soft delete** (marks inactive; restore with `--active true`)
 
 ### Schedules — `npx @insforge/cli schedules`
+
 - `npx @insforge/cli schedules list` — list all scheduled tasks (shows ID, name, cron, URL, method, active, next run)
 - `npx @insforge/cli schedules get <id>` — get schedule details
 - `npx @insforge/cli schedules create --name --cron --url --method [--headers <json>] [--body <json>]` — create a cron job (5-field cron format only)
@@ -150,19 +158,21 @@ Run with no subcommand for a full health report across all checks.
 - `npx @insforge/cli diagnose logs [--source <name>] [--limit <n>]` — aggregate error-level logs from all backend sources. Default limit: 100
 
 ### Logs — `npx @insforge/cli logs`
+
 - `npx @insforge/cli logs <source> [--limit <n>]` — fetch backend container logs (default: 20 entries)
 
-| Source | Description |
-|--------|-------------|
-| `insforge.logs` | Main backend logs |
-| `postgREST.logs` | PostgREST API layer logs |
-| `postgres.logs` | PostgreSQL database logs |
-| `function.logs` | Edge function execution logs |
+| Source                 | Description                   |
+| ---------------------- | ----------------------------- |
+| `insforge.logs`        | Main backend logs             |
+| `postgREST.logs`       | PostgREST API layer logs      |
+| `postgres.logs`        | PostgreSQL database logs      |
+| `function.logs`        | Edge function execution logs  |
 | `function-deploy.logs` | Edge function deployment logs |
 
 > Source names are case-insensitive: `postgrest.logs` works the same as `postgREST.logs`.
 
 ### Documentation — `npx @insforge/cli docs`
+
 - `npx @insforge/cli docs` — list all topics
 - `npx @insforge/cli docs instructions` — setup guide
 - `npx @insforge/cli docs <feature> <language>` — feature docs (`db / storage / functions / auth / ai / realtime` × `typescript / swift / kotlin / rest-api`)
@@ -259,15 +269,16 @@ npx @insforge/cli deployments deploy ./dist
 
 **Environment variable prefix by framework:**
 
-| Framework | Prefix | Example |
-|-----------|--------|---------|
-| Vite | `VITE_` | `VITE_INSFORGE_URL` |
-| Next.js | `NEXT_PUBLIC_` | `NEXT_PUBLIC_INSFORGE_URL` |
-| Create React App | `REACT_APP_` | `REACT_APP_INSFORGE_URL` |
-| Astro | `PUBLIC_` | `PUBLIC_INSFORGE_URL` |
-| SvelteKit | `PUBLIC_` | `PUBLIC_INSFORGE_URL` |
+| Framework        | Prefix         | Example                    |
+| ---------------- | -------------- | -------------------------- |
+| Vite             | `VITE_`        | `VITE_INSFORGE_URL`        |
+| Next.js          | `NEXT_PUBLIC_` | `NEXT_PUBLIC_INSFORGE_URL` |
+| Create React App | `REACT_APP_`   | `REACT_APP_INSFORGE_URL`   |
+| Astro            | `PUBLIC_`      | `PUBLIC_INSFORGE_URL`      |
+| SvelteKit        | `PUBLIC_`      | `PUBLIC_INSFORGE_URL`      |
 
 **Pre-deploy checklist:**
+
 - [ ] `npm run build` succeeds locally
 - [ ] Env vars are set — run `deployments env list` to verify, or pass `--env` on the deploy command
 - [ ] All env vars use the correct framework prefix
@@ -280,6 +291,7 @@ npx @insforge/cli deployments deploy ./dist
 Two paths: pre-built image or build from Dockerfile.
 
 **Pre-built image (e.g. nginx, Redis, custom registry):**
+
 ```bash
 npx @insforge/cli compute create --name my-api --image nginx:alpine --port 80 --region iad
 npx @insforge/cli compute list
@@ -287,6 +299,7 @@ npx @insforge/cli compute list
 ```
 
 **Build from Dockerfile:**
+
 ```bash
 # Requires: flyctl installed + FLY_API_TOKEN set
 npx @insforge/cli compute deploy ./my-app --name my-api --port 8000
@@ -294,6 +307,7 @@ npx @insforge/cli compute deploy ./my-app --name my-api --port 8000
 ```
 
 **Lifecycle management:**
+
 ```bash
 npx @insforge/cli compute stop <id>       # stop the machine
 npx @insforge/cli compute start <id>      # restart it
@@ -343,15 +357,15 @@ InsForge uses **5-field cron expressions** (pg_cron format). 6-field expressions
 * * * * *
 ```
 
-| Expression | Description |
-|------------|-------------|
-| `* * * * *` | Every minute |
-| `*/5 * * * *` | Every 5 minutes |
-| `0 * * * *` | Every hour (at minute 0) |
-| `0 9 * * *` | Daily at 9:00 AM |
-| `0 9 * * 1` | Every Monday at 9:00 AM |
-| `0 0 1 * *` | First day of every month at midnight |
-| `30 14 * * 1-5` | Weekdays at 2:30 PM |
+| Expression      | Description                          |
+| --------------- | ------------------------------------ |
+| `* * * * *`     | Every minute                         |
+| `*/5 * * * *`   | Every 5 minutes                      |
+| `0 * * * *`     | Every hour (at minute 0)             |
+| `0 9 * * *`     | Daily at 9:00 AM                     |
+| `0 9 * * 1`     | Every Monday at 9:00 AM              |
+| `0 0 1 * *`     | First day of every month at midnight |
+| `30 14 * * 1-5` | Weekdays at 2:30 PM                  |
 
 #### Secret References in Headers
 
@@ -388,12 +402,12 @@ Secrets are resolved at schedule creation/update time. If a referenced secret do
 
 #### Common Mistakes
 
-| Mistake | Solution |
-|---------|----------|
+| Mistake                           | Solution                                                     |
+| --------------------------------- | ------------------------------------------------------------ |
 | Using 6-field cron (with seconds) | Use 5-field format only: `minute hour day month day-of-week` |
-| Referencing non-existent secret | Create the secret first via secrets API |
-| Targeting non-existent function | Verify function exists and is `active` before scheduling |
-| Schedule not running | Check `isActive` is `true` and cron expression is valid |
+| Referencing non-existent secret   | Create the secret first via secrets API                      |
+| Targeting non-existent function   | Verify function exists and is `active` before scheduling     |
+| Schedule not running              | Check `isActive` is `true` and cron expression is valid      |
 
 #### Recommended Workflow
 
@@ -440,17 +454,17 @@ npx @insforge/cli logs postgrest.logs --limit 50
 
 #### Common Debugging Scenarios
 
-| Problem | Check |
-|---------|-------|
-| Function not working | `function.logs` |
-| Database query failing | `postgres.logs`, `postgREST.logs` |
-| Auth issues | `insforge.logs` |
-| API returning 500 errors | `insforge.logs`, `postgREST.logs` |
-| General health / performance | `diagnose` (full report) or `diagnose metrics` |
-| Database bloat / slow queries | `diagnose db` |
-| Security / config issues | `diagnose advisor --category security` |
-| Compute service not starting | `compute logs <id>`, check Fly machine events |
-| Compute deploy failed | Check `FLY_API_TOKEN` is set, `flyctl` installed |
+| Problem                       | Check                                            |
+| ----------------------------- | ------------------------------------------------ |
+| Function not working          | `function.logs`                                  |
+| Database query failing        | `postgres.logs`, `postgREST.logs`                |
+| Auth issues                   | `insforge.logs`                                  |
+| API returning 500 errors      | `insforge.logs`, `postgREST.logs`                |
+| General health / performance  | `diagnose` (full report) or `diagnose metrics`   |
+| Database bloat / slow queries | `diagnose db`                                    |
+| Security / config issues      | `diagnose advisor --category security`           |
+| Compute service not starting  | `compute logs <id>`, check Fly machine events    |
+| Compute deploy failed         | Check `FLY_API_TOKEN` is set, `flyctl` installed |
 
 ### Non-interactive CI/CD
 

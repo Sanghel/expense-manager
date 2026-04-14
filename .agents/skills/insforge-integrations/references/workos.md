@@ -1,4 +1,3 @@
-
 # InsForge + WorkOS Integration Guide
 
 WorkOS AuthKit handles authentication via middleware. On the server, `withAuth()` retrieves the authenticated user, and a JWT is signed with InsForge's secret containing the user's ID. The token is passed to InsForge as `edgeFunctionToken`.
@@ -26,16 +25,19 @@ WorkOS AuthKit handles authentication via middleware. On the server, `withAuth()
 ## Dashboard setup (manual, cannot be automated)
 
 ### WorkOS Application
+
 - Note down **API Key** and **Client ID** from WorkOS Dashboard > API Keys
 - Add `http://localhost:3000/callback` under Redirects
 - Enable desired auth methods (email/password, social login, SSO, etc.)
 
 ### WorkOS JWT Template
+
 - In WorkOS Dashboard > Authentication > Sessions > Configure JWT Template
 - Claims: `role: "authenticated"`, `aud: "insforge-api"`, `user_email: {{ user.email }}`
 - `sub` is reserved — auto-included, do not add manually
 
 ### InsForge Project
+
 - Create via `npx @insforge/cli create` or link via `npx @insforge/cli link --project-id <id>`
 - Get the JWT secret via CLI: `npx @insforge/cli secrets get JWT_SECRET`
 - Note down **URL** and **Anon Key** from InsForge, then export the CLI value as `INSFORGE_JWT_SECRET`
@@ -51,24 +53,24 @@ WorkOS AuthKit handles authentication via middleware. On the server, `withAuth()
 
 ```typescript
 // app/callback/route.ts
-import { handleAuth } from '@workos-inc/authkit-nextjs';
-export const GET = handleAuth();
+import { handleAuth } from '@workos-inc/authkit-nextjs'
+export const GET = handleAuth()
 ```
 
 ```typescript
 // middleware.ts
-import { authkitMiddleware } from '@workos-inc/authkit-nextjs';
-export default authkitMiddleware();
-export const config = { matcher: ['/', '/api/:path*'] };
+import { authkitMiddleware } from '@workos-inc/authkit-nextjs'
+export default authkitMiddleware()
+export const config = { matcher: ['/', '/api/:path*'] }
 ```
 
 ```typescript
 // app/login/route.ts
-import { getSignInUrl } from '@workos-inc/authkit-nextjs';
-import { redirect } from 'next/navigation';
+import { getSignInUrl } from '@workos-inc/authkit-nextjs'
+import { redirect } from 'next/navigation'
 export async function GET() {
-  const signInUrl = await getSignInUrl();
-  redirect(signInUrl);
+  const signInUrl = await getSignInUrl()
+  redirect(signInUrl)
 }
 ```
 
@@ -83,13 +85,13 @@ export async function GET() {
 
 ```typescript
 // lib/insforge.ts
-import { createClient } from '@insforge/sdk';
-import { withAuth } from '@workos-inc/authkit-nextjs';
-import jwt from 'jsonwebtoken';
+import { createClient } from '@insforge/sdk'
+import { withAuth } from '@workos-inc/authkit-nextjs'
+import jwt from 'jsonwebtoken'
 
 export async function createInsForgeClient() {
-  const { user } = await withAuth();
-  if (!user) return null;
+  const { user } = await withAuth()
+  if (!user) return null
 
   const insforgeToken = jwt.sign(
     {
@@ -99,12 +101,12 @@ export async function createInsForgeClient() {
       exp: Math.floor(Date.now() / 1000) + 60 * 60,
     },
     process.env.INSFORGE_JWT_SECRET!
-  );
+  )
 
   return createClient({
     baseUrl: process.env.NEXT_PUBLIC_INSFORGE_URL!,
     edgeFunctionToken: insforgeToken,
-  });
+  })
 }
 ```
 
@@ -129,20 +131,20 @@ $$;
 
 ## Environment variables
 
-| Variable | Source |
-|----------|--------|
-| `WORKOS_API_KEY` | WorkOS Dashboard |
-| `WORKOS_CLIENT_ID` | WorkOS Dashboard |
-| `WORKOS_COOKIE_PASSWORD` | Generate with `openssl rand -hex 32` |
-| `NEXT_PUBLIC_WORKOS_REDIRECT_URI` | `http://localhost:3000/callback` |
-| `NEXT_PUBLIC_INSFORGE_URL` | InsForge Dashboard |
-| `NEXT_PUBLIC_INSFORGE_ANON_KEY` | InsForge Dashboard |
-| `INSFORGE_JWT_SECRET` | InsForge CLI (`npx @insforge/cli secrets get JWT_SECRET`) |
+| Variable                          | Source                                                    |
+| --------------------------------- | --------------------------------------------------------- |
+| `WORKOS_API_KEY`                  | WorkOS Dashboard                                          |
+| `WORKOS_CLIENT_ID`                | WorkOS Dashboard                                          |
+| `WORKOS_COOKIE_PASSWORD`          | Generate with `openssl rand -hex 32`                      |
+| `NEXT_PUBLIC_WORKOS_REDIRECT_URI` | `http://localhost:3000/callback`                          |
+| `NEXT_PUBLIC_INSFORGE_URL`        | InsForge Dashboard                                        |
+| `NEXT_PUBLIC_INSFORGE_ANON_KEY`   | InsForge Dashboard                                        |
+| `INSFORGE_JWT_SECRET`             | InsForge CLI (`npx @insforge/cli secrets get JWT_SECRET`) |
 
 ## Common Mistakes
 
-| Mistake | Solution |
-|---------|----------|
+| Mistake                                                            | Solution                                                                 |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------ |
 | ❌ Using `withAuth({ ensureSignedIn: true })` in server components | ✅ Causes cookie errors on Next.js 16 — use `redirect('/login')` instead |
-| ❌ Forgetting `WORKOS_COOKIE_PASSWORD` | ✅ Session encryption fails silently without it |
-| ❌ Using `auth.uid()` for RLS policies | ✅ Use `requesting_user_id()` — WorkOS IDs are strings, not UUIDs |
+| ❌ Forgetting `WORKOS_COOKIE_PASSWORD`                             | ✅ Session encryption fails silently without it                          |
+| ❌ Using `auth.uid()` for RLS policies                             | ✅ Use `requesting_user_id()` — WorkOS IDs are strings, not UUIDs        |

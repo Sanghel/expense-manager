@@ -10,10 +10,10 @@ npx @insforge/cli login [options]
 
 ## Options
 
-| Option | Description |
-|--------|-------------|
-| `--email` | Use email/password login instead of OAuth |
-| `--client-id <id>` | Custom OAuth client ID |
+| Option             | Description                               |
+| ------------------ | ----------------------------------------- |
+| `--email`          | Use email/password login instead of OAuth |
+| `--client-id <id>` | Custom OAuth client ID                    |
 
 ## Authentication Methods
 
@@ -42,6 +42,7 @@ INSFORGE_EMAIL=user@example.com INSFORGE_PASSWORD=secret npx @insforge/cli login
 ## Credential Storage
 
 Tokens are saved to `~/.insforge/credentials.json` with restricted file permissions (0600). Includes:
+
 - `access_token` and `refresh_token`
 - User info (id, name, email)
 

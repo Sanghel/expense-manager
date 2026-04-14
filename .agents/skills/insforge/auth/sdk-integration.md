@@ -12,8 +12,8 @@ First, ensure your `.env` file is configured with your InsForge URL and anon key
 import { createClient } from '@insforge/sdk'
 
 const insforge = createClient({
-  baseUrl: process.env.NEXT_PUBLIC_INSFORGE_URL,       // adjust prefix for your framework
-  anonKey: process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY   // adjust prefix for your framework
+  baseUrl: process.env.NEXT_PUBLIC_INSFORGE_URL, // adjust prefix for your framework
+  anonKey: process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY, // adjust prefix for your framework
 })
 ```
 
@@ -40,7 +40,7 @@ try {
     email: 'user@example.com',
     password: 'securepassword123',
     name: 'John Doe',
-    redirectTo: 'http://localhost:3000/sign-in'
+    redirectTo: 'http://localhost:3000/sign-in',
   })
 
   if (error) throw error
@@ -54,12 +54,10 @@ try {
     // - Show "Check your email"
     // - Recommended redirectTo: your sign-in page
     // - On redirect success, show a confirmation message and ask the user to sign in
-
   } else if (data?.accessToken) {
     // No verification required — user is already signed in
     console.log('Signed in:', data.user)
   }
-
 } catch (error) {
   console.error('Registration flow failed:', error.message)
 }
@@ -71,7 +69,7 @@ try {
 try {
   await insforge.auth.resendVerificationEmail({
     email: 'user@example.com',
-    redirectTo: 'http://localhost:3000/sign-in'
+    redirectTo: 'http://localhost:3000/sign-in',
   })
   console.log('Verification email resent.')
 } catch (error) {
@@ -84,7 +82,7 @@ try {
 ```javascript
 const { data, error } = await insforge.auth.signInWithPassword({
   email: 'user@example.com',
-  password: 'securepassword123'
+  password: 'securepassword123',
 })
 
 if (error) {
@@ -103,13 +101,13 @@ if (error) {
 // Auto-redirect to provider
 await insforge.auth.signInWithOAuth({
   provider: 'google', // google, github, discord, microsoft, etc.
-  redirectTo: 'http://localhost:3000/dashboard'
+  redirectTo: 'http://localhost:3000/dashboard',
 })
 
 // Get URL without redirect
 const { data } = await insforge.auth.signInWithOAuth({
   provider: 'google',
-  skipBrowserRedirect: true
+  skipBrowserRedirect: true,
 })
 window.location.href = data.url
 ```
@@ -144,7 +142,7 @@ const { data } = await insforge.auth.getProfile('user-id')
 const { data } = await insforge.auth.setProfile({
   name: 'John',
   avatar_url: 'https://...',
-  custom_field: 'value'
+  custom_field: 'value',
 })
 ```
 
@@ -156,7 +154,7 @@ const { data } = await insforge.auth.setProfile({
 // Verify with code (6-digit OTP from email)
 const { data, error } = await insforge.auth.verifyEmail({
   email: 'user@example.com',
-  otp: '123456'
+  otp: '123456',
 })
 
 if (error) {
@@ -171,7 +169,7 @@ if (error) {
 // Resend verification email
 await insforge.auth.resendVerificationEmail({
   email: 'user@example.com',
-  redirectTo: 'http://localhost:3000/sign-in'
+  redirectTo: 'http://localhost:3000/sign-in',
 })
 ```
 
@@ -193,19 +191,19 @@ When `insforge_status=success`, show a confirmation message and ask the user to 
 // Step 1: Send reset email
 await insforge.auth.sendResetPasswordEmail({
   email: 'user@example.com',
-  redirectTo: 'http://localhost:3000/reset-password'
+  redirectTo: 'http://localhost:3000/reset-password',
 })
 
 // Step 2: Code method — exchange code for token
 const { data } = await insforge.auth.exchangeResetPasswordToken({
   email: 'user@example.com',
-  code: '123456'
+  code: '123456',
 })
 
 // Step 3: Reset password
 await insforge.auth.resetPassword({
   newPassword: 'newPassword123',
-  otp: data.token // or token from magic link
+  otp: data.token, // or token from magic link
 })
 ```
 
@@ -250,6 +248,7 @@ Only render the reset form when `insforge_status=ready` and `token` is present.
    - The array contains only enabled provider names (e.g., `["google", "github"]`)
 
 4. **Handle the sign-up response correctly**
+
    ```javascript
    const { data, error } = await insforge.auth.signUp({...})
 
@@ -271,17 +270,17 @@ Only render the reset form when `insforge_status=ready` and `token` is present.
 
 ## Common Mistakes
 
-| Mistake | Solution |
-|---------|----------|
-| Navigating to dashboard/home after sign-up when verification is required | Stay in the verification flow and branch on `verifyEmailMethod` instead of navigating to the app |
-| Skipping email verification flow entirely | Check `requireEmailVerification` in sign-up response and implement the verification step |
-| Forgetting `redirectTo` for link flows | When the backend config uses `"link"`, pass the app URL in the request and make sure it is in `allowedRedirectUrls` |
-| Building link-based UI when code is configured | Check `verifyEmailMethod` to build the correct UI |
-| Treating link verification like code verification | For link verification, handle the redirect result and send the user to sign in instead of calling `verifyEmail()` with a token |
-| Calling `signInWithPassword` after code-based `verifyEmail` | `verifyEmail()` auto-saves the session for the code flow — no separate sign-in call needed |
-| Implementing OAuth without checking config | Only show buttons for providers in `oAuthProviders` array |
-| Hardcoding OAuth providers | Dynamically show based on `oAuthProviders` array |
-| Using the browser SDK pattern inside SSR auth routes | In SSR frameworks, create a server-mode client and manage httpOnly cookies on the server |
+| Mistake                                                                  | Solution                                                                                                                       |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| Navigating to dashboard/home after sign-up when verification is required | Stay in the verification flow and branch on `verifyEmailMethod` instead of navigating to the app                               |
+| Skipping email verification flow entirely                                | Check `requireEmailVerification` in sign-up response and implement the verification step                                       |
+| Forgetting `redirectTo` for link flows                                   | When the backend config uses `"link"`, pass the app URL in the request and make sure it is in `allowedRedirectUrls`            |
+| Building link-based UI when code is configured                           | Check `verifyEmailMethod` to build the correct UI                                                                              |
+| Treating link verification like code verification                        | For link verification, handle the redirect result and send the user to sign in instead of calling `verifyEmail()` with a token |
+| Calling `signInWithPassword` after code-based `verifyEmail`              | `verifyEmail()` auto-saves the session for the code flow — no separate sign-in call needed                                     |
+| Implementing OAuth without checking config                               | Only show buttons for providers in `oAuthProviders` array                                                                      |
+| Hardcoding OAuth providers                                               | Dynamically show based on `oAuthProviders` array                                                                               |
+| Using the browser SDK pattern inside SSR auth routes                     | In SSR frameworks, create a server-mode client and manage httpOnly cookies on the server                                       |
 
 ## Conditional Implementation Guide
 
@@ -292,7 +291,10 @@ Only render the reset form when `insforge_status=ready` and `token` is present.
 if (data?.requireEmailVerification) {
   // If verifyEmailMethod === "code":
   //   Show 6-digit code input on the SAME page, then call:
-  const { data: verifyData, error } = await insforge.auth.verifyEmail({ email, otp: userEnteredCode })
+  const { data: verifyData, error } = await insforge.auth.verifyEmail({
+    email,
+    otp: userEnteredCode,
+  })
   //   On success, user is automatically signed in — navigate to the app
 
   // If verifyEmailMethod === "link":

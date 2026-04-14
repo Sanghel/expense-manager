@@ -10,8 +10,8 @@ npx @insforge/cli db import <file> [options]
 
 ## Options
 
-| Option | Description |
-|--------|-------------|
+| Option       | Description                            |
+| ------------ | -------------------------------------- |
 | `--truncate` | Truncate existing tables before import |
 
 ## Examples

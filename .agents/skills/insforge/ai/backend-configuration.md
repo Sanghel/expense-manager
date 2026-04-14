@@ -35,14 +35,14 @@ npx @insforge/cli db query "SELECT model_id, provider, is_active, input_modality
 
 **Table: `ai.configs`**
 
-| Column | Type | Description |
-|--------|------|-------------|
-| `model_id` | VARCHAR(255) | Unique model identifier (use this in SDK calls) |
-| `provider` | VARCHAR(255) | AI provider (e.g., `openai`, `anthropic`, `google`) |
-| `is_active` | BOOLEAN | Whether the model is enabled |
-| `input_modality` | TEXT[] | Supported input types: `text`, `image`, `audio`, `video`, `file` |
-| `output_modality` | TEXT[] | Supported output types: `text`, `image`, `audio`, `video`, `file` |
-| `system_prompt` | TEXT | Optional default system prompt |
+| Column            | Type         | Description                                                       |
+| ----------------- | ------------ | ----------------------------------------------------------------- |
+| `model_id`        | VARCHAR(255) | Unique model identifier (use this in SDK calls)                   |
+| `provider`        | VARCHAR(255) | AI provider (e.g., `openai`, `anthropic`, `google`)               |
+| `is_active`       | BOOLEAN      | Whether the model is enabled                                      |
+| `input_modality`  | TEXT[]       | Supported input types: `text`, `image`, `audio`, `video`, `file`  |
+| `output_modality` | TEXT[]       | Supported output types: `text`, `image`, `audio`, `video`, `file` |
+| `system_prompt`   | TEXT         | Optional default system prompt                                    |
 
 ### Option 3 — HTTP endpoint (requires admin auth)
 
@@ -67,7 +67,7 @@ npx @insforge/cli metadata --json
 ```javascript
 const completion = await insforge.ai.chat.completions.create({
   model: 'anthropic/claude-sonnet-4.5', // exact modelId from metadata
-  messages: [{ role: 'user', content: 'Hello' }]
+  messages: [{ role: 'user', content: 'Hello' }],
 })
 ```
 
@@ -86,12 +86,12 @@ npx @insforge/cli db query "SELECT model_id FROM ai.configs WHERE is_active = tr
 
 ## Common Mistakes
 
-| Mistake | Solution |
-|---------|----------|
-| Hardcoding model IDs (e.g., `claude-haiku`) | Query `ai.configs` or CLI metadata first, use exact `model_id` |
-| Using shortened model names | Use the full `model_id` value (e.g., `anthropic/claude-sonnet-4.5`) |
-| Assuming all models are available | Each project has its own configured models — always check |
-| Calling AI features with no models configured | Check first, instruct user to configure on Dashboard if empty |
+| Mistake                                       | Solution                                                            |
+| --------------------------------------------- | ------------------------------------------------------------------- |
+| Hardcoding model IDs (e.g., `claude-haiku`)   | Query `ai.configs` or CLI metadata first, use exact `model_id`      |
+| Using shortened model names                   | Use the full `model_id` value (e.g., `anthropic/claude-sonnet-4.5`) |
+| Assuming all models are available             | Each project has its own configured models — always check           |
+| Calling AI features with no models configured | Check first, instruct user to configure on Dashboard if empty       |
 
 ## When No Models Are Configured
 

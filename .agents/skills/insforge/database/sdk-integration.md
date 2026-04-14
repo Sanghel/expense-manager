@@ -10,8 +10,8 @@ First, ensure your `.env` file is configured with your InsForge URL and anon key
 import { createClient } from '@insforge/sdk'
 
 const insforge = createClient({
-  baseUrl: process.env.NEXT_PUBLIC_INSFORGE_URL,       // adjust prefix for your framework
-  anonKey: process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY   // adjust prefix for your framework
+  baseUrl: process.env.NEXT_PUBLIC_INSFORGE_URL, // adjust prefix for your framework
+  anonKey: process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY, // adjust prefix for your framework
 })
 ```
 
@@ -27,7 +27,9 @@ const { data, error } = await insforge.database.from('posts').select()
 const { data } = await insforge.database.from('posts').select('id, title')
 
 // With relationships
-const { data } = await insforge.database.from('posts').select('*, comments(id, content)')
+const { data } = await insforge.database
+  .from('posts')
+  .select('*, comments(id, content)')
 ```
 
 ### Insert
@@ -68,38 +70,41 @@ const { error } = await insforge.database
 ### RPC (Stored Procedures)
 
 ```javascript
-const { data, error } = await insforge.database.rpc('get_user_stats', { user_id: '123' })
+const { data, error } = await insforge.database.rpc('get_user_stats', {
+  user_id: '123',
+})
 ```
 
 ## Filters
 
-| Filter | Example |
-|--------|---------|
-| `.eq(col, val)` | `.eq('status', 'active')` |
-| `.neq(col, val)` | `.neq('status', 'deleted')` |
-| `.gt(col, val)` | `.gt('age', 18)` |
-| `.gte(col, val)` | `.gte('price', 100)` |
-| `.lt(col, val)` | `.lt('stock', 10)` |
-| `.lte(col, val)` | `.lte('score', 50)` |
-| `.like(col, pattern)` | `.like('name', '%Widget%')` |
-| `.ilike(col, pattern)` | `.ilike('email', '%@gmail.com')` |
-| `.in(col, array)` | `.in('status', ['pending', 'active'])` |
-| `.is(col, val)` | `.is('deleted_at', null)` |
+| Filter                 | Example                                |
+| ---------------------- | -------------------------------------- |
+| `.eq(col, val)`        | `.eq('status', 'active')`              |
+| `.neq(col, val)`       | `.neq('status', 'deleted')`            |
+| `.gt(col, val)`        | `.gt('age', 18)`                       |
+| `.gte(col, val)`       | `.gte('price', 100)`                   |
+| `.lt(col, val)`        | `.lt('stock', 10)`                     |
+| `.lte(col, val)`       | `.lte('score', 50)`                    |
+| `.like(col, pattern)`  | `.like('name', '%Widget%')`            |
+| `.ilike(col, pattern)` | `.ilike('email', '%@gmail.com')`       |
+| `.in(col, array)`      | `.in('status', ['pending', 'active'])` |
+| `.is(col, val)`        | `.is('deleted_at', null)`              |
 
 ## Modifiers
 
-| Modifier | Example |
-|----------|---------|
+| Modifier            | Example                                      |
+| ------------------- | -------------------------------------------- |
 | `.order(col, opts)` | `.order('created_at', { ascending: false })` |
-| `.limit(n)` | `.limit(10)` |
-| `.range(from, to)` | `.range(0, 9)` |
-| `.single()` | Returns object, throws if multiple |
-| `.maybeSingle()` | Returns object or null |
+| `.limit(n)`         | `.limit(10)`                                 |
+| `.range(from, to)`  | `.range(0, 9)`                               |
+| `.single()`         | Returns object, throws if multiple           |
+| `.maybeSingle()`    | Returns object or null                       |
 
 ## Pagination
 
 ```javascript
-const page = 1, pageSize = 10
+const page = 1,
+  pageSize = 10
 const from = (page - 1) * pageSize
 const to = from + pageSize - 1
 
@@ -121,10 +126,10 @@ const { data, count } = await insforge.database
 
 When creating tables via `insforge db query` (CLI), use these built-in references:
 
-| Reference | Description |
-|-----------|-------------|
-| `auth.uid()` | Returns current authenticated user's UUID |
-| `auth.users(id)` | Reference to the built-in users table for foreign keys |
+| Reference                    | Description                                                      |
+| ---------------------------- | ---------------------------------------------------------------- |
+| `auth.uid()`                 | Returns current authenticated user's UUID                        |
+| `auth.users(id)`             | Reference to the built-in users table for foreign keys           |
 | `system.update_updated_at()` | Built-in trigger function that auto-updates `updated_at` columns |
 
 ### Complete Example: Table with RLS and Triggers
@@ -173,10 +178,10 @@ Fields:
 - upsertKey: Column for conflict resolution (optional)
 ```
 
-| Parameter | Effect |
-|-----------|--------|
-| Without `upsertKey` | INSERT all records |
-| With `upsertKey` | UPSERT — update existing rows on conflict, insert new ones |
+| Parameter           | Effect                                                     |
+| ------------------- | ---------------------------------------------------------- |
+| Without `upsertKey` | INSERT all records                                         |
+| With `upsertKey`    | UPSERT — update existing rows on conflict, insert new ones |
 
 ---
 
@@ -203,9 +208,7 @@ interface Post {
 }
 
 // Cast data to the interface after select
-const { data, error } = await insforge.database
-  .from('posts')
-  .select()
+const { data, error } = await insforge.database.from('posts').select()
 
 const posts = data as Post[]
 ```

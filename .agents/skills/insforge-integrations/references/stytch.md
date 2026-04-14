@@ -1,4 +1,3 @@
-
 # InsForge + Stytch Integration Guide
 
 Stytch handles authentication via email magic links on the client side. On the server, the Stytch Node SDK validates the session cookie, retrieves the user ID, and signs a JWT with InsForge's secret. The token is passed to InsForge as `edgeFunctionToken`.
@@ -27,11 +26,13 @@ Stytch handles authentication via email magic links on the client side. On the s
 ## Dashboard setup (manual, cannot be automated)
 
 ### Stytch Project
+
 - In Stytch Dashboard > Redirect URLs, add `http://localhost:3000/authenticate` (Type: All)
 - In Frontend SDK > Configuration, add `http://localhost:3000` as an authorized domain
 - Note down **Project ID**, **Public Token**, **Secret** from Project overview > API keys
 
 ### InsForge Project
+
 - Create via `npx @insforge/cli create` or link via `npx @insforge/cli link --project-id <id>`
 - Get the JWT secret via CLI: `npx @insforge/cli secrets get JWT_SECRET`
 - Note down **URL** and **Anon Key** from InsForge, then export the CLI value as `INSFORGE_JWT_SECRET`
@@ -135,25 +136,25 @@ export default function Authenticate() {
 
 ```typescript
 // lib/insforge.ts
-import { createClient } from '@insforge/sdk';
-import jwt from 'jsonwebtoken';
-import { Client, envs } from 'stytch';
-import { cookies } from 'next/headers';
+import { createClient } from '@insforge/sdk'
+import jwt from 'jsonwebtoken'
+import { Client, envs } from 'stytch'
+import { cookies } from 'next/headers'
 
 const stytchClient = new Client({
   project_id: process.env.STYTCH_PROJECT_ID!,
   secret: process.env.STYTCH_SECRET!,
   env: envs.test,
-});
+})
 
 export async function createInsForgeClient() {
-  const cookieStore = await cookies();
-  const sessionToken = cookieStore.get('stytch_session')?.value;
-  if (!sessionToken) return null;
+  const cookieStore = await cookies()
+  const sessionToken = cookieStore.get('stytch_session')?.value
+  if (!sessionToken) return null
 
   const { session } = await stytchClient.sessions.authenticate({
     session_token: sessionToken,
-  });
+  })
 
   const insforgeToken = jwt.sign(
     {
@@ -163,12 +164,12 @@ export async function createInsForgeClient() {
       exp: Math.floor(Date.now() / 1000) + 60 * 60,
     },
     process.env.INSFORGE_JWT_SECRET!
-  );
+  )
 
   return createClient({
     baseUrl: process.env.NEXT_PUBLIC_INSFORGE_URL!,
     edgeFunctionToken: insforgeToken,
-  });
+  })
 }
 ```
 
@@ -193,21 +194,21 @@ $$;
 
 ## Environment variables
 
-| Variable | Source |
-|----------|--------|
-| `STYTCH_PROJECT_ENV` | `test` for dev |
-| `STYTCH_PROJECT_ID` | Stytch Dashboard |
-| `NEXT_PUBLIC_STYTCH_PUBLIC_TOKEN` | Stytch Dashboard |
-| `STYTCH_SECRET` | Stytch Dashboard |
-| `NEXT_PUBLIC_INSFORGE_URL` | InsForge Dashboard |
-| `NEXT_PUBLIC_INSFORGE_ANON_KEY` | InsForge Dashboard |
-| `INSFORGE_JWT_SECRET` | InsForge CLI (`npx @insforge/cli secrets get JWT_SECRET`) |
+| Variable                          | Source                                                    |
+| --------------------------------- | --------------------------------------------------------- |
+| `STYTCH_PROJECT_ENV`              | `test` for dev                                            |
+| `STYTCH_PROJECT_ID`               | Stytch Dashboard                                          |
+| `NEXT_PUBLIC_STYTCH_PUBLIC_TOKEN` | Stytch Dashboard                                          |
+| `STYTCH_SECRET`                   | Stytch Dashboard                                          |
+| `NEXT_PUBLIC_INSFORGE_URL`        | InsForge Dashboard                                        |
+| `NEXT_PUBLIC_INSFORGE_ANON_KEY`   | InsForge Dashboard                                        |
+| `INSFORGE_JWT_SECRET`             | InsForge CLI (`npx @insforge/cli secrets get JWT_SECRET`) |
 
 ## Common Mistakes
 
-| Mistake | Solution |
-|---------|----------|
-| ❌ Making the callback a route handler | ✅ Must be a client-side page — Stytch SDK handles magic links on the client |
+| Mistake                                                 | Solution                                                                     |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| ❌ Making the callback a route handler                  | ✅ Must be a client-side page — Stytch SDK handles magic links on the client |
 | ❌ Forgetting redirect URL / domain in Stytch dashboard | ✅ Add both `http://localhost:3000/authenticate` and `http://localhost:3000` |
-| ❌ Not guarding against double-authentication | ✅ Use a `useRef` to prevent re-entry on re-renders |
-| ❌ Using `auth.uid()` for RLS policies | ✅ Use `requesting_user_id()` — Stytch IDs are strings, not UUIDs |
+| ❌ Not guarding against double-authentication           | ✅ Use a `useRef` to prevent re-entry on re-renders                          |
+| ❌ Using `auth.uid()` for RLS policies                  | ✅ Use `requesting_user_id()` — Stytch IDs are strings, not UUIDs            |

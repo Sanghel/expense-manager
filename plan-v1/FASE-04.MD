@@ -39,53 +39,53 @@ git checkout -b feature/28-zod-schemas
 Crear `lib/validations/transaction.ts`:
 
 ```typescript
-import { z } from "zod";
+import { z } from 'zod'
 
 export const createTransactionSchema = z.object({
-  amount: z.number().positive("Amount must be positive"),
-  currency: z.enum(["COP", "USD", "BOB"]),
-  type: z.enum(["income", "expense"]),
+  amount: z.number().positive('Amount must be positive'),
+  currency: z.enum(['COP', 'USD', 'BOB']),
+  type: z.enum(['income', 'expense']),
   category_id: z.string().uuid(),
-  description: z.string().min(1, "Description is required"),
+  description: z.string().min(1, 'Description is required'),
   date: z.string(), // ISO date
   notes: z.string().optional(),
-});
+})
 
-export const updateTransactionSchema = createTransactionSchema.partial();
+export const updateTransactionSchema = createTransactionSchema.partial()
 
-export type CreateTransactionInput = z.infer<typeof createTransactionSchema>;
-export type UpdateTransactionInput = z.infer<typeof updateTransactionSchema>;
+export type CreateTransactionInput = z.infer<typeof createTransactionSchema>
+export type UpdateTransactionInput = z.infer<typeof updateTransactionSchema>
 ```
 
 Crear `lib/validations/category.ts`:
 
 ```typescript
-import { z } from "zod";
+import { z } from 'zod'
 
 export const createCategorySchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  type: z.enum(["income", "expense"]),
+  name: z.string().min(1, 'Name is required'),
+  type: z.enum(['income', 'expense']),
   icon: z.string().optional(),
   color: z.string().optional(),
-});
+})
 
-export type CreateCategoryInput = z.infer<typeof createCategorySchema>;
+export type CreateCategoryInput = z.infer<typeof createCategorySchema>
 ```
 
 Crear `lib/validations/budget.ts`:
 
 ```typescript
-import { z } from "zod";
+import { z } from 'zod'
 
 export const createBudgetSchema = z.object({
   category_id: z.string().uuid(),
   amount: z.number().positive(),
-  currency: z.enum(["COP", "USD", "BOB"]),
-  period: z.enum(["monthly", "yearly"]),
+  currency: z.enum(['COP', 'USD', 'BOB']),
+  period: z.enum(['monthly', 'yearly']),
   start_date: z.string(),
-});
+})
 
-export type CreateBudgetInput = z.infer<typeof createBudgetSchema>;
+export type CreateBudgetInput = z.infer<typeof createBudgetSchema>
 ```
 
 ```bash
@@ -108,72 +108,72 @@ git checkout -b feature/29-transaction-actions
 Crear `lib/actions/transactions.actions.ts`:
 
 ```typescript
-"use server";
+'use server'
 
-import { revalidatePath } from "next/cache";
-import { insforge } from "@/lib/insforge";
+import { revalidatePath } from 'next/cache'
+import { insforge } from '@/lib/insforge'
 import {
   createTransactionSchema,
   type CreateTransactionInput,
-} from "@/lib/validations/transaction";
+} from '@/lib/validations/transaction'
 
 export async function createTransaction(
   userId: string,
-  data: CreateTransactionInput,
+  data: CreateTransactionInput
 ) {
   try {
-    const validated = createTransactionSchema.parse(data);
+    const validated = createTransactionSchema.parse(data)
 
     const { data: transaction, error } = await insforge
-      .from("transactions")
+      .from('transactions')
       .insert({
         ...validated,
         user_id: userId,
-        source: "manual",
+        source: 'manual',
       })
       .select()
-      .single();
+      .single()
 
-    if (error) throw error;
+    if (error) throw error
 
-    revalidatePath("/dashboard");
-    return { success: true, data: transaction };
+    revalidatePath('/dashboard')
+    return { success: true, data: transaction }
   } catch (error) {
-    console.error("Create transaction error:", error);
-    return { success: false, error: "Failed to create transaction" };
+    console.error('Create transaction error:', error)
+    return { success: false, error: 'Failed to create transaction' }
   }
 }
 
 export async function getTransactions(userId: string, limit = 50) {
   try {
     const { data, error } = await insforge
-      .from("transactions")
-      .select("*, category:categories(*)")
-      .eq("user_id", userId)
-      .order("date", { ascending: false })
-      .limit(limit);
+      .from('transactions')
+      .select('*, category:categories(*)')
+      .eq('user_id', userId)
+      .order('date', { ascending: false })
+      .limit(limit)
 
-    if (error) throw error;
-    return { success: true, data };
+    if (error) throw error
+    return { success: true, data }
   } catch (error) {
-    return { success: false, error: "Failed to fetch transactions" };
+    return { success: false, error: 'Failed to fetch transactions' }
   }
 }
 
 export async function deleteTransaction(id: string, userId: string) {
   try {
     const { error } = await insforge
-      .from("transactions")
+      .from('transactions')
       .delete()
-      .eq("id", id)
-      .eq("user_id", userId);
+      .eq('id', id)
+      .eq('user_id', userId)
 
-    if (error) throw error;
+    if (error) throw error
 
-    revalidatePath("/dashboard");
-    return { success: true };
+    revalidatePath('/dashboard')
+    return { success: true }
   } catch (error) {
-    return { success: false, error: "Failed to delete transaction" };
+    return { success: false, error: 'Failed to delete transaction' }
   }
 }
 
@@ -200,50 +200,50 @@ git checkout -b feature/30-category-actions
 Crear `lib/actions/categories.actions.ts`:
 
 ```typescript
-"use server";
+'use server'
 
-import { insforge } from "@/lib/insforge";
+import { insforge } from '@/lib/insforge'
 import {
   createCategorySchema,
   type CreateCategoryInput,
-} from "@/lib/validations/category";
+} from '@/lib/validations/category'
 
 export async function getCategories(userId: string) {
   try {
     // Obtener predefinidas + del usuario
     const { data, error } = await insforge
-      .from("categories")
-      .select("*")
+      .from('categories')
+      .select('*')
       .or(`user_id.is.null,user_id.eq.${userId}`)
-      .order("name");
+      .order('name')
 
-    if (error) throw error;
-    return { success: true, data };
+    if (error) throw error
+    return { success: true, data }
   } catch (error) {
-    return { success: false, error: "Failed to fetch categories" };
+    return { success: false, error: 'Failed to fetch categories' }
   }
 }
 
 export async function createCategory(
   userId: string,
-  data: CreateCategoryInput,
+  data: CreateCategoryInput
 ) {
   try {
-    const validated = createCategorySchema.parse(data);
+    const validated = createCategorySchema.parse(data)
 
     const { data: category, error } = await insforge
-      .from("categories")
+      .from('categories')
       .insert({
         ...validated,
         user_id: userId,
       })
       .select()
-      .single();
+      .single()
 
-    if (error) throw error;
-    return { success: true, data: category };
+    if (error) throw error
+    return { success: true, data: category }
   } catch (error) {
-    return { success: false, error: "Failed to create category" };
+    return { success: false, error: 'Failed to create category' }
   }
 }
 ```
@@ -290,47 +290,47 @@ git checkout -b feature/32-exchange-rate-actions
 Crear `lib/actions/exchangeRates.actions.ts`:
 
 ```typescript
-"use server";
+'use server'
 
-import { insforge } from "@/lib/insforge";
+import { insforge } from '@/lib/insforge'
 
 export async function getLatestRates() {
   try {
     const { data, error } = await insforge
-      .from("exchange_rates")
-      .select("*")
-      .order("date", { ascending: false })
-      .limit(10);
+      .from('exchange_rates')
+      .select('*')
+      .order('date', { ascending: false })
+      .limit(10)
 
-    if (error) throw error;
-    return { success: true, data };
+    if (error) throw error
+    return { success: true, data }
   } catch (error) {
-    return { success: false, error: "Failed to fetch rates" };
+    return { success: false, error: 'Failed to fetch rates' }
   }
 }
 
 export async function convertCurrency(
   amount: number,
   from: string,
-  to: string,
+  to: string
 ) {
-  if (from === to) return amount;
+  if (from === to) return amount
 
   try {
     const { data, error } = await insforge
-      .from("exchange_rates")
-      .select("rate")
-      .eq("from_currency", from)
-      .eq("to_currency", to)
-      .order("date", { ascending: false })
+      .from('exchange_rates')
+      .select('rate')
+      .eq('from_currency', from)
+      .eq('to_currency', to)
+      .order('date', { ascending: false })
       .limit(1)
-      .single();
+      .single()
 
-    if (error || !data) return amount; // Fallback
+    if (error || !data) return amount // Fallback
 
-    return amount * data.rate;
+    return amount * data.rate
   } catch (error) {
-    return amount;
+    return amount
   }
 }
 ```
@@ -355,26 +355,26 @@ git checkout -b feature/33-auth-helpers
 Crear `lib/utils/auth.ts`:
 
 ```typescript
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
 export async function getCurrentUser() {
-  const session = await getServerSession(authOptions);
-  return session?.user;
+  const session = await getServerSession(authOptions)
+  return session?.user
 }
 
 export async function getCurrentUserId() {
-  const user = await getCurrentUser();
-  if (!user?.email) return null;
+  const user = await getCurrentUser()
+  if (!user?.email) return null
 
   // Obtener ID del user desde BD
   const { data } = await insforge
-    .from("users")
-    .select("id")
-    .eq("email", user.email)
-    .single();
+    .from('users')
+    .select('id')
+    .eq('email', user.email)
+    .single()
 
-  return data?.id || null;
+  return data?.id || null
 }
 ```
 
@@ -394,20 +394,20 @@ gh pr merge --squash && git checkout develop && git pull && git branch -d featur
 Crear `scripts/test-actions.ts`:
 
 ```typescript
-import { getCategories } from "@/lib/actions/categories.actions";
+import { getCategories } from '@/lib/actions/categories.actions'
 
 async function testActions() {
-  console.log("Testing Server Actions...\n");
+  console.log('Testing Server Actions...\n')
 
   // Test categories
-  const categoriesResult = await getCategories("test-user-id");
-  console.log("Categories:", categoriesResult.success ? "✅" : "❌");
-  console.log("Count:", categoriesResult.data?.length || 0);
+  const categoriesResult = await getCategories('test-user-id')
+  console.log('Categories:', categoriesResult.success ? '✅' : '❌')
+  console.log('Count:', categoriesResult.data?.length || 0)
 
-  console.log("\n✅ Actions test complete");
+  console.log('\n✅ Actions test complete')
 }
 
-testActions();
+testActions()
 ```
 
 ```bash

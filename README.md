@@ -1,36 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Expense Manager
 
-## Getting Started
+Sistema de gestión de finanzas personales con IA integrada.
 
-First, run the development server:
+## Características
+
+- Registro de gastos e ingresos
+- Categorización automática con IA
+- Conversión de monedas (BOB, COP, USD)
+- Visualización de datos con gráficos
+- Chat para registro conversacional
+- Diseño responsive
+
+## Stack Tecnológico
+
+### Frontend
+
+- **Framework**: Next.js 16+ (App Router)
+- **Lenguaje**: TypeScript
+- **UI**: Chakra UI
+- **Autenticación**: NextAuth.js
+- **Gráficos**: Recharts
+- **Validación**: Zod
+
+### Backend
+
+- **Platform**: InsForge
+- **Database**: PostgreSQL
+- **Auth**: JWT
+- **Storage**: S3-compatible
+- **Functions**: Edge Functions
+
+### IA
+
+- **Provider**: Anthropic Claude
+- **Modelo**: Claude Sonnet 4.5
+
+## Prerequisitos
+
+- Node.js 18.17 o superior
+- pnpm 8.x o superior
+- Cuenta de InsForge
+- Cuenta de Google Cloud (OAuth)
+- API Key de Anthropic
+
+## Instalación
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+# Clonar repositorio
+git clone https://github.com/Sanghel/expense-manager.git
+cd expense-manager
+
+# Instalar dependencias
+pnpm install
+
+# Configurar variables de entorno
+cp .env.local.example .env.local
+# Editar .env.local con tus credenciales
+
+# Ejecutar en desarrollo
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abrir [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Variables de Entorno
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Ver `.env.local.example` para la lista completa de variables requeridas.
 
-## Learn More
+## Deploy
 
-To learn more about Next.js, take a look at the following resources:
+El proyecto está configurado para deploy automático en Vercel.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Documentación
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- [Plan de Trabajo](./plan-v1/)
+- [Flujo Git/GitHub](./rules/github-flow.md)
+- [Guía de Deploy](./rules/deploy-guide.md)
 
-## Deploy on Vercel
+## Licencia
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+MIT
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+**Nota**: Proyecto en desarrollo activo.

@@ -16,13 +16,9 @@ export async function createTransaction(
   try {
     const validated = createTransactionSchema.parse(data)
 
-    const { data: transaction, error } = await insforge
+    const { data: transaction, error } = await insforge.database
       .from('transactions')
-      .insert({
-        ...validated,
-        user_id: userId,
-        source: 'manual',
-      })
+      .insert([{ ...validated, user_id: userId, source: 'manual' }])
       .select()
       .single()
 
@@ -38,7 +34,7 @@ export async function createTransaction(
 
 export async function getTransactions(userId: string, limit = 50) {
   try {
-    const { data, error } = await insforge
+    const { data, error } = await insforge.database
       .from('transactions')
       .select('*, category:categories(*)')
       .eq('user_id', userId)
@@ -47,7 +43,7 @@ export async function getTransactions(userId: string, limit = 50) {
 
     if (error) throw error
     return { success: true, data }
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to fetch transactions' }
   }
 }
@@ -60,7 +56,7 @@ export async function updateTransaction(
   try {
     const validated = updateTransactionSchema.parse(data)
 
-    const { data: transaction, error } = await insforge
+    const { data: transaction, error } = await insforge.database
       .from('transactions')
       .update(validated)
       .eq('id', id)
@@ -80,7 +76,7 @@ export async function updateTransaction(
 
 export async function deleteTransaction(id: string, userId: string) {
   try {
-    const { error } = await insforge
+    const { error } = await insforge.database
       .from('transactions')
       .delete()
       .eq('id', id)
@@ -90,7 +86,7 @@ export async function deleteTransaction(id: string, userId: string) {
 
     revalidatePath('/dashboard')
     return { success: true }
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to delete transaction' }
   }
 }

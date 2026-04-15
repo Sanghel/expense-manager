@@ -1,30 +1,28 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@insforge/sdk'
 import * as dotenv from 'dotenv'
 import * as path from 'path'
 
 dotenv.config({ path: path.resolve(process.cwd(), '.env.local') })
 
 const url = process.env.NEXT_PUBLIC_INSFORGE_URL
-const key = process.env.INSFORGE_API_KEY
+const key = process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY
 
 if (!url || !key) {
-  console.error('Missing NEXT_PUBLIC_INSFORGE_URL or INSFORGE_API_KEY')
+  console.error('Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY')
   process.exit(1)
 }
 
-const insforge = createClient(url, key, { auth: { persistSession: false } })
+const insforge = createClient({ baseUrl: url, anonKey: key })
 
 async function testTable(name: string) {
-  const { error, count } = await insforge
-    .from(name)
-    .select('*', { count: 'exact', head: true })
+  const { error } = await insforge.database.from(name).select('*').limit(0)
 
   if (error) {
-    console.error(`  ❌ ${name}: ${error.message}`)
+    console.error(`  ❌ ${name}: ${(error as { message?: string }).message ?? String(error)}`)
     return false
   }
 
-  console.log(`  ✅ ${name}: accessible (${count ?? 0} rows)`)
+  console.log(`  ✅ ${name}: accessible`)
   return true
 }
 
@@ -48,18 +46,16 @@ async function main() {
 
   console.log('\n📊 Checking seed data...')
 
-  const { data: whitelist } = await insforge.from('whitelist').select('email')
-  console.log(
-    `  whitelist emails: ${whitelist?.map((w) => w.email).join(', ') || 'none'}`
-  )
+  const { data: whitelist } = await insforge.database.from('whitelist').select('email')
+  const wList = whitelist as Array<{ email: string }> | null
+  console.log(`  whitelist emails: ${wList?.map((w) => w.email).join(', ') || 'none'}`)
 
-  const { data: categories, count: catCount } = await insforge
-    .from('categories')
-    .select('*', { count: 'exact' })
-  console.log(`  predefined categories: ${catCount ?? 0}`)
-  if (categories?.length) {
-    const incomeCount = categories.filter((c) => c.type === 'income').length
-    const expenseCount = categories.filter((c) => c.type === 'expense').length
+  const { data: categories } = await insforge.database.from('categories').select('*')
+  const cats = categories as Array<{ type: string }> | null
+  console.log(`  predefined categories: ${cats?.length ?? 0}`)
+  if (cats?.length) {
+    const incomeCount = cats.filter((c) => c.type === 'income').length
+    const expenseCount = cats.filter((c) => c.type === 'expense').length
     console.log(`    - income: ${incomeCount}, expense: ${expenseCount}`)
   }
 

@@ -1,30 +1,21 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@insforge/sdk'
 
 if (!process.env.NEXT_PUBLIC_INSFORGE_URL) {
   throw new Error('Missing env.NEXT_PUBLIC_INSFORGE_URL')
 }
-if (!process.env.INSFORGE_API_KEY) {
-  throw new Error('Missing env.INSFORGE_API_KEY')
+if (!process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY) {
+  throw new Error('Missing env.NEXT_PUBLIC_INSFORGE_ANON_KEY')
 }
 
-export const insforge = createClient(
-  process.env.NEXT_PUBLIC_INSFORGE_URL,
-  process.env.INSFORGE_API_KEY,
-  {
-    auth: {
-      persistSession: false, // NextAuth maneja la sesión
-    },
-  }
-)
+export const insforge = createClient({
+  baseUrl: process.env.NEXT_PUBLIC_INSFORGE_URL,
+  anonKey: process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY,
+})
 
-// Helper para verificar conexión
 export async function testInsforgeConnection() {
   try {
-    const { error } = await insforge.from('users').select('count').single()
-    if (error && error.code !== 'PGRST116') {
-      // PGRST116 = tabla no existe aún (esperado)
-      throw error
-    }
+    const { error } = await insforge.database.from('users').select('id').limit(1)
+    if (error) throw error
     return true
   } catch (error) {
     console.error('InsForge connection failed:', error)

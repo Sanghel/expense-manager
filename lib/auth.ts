@@ -1,5 +1,6 @@
 import { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
+import { insforge } from './insforge'
 
 if (!process.env.GOOGLE_CLIENT_ID) {
   throw new Error('Missing GOOGLE_CLIENT_ID')
@@ -24,17 +25,48 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async signIn({ user }) {
-      // Verificar si el email está en la whitelist
       if (!user.email) {
+        console.log('❌ SignIn rejected: No email')
         return false
       }
 
       console.log('👤 User attempting sign in:', user.email)
 
-      // TODO FASE 03: Implementar verificación real de whitelist
-      // Por ahora, permitir todos los emails para testing
-      console.log('✅ SignIn allowed (whitelist check pending FASE 03)')
-      return true
+      try {
+        // Verificar whitelist
+        const { data, error } = await insforge
+          .from('whitelist')
+          .select('email')
+          .eq('email', user.email)
+          .single()
+
+        if (error || !data) {
+          console.log('❌ Email not in whitelist:', user.email)
+          return false
+        }
+
+        // Crear o actualizar usuario en tabla users
+        const { error: upsertError } = await insforge.from('users').upsert(
+          {
+            email: user.email,
+            name: user.name,
+            avatar_url: user.image,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'email' }
+        )
+
+        if (upsertError) {
+          console.error('Error upserting user:', upsertError)
+          return false
+        }
+
+        console.log('✅ User authorized:', user.email)
+        return true
+      } catch (error) {
+        console.error('SignIn error:', error)
+        return false
+      }
     },
     async session({ session, token }) {
       if (session.user) {

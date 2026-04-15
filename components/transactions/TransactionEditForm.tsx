@@ -22,51 +22,67 @@ import {
   RadioGroupItemText,
   HStack,
 } from '@chakra-ui/react'
-import { useState } from 'react'
-import { createTransaction } from '@/lib/actions/transactions.actions'
+import { useState, useEffect } from 'react'
+import { updateTransaction } from '@/lib/actions/transactions.actions'
 import { toaster } from '@/lib/toaster'
-import type { Category } from '@/types/database.types'
+import type { Category, TransactionWithCategory } from '@/types/database.types'
 
 interface Props {
   isOpen: boolean
   onClose: () => void
   userId: string
   categories: Category[]
+  transaction: TransactionWithCategory
   onSuccess: () => void
 }
 
-const defaultForm = {
-  type: 'expense' as 'income' | 'expense',
-  amount: '',
-  currency: 'COP' as 'COP' | 'USD' | 'BOB',
-  category_id: '',
-  description: '',
-  date: new Date().toISOString().split('T')[0],
-  notes: '',
-}
-
-type FormData = typeof defaultForm
-
-export function TransactionForm({ isOpen, onClose, userId, categories, onSuccess }: Props) {
+export function TransactionEditForm({
+  isOpen,
+  onClose,
+  userId,
+  categories,
+  transaction,
+  onSuccess,
+}: Props) {
   const [loading, setLoading] = useState(false)
-  const [formData, setFormData] = useState(defaultForm)
+
+  const [formData, setFormData] = useState({
+    type: transaction.type,
+    amount: String(transaction.amount),
+    currency: transaction.currency,
+    category_id: transaction.category_id,
+    description: transaction.description,
+    date: transaction.date,
+    notes: transaction.notes ?? '',
+  })
+
+  useEffect(() => {
+    setFormData({
+      type: transaction.type,
+      amount: String(transaction.amount),
+      currency: transaction.currency,
+      category_id: transaction.category_id,
+      description: transaction.description,
+      date: transaction.date,
+      notes: transaction.notes ?? '',
+    })
+  }, [transaction])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
 
-    const result = await createTransaction(userId, {
+    const result = await updateTransaction(transaction.id, userId, {
       ...formData,
       amount: parseFloat(formData.amount),
     })
 
     if (result.success) {
-      toaster.create({ title: 'Transacción creada', type: 'success', duration: 3000 })
+      toaster.create({ title: 'Transacción actualizada', type: 'success', duration: 3000 })
       onSuccess()
       onClose()
-      setFormData(defaultForm)
     } else {
-      toaster.create({ title: 'Error al crear', description: result.error, type: 'error', duration: 4000 })
+      toaster.create({ title: 'Error al actualizar', description: result.error, type: 'error', duration: 4000 })
     }
     setLoading(false)
   }
@@ -78,7 +94,7 @@ export function TransactionForm({ isOpen, onClose, userId, categories, onSuccess
       <DialogBackdrop />
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Nueva Transacción</DialogTitle>
+          <DialogTitle>Editar Transacción</DialogTitle>
         </DialogHeader>
         <DialogCloseTrigger />
         <DialogBody pb={6}>
@@ -89,7 +105,7 @@ export function TransactionForm({ isOpen, onClose, userId, categories, onSuccess
                 <RadioGroupRoot
                   value={formData.type}
                   onValueChange={({ value }) =>
-                    setFormData({ ...formData, type: value as FormData['type'], category_id: '' })
+                    setFormData({ ...formData, type: value as 'income' | 'expense', category_id: '' })
                   }
                 >
                   <HStack gap={4}>
@@ -152,7 +168,6 @@ export function TransactionForm({ isOpen, onClose, userId, categories, onSuccess
                 <Input
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Ej: Compra en supermercado"
                 />
               </FieldRoot>
 
@@ -170,7 +185,6 @@ export function TransactionForm({ isOpen, onClose, userId, categories, onSuccess
                 <Textarea
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  placeholder="Notas adicionales..."
                 />
               </FieldRoot>
 
@@ -180,7 +194,7 @@ export function TransactionForm({ isOpen, onClose, userId, categories, onSuccess
                 width="full"
                 loading={loading}
               >
-                Crear Transacción
+                Guardar Cambios
               </Button>
             </VStack>
           </form>

@@ -45,41 +45,37 @@ export const authOptions: NextAuthOptions = {
           return false
         }
 
-        // Verificar si el usuario ya existe
-        const { data: existingUser } = await insforge.database
+        // Crear o actualizar usuario (insert con fallback a update si ya existe)
+        const { error: insertError } = await insforge.database
           .from('users')
-          .select('id')
-          .eq('email', user.email)
-          .maybeSingle()
-
-        if (existingUser) {
-          // Actualizar datos del usuario
-          const { error: updateError } = await insforge.database
-            .from('users')
-            .update({
+          .insert([
+            {
+              email: user.email,
               name: user.name,
               avatar_url: user.image,
-              updated_at: new Date().toISOString(),
-            })
-            .eq('email', user.email)
+            },
+          ])
 
-          if (updateError) {
-            console.error('Error updating user:', updateError)
-            return false
-          }
-        } else {
-          // Crear nuevo usuario
-          const { error: insertError } = await insforge.database
-            .from('users')
-            .insert([
-              {
-                email: user.email,
+        if (insertError) {
+          const isDuplicate =
+            (insertError as { code?: string }).code === '23505'
+
+          if (isDuplicate) {
+            // El usuario ya existe — actualizar sus datos
+            const { error: updateError } = await insforge.database
+              .from('users')
+              .update({
                 name: user.name,
                 avatar_url: user.image,
-              },
-            ])
+                updated_at: new Date().toISOString(),
+              })
+              .eq('email', user.email)
 
-          if (insertError) {
+            if (updateError) {
+              console.error('Error updating user:', updateError)
+              return false
+            }
+          } else {
             console.error('Error inserting user:', insertError)
             return false
           }

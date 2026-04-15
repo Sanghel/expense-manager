@@ -2,9 +2,10 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { insforgeAdmin } from '@/lib/insforge-admin'
-import { DashboardContent } from '@/components/dashboard/DashboardContent'
+import { TransactionsPageClient } from './TransactionsPageClient'
+import { getCategories } from '@/lib/actions/categories.actions'
 
-export default async function DashboardPage() {
+export default async function TransactionsPage() {
   const session = await getServerSession(authOptions)
 
   if (!session?.user?.email) {
@@ -21,5 +22,8 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
-  return <DashboardContent userId={user.id} />
+  const categoriesResult = await getCategories(user.id)
+  const categories = categoriesResult.success ? categoriesResult.data : []
+
+  return <TransactionsPageClient userId={user.id} categories={categories ?? []} />
 }

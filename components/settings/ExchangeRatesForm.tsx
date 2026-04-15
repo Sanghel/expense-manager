@@ -16,8 +16,8 @@ import type { ExchangeRate, Currency } from '@/types/database.types'
 
 const PAIRS: Array<{ from: Currency; to: Currency; label: string }> = [
   { from: 'USD', to: 'COP', label: '1 USD → COP' },
-  { from: 'BOB', to: 'COP', label: '1 BOB → COP' },
-  { from: 'USD', to: 'BOB', label: '1 USD → BOB' },
+  { from: 'VES', to: 'COP', label: '1 Bs (VES) → COP' },
+  { from: 'USD', to: 'VES', label: '1 USD → Bs (VES)' },
 ]
 
 interface Props {
@@ -33,8 +33,8 @@ export function ExchangeRatesForm({ initialRates }: Props) {
   const [rates, setRates] = useState<ExchangeRate[]>(initialRates)
   const [inputs, setInputs] = useState({
     USD_COP: String(getRateValue(initialRates, 'USD', 'COP')),
-    BOB_COP: String(getRateValue(initialRates, 'BOB', 'COP')),
-    USD_BOB: String(getRateValue(initialRates, 'USD', 'BOB')),
+    VES_COP: String(getRateValue(initialRates, 'VES', 'COP')),
+    USD_VES: String(getRateValue(initialRates, 'USD', 'VES')),
   })
   const [loading, setLoading] = useState(false)
 
@@ -42,8 +42,8 @@ export function ExchangeRatesForm({ initialRates }: Props) {
     setLoading(true)
 
     const usdCop = parseFloat(inputs.USD_COP)
-    const bobCop = parseFloat(inputs.BOB_COP)
-    const usdBob = parseFloat(inputs.USD_BOB)
+    const bobCop = parseFloat(inputs.VES_COP)
+    const usdBob = parseFloat(inputs.USD_VES)
 
     if (isNaN(usdCop) || isNaN(bobCop) || isNaN(usdBob) || usdCop <= 0 || bobCop <= 0 || usdBob <= 0) {
       toaster.create({ title: 'Valores inválidos', description: 'Todos los valores deben ser números positivos', type: 'error', duration: 4000 })
@@ -54,10 +54,10 @@ export function ExchangeRatesForm({ initialRates }: Props) {
     const updates = [
       updateRate('USD', 'COP', usdCop),
       updateRate('COP', 'USD', 1 / usdCop),
-      updateRate('BOB', 'COP', bobCop),
-      updateRate('COP', 'BOB', 1 / bobCop),
-      updateRate('USD', 'BOB', usdBob),
-      updateRate('BOB', 'USD', 1 / usdBob),
+      updateRate('VES', 'COP', bobCop),
+      updateRate('COP', 'VES', 1 / bobCop),
+      updateRate('USD', 'VES', usdBob),
+      updateRate('VES', 'USD', 1 / usdBob),
     ]
 
     const results = await Promise.all(updates)

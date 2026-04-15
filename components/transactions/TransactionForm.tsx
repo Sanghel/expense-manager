@@ -39,7 +39,7 @@ interface Props {
 const defaultForm = {
   type: 'expense' as 'income' | 'expense',
   amount: '',
-  currency: 'COP' as 'COP' | 'USD' | 'BOB',
+  currency: 'COP' as 'COP' | 'USD' | 'VES',
   category_id: '',
   description: '',
   date: new Date().toISOString().split('T')[0],
@@ -122,11 +122,11 @@ export function TransactionForm({ isOpen, onClose, userId, categories, onSuccess
                 <NativeSelectRoot>
                   <NativeSelectField
                     value={formData.currency}
-                    onChange={(e) => setFormData({ ...formData, currency: e.target.value as 'COP' | 'USD' | 'BOB' })}
+                    onChange={(e) => setFormData({ ...formData, currency: e.target.value as 'COP' | 'USD' | 'VES' })}
                   >
                     <option value="COP">COP - Peso Colombiano</option>
                     <option value="USD">USD - Dólar</option>
-                    <option value="BOB">BOB - Boliviano</option>
+                    <option value="VES">VES - Bolívar (Bs)</option>
                   </NativeSelectField>
                 </NativeSelectRoot>
               </FieldRoot>

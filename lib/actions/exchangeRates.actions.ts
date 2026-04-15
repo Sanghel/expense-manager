@@ -24,10 +24,10 @@ export async function getAllRatePairs() {
     const pairs: Array<{ from: Currency; to: Currency }> = [
       { from: 'USD', to: 'COP' },
       { from: 'COP', to: 'USD' },
-      { from: 'BOB', to: 'COP' },
-      { from: 'COP', to: 'BOB' },
-      { from: 'USD', to: 'BOB' },
-      { from: 'BOB', to: 'USD' },
+      { from: 'VES', to: 'COP' },
+      { from: 'COP', to: 'VES' },
+      { from: 'USD', to: 'VES' },
+      { from: 'VES', to: 'USD' },
     ]
 
     const results = await Promise.all(
@@ -119,10 +119,10 @@ export async function seedInitialRates() {
     const rates = [
       { from_currency: 'USD', to_currency: 'COP', rate: 4000, date: today },
       { from_currency: 'COP', to_currency: 'USD', rate: 0.00025, date: today },
-      { from_currency: 'BOB', to_currency: 'COP', rate: 580, date: today },
-      { from_currency: 'COP', to_currency: 'BOB', rate: 0.001724, date: today },
-      { from_currency: 'USD', to_currency: 'BOB', rate: 6.9, date: today },
-      { from_currency: 'BOB', to_currency: 'USD', rate: 0.14493, date: today },
+      { from_currency: 'VES', to_currency: 'COP', rate: 111, date: today },
+      { from_currency: 'COP', to_currency: 'VES', rate: 0.009009, date: today },
+      { from_currency: 'USD', to_currency: 'VES', rate: 36, date: today },
+      { from_currency: 'VES', to_currency: 'USD', rate: 0.027778, date: today },
     ]
 
     const { error } = await insforgeAdmin.database

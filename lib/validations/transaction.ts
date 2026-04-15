@@ -2,7 +2,7 @@ import * as z from 'zod'
 
 export const createTransactionSchema = z.object({
   amount: z.number().positive('Amount must be positive'),
-  currency: z.enum(['COP', 'USD', 'BOB']),
+  currency: z.enum(['COP', 'USD', 'VES']),
   type: z.enum(['income', 'expense']),
   category_id: z.string().uuid(),
   description: z.string().min(1, 'Description is required'),

@@ -14,7 +14,7 @@ import type { Currency } from '@/types/database.types'
 const CURRENCIES: { value: Currency; label: string }[] = [
   { value: 'COP', label: 'COP — Peso Colombiano' },
   { value: 'USD', label: 'USD — Dólar Americano' },
-  { value: 'BOB', label: 'BOB — Boliviano' },
+  { value: 'VES', label: 'VES — Bolívar Venezolano (Bs)' },
 ]
 
 interface Props {

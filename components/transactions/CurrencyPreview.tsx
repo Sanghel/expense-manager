@@ -6,7 +6,7 @@ import { convertCurrency } from '@/lib/actions/exchangeRates.actions'
 import { formatCurrency } from '@/lib/utils/currency'
 import type { Currency } from '@/types/database.types'
 
-const OTHER_CURRENCIES: Currency[] = ['COP', 'USD', 'BOB']
+const OTHER_CURRENCIES: Currency[] = ['COP', 'USD', 'VES']
 
 interface Props {
   amount: number

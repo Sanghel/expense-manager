@@ -23,6 +23,7 @@ import {
   RadioGroupItemText,
   RadioGroupItemHiddenInput,
   HStack,
+  Box,
 } from '@chakra-ui/react'
 import { useState, useEffect } from 'react'
 import { updateTransaction } from '@/lib/actions/transactions.actions'
@@ -96,7 +97,7 @@ export function TransactionEditForm({
     <DialogRoot open={isOpen} onOpenChange={({ open }) => !open && onClose()} size="lg" placement="center" lazyMount unmountOnExit>
       <DialogBackdrop />
       <DialogPositioner>
-      <DialogContent>
+      <DialogContent tabIndex={-1}>
         <DialogHeader>
           <DialogTitle>Editar Transacción</DialogTitle>
         </DialogHeader>
@@ -169,10 +170,12 @@ export function TransactionEditForm({
                 </NativeSelectRoot>
               </FieldRoot>
 
-              <CurrencyPreview
-                amount={parseFloat(formData.amount) || 0}
-                fromCurrency={formData.currency}
-              />
+              <Box w="full" minH="10">
+                <CurrencyPreview
+                  amount={parseFloat(formData.amount) || 0}
+                  fromCurrency={formData.currency}
+                />
+              </Box>
 
               <FieldRoot required>
                 <FieldLabel>Descripción</FieldLabel>

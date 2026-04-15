@@ -156,7 +156,7 @@ export function CategoriesPageClient({ userId, initialCategories }: Props) {
       >
         <DialogBackdrop />
         <DialogPositioner>
-        <DialogContent>
+        <DialogContent tabIndex={-1}>
           <DialogHeader>
             <DialogTitle>Eliminar Categoría</DialogTitle>
           </DialogHeader>

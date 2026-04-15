@@ -85,7 +85,11 @@ export function TransactionsPageClient({ userId, categories }: Props) {
   }
 
   const handleEditClose = () => {
-    setEditingTransaction(null)
+    // Do NOT clear editingTransaction here. Doing so unmounts TransactionEditForm
+    // in the same React commit as isOpen→false, which tears down the dialog DOM
+    // before Zag can call layerStack.remove(node) — the node is already gone,
+    // remove() short-circuits, and body.style.pointerEvents="none" gets stuck.
+    // editingTransaction is updated on the next open, so leaving it set is safe.
     onEditClose()
   }
 

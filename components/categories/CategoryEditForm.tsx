@@ -68,7 +68,7 @@ export function CategoryEditForm({ isOpen, onClose, userId, category, onSuccess 
     <DialogRoot open={isOpen} onOpenChange={({ open }) => !open && onClose()} size="md" placement="center" lazyMount unmountOnExit>
       <DialogBackdrop />
       <DialogPositioner>
-      <DialogContent>
+      <DialogContent tabIndex={-1}>
         <DialogHeader>
           <HStack>
             <DialogTitle>Editar Categoría</DialogTitle>

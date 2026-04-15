@@ -66,7 +66,7 @@ export function CategoryForm({ isOpen, onClose, userId, onSuccess }: Props) {
     <DialogRoot open={isOpen} onOpenChange={({ open }) => !open && onClose()} size="md" placement="center" lazyMount unmountOnExit>
       <DialogBackdrop />
       <DialogPositioner>
-      <DialogContent>
+      <DialogContent tabIndex={-1}>
         <DialogHeader>
           <DialogTitle>Nueva Categoría</DialogTitle>
         </DialogHeader>

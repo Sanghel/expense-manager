@@ -1,1 +1,12 @@
 @import 'tailwindcss';
+
+/* Fix: dialog backdrop and positioner must not block pointer events once closed.
+   Ark UI keeps these nodes in the DOM during the exit animation (unmountSuspended).
+   If the keyframe animation never fires / completes, animationend never dispatches
+   and the node stays as an invisible full-screen overlay. Forcing pointer-events: none
+   on the closed state removes the block regardless of animation outcome. */
+[data-scope="dialog"][data-part="backdrop"][data-state="closed"],
+[data-scope="dialog"][data-part="positioner"][data-state="closed"] {
+  pointer-events: none !important;
+}
+

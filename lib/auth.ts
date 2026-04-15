@@ -34,31 +34,51 @@ export const authOptions: NextAuthOptions = {
 
       try {
         // Verificar whitelist
-        const { data, error } = await insforge
+        const { data, error } = await insforge.database
           .from('whitelist')
           .select('email')
           .eq('email', user.email)
-          .single()
+          .maybeSingle()
 
         if (error || !data) {
           console.log('❌ Email not in whitelist:', user.email)
           return false
         }
 
-        // Crear o actualizar usuario en tabla users
-        const { error: upsertError } = await insforge.from('users').upsert(
-          {
-            email: user.email,
-            name: user.name,
-            avatar_url: user.image,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: 'email' }
-        )
+        // Crear o actualizar usuario (insert con fallback a update si ya existe)
+        const { error: insertError } = await insforge.database
+          .from('users')
+          .insert([
+            {
+              email: user.email,
+              name: user.name,
+              avatar_url: user.image,
+            },
+          ])
 
-        if (upsertError) {
-          console.error('Error upserting user:', upsertError)
-          return false
+        if (insertError) {
+          const isDuplicate =
+            (insertError as { code?: string }).code === '23505'
+
+          if (isDuplicate) {
+            // El usuario ya existe — actualizar sus datos
+            const { error: updateError } = await insforge.database
+              .from('users')
+              .update({
+                name: user.name,
+                avatar_url: user.image,
+                updated_at: new Date().toISOString(),
+              })
+              .eq('email', user.email)
+
+            if (updateError) {
+              console.error('Error updating user:', updateError)
+              return false
+            }
+          } else {
+            console.error('Error inserting user:', insertError)
+            return false
+          }
         }
 
         console.log('✅ User authorized:', user.email)

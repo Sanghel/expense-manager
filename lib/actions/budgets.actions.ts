@@ -9,7 +9,7 @@ import {
 
 export async function getBudgets(userId: string) {
   try {
-    const { data, error } = await insforge
+    const { data, error } = await insforge.database
       .from('budgets')
       .select('*, category:categories(*)')
       .eq('user_id', userId)
@@ -17,7 +17,7 @@ export async function getBudgets(userId: string) {
 
     if (error) throw error
     return { success: true, data }
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to fetch budgets' }
   }
 }
@@ -26,12 +26,9 @@ export async function createBudget(userId: string, data: CreateBudgetInput) {
   try {
     const validated = createBudgetSchema.parse(data)
 
-    const { data: budget, error } = await insforge
+    const { data: budget, error } = await insforge.database
       .from('budgets')
-      .insert({
-        ...validated,
-        user_id: userId,
-      })
+      .insert([{ ...validated, user_id: userId }])
       .select()
       .single()
 
@@ -53,7 +50,7 @@ export async function updateBudget(
   try {
     const validated = createBudgetSchema.partial().parse(data)
 
-    const { data: budget, error } = await insforge
+    const { data: budget, error } = await insforge.database
       .from('budgets')
       .update(validated)
       .eq('id', id)
@@ -73,7 +70,7 @@ export async function updateBudget(
 
 export async function deleteBudget(id: string, userId: string) {
   try {
-    const { error } = await insforge
+    const { error } = await insforge.database
       .from('budgets')
       .delete()
       .eq('id', id)
@@ -83,7 +80,7 @@ export async function deleteBudget(id: string, userId: string) {
 
     revalidatePath('/dashboard')
     return { success: true }
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to delete budget' }
   }
 }

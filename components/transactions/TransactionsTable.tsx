@@ -2,29 +2,26 @@
 
 import {
   Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
   Badge,
   IconButton,
   HStack,
   useDisclosure,
-  AlertDialog,
-  AlertDialogOverlay,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogBody,
-  AlertDialogFooter,
+  DialogRoot,
+  DialogBackdrop,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogBody,
+  DialogFooter,
+  DialogCloseTrigger,
   Button,
-  useToast,
   Text,
 } from '@chakra-ui/react'
 import { FiEdit2, FiTrash2 } from 'react-icons/fi'
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { deleteTransaction } from '@/lib/actions/transactions.actions'
 import { formatCurrency } from '@/lib/utils/currency'
+import { toaster } from '@/lib/toaster'
 import type { TransactionWithCategory } from '@/types/database.types'
 
 interface Props {
@@ -35,10 +32,8 @@ interface Props {
 }
 
 export function TransactionsTable({ transactions, userId, onUpdate, onEdit }: Props) {
-  const { isOpen, onOpen, onClose } = useDisclosure()
+  const { open, onOpen, onClose } = useDisclosure()
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const cancelRef = useRef<HTMLButtonElement>(null)
-  const toast = useToast()
 
   const handleDeleteClick = (id: string) => {
     setSelectedId(id)
@@ -51,10 +46,10 @@ export function TransactionsTable({ transactions, userId, onUpdate, onEdit }: Pr
     const result = await deleteTransaction(selectedId, userId)
 
     if (result.success) {
-      toast({ title: 'Transacción eliminada', status: 'success', duration: 3000 })
+      toaster.create({ title: 'Transacción eliminada', type: 'success', duration: 3000 })
       onUpdate()
     } else {
-      toast({ title: 'Error', description: result.error, status: 'error', duration: 4000 })
+      toaster.create({ title: 'Error al eliminar', description: result.error, type: 'error', duration: 4000 })
     }
     onClose()
     setSelectedId(null)
@@ -70,80 +65,88 @@ export function TransactionsTable({ transactions, userId, onUpdate, onEdit }: Pr
 
   return (
     <>
-      <Table variant="simple">
-        <Thead>
-          <Tr>
-            <Th>Fecha</Th>
-            <Th>Descripción</Th>
-            <Th>Categoría</Th>
-            <Th>Tipo</Th>
-            <Th isNumeric>Monto</Th>
-            <Th>Acciones</Th>
-          </Tr>
-        </Thead>
-        <Tbody>
+      <Table.Root variant="line">
+        <Table.Header>
+          <Table.Row>
+            <Table.ColumnHeader>Fecha</Table.ColumnHeader>
+            <Table.ColumnHeader>Descripción</Table.ColumnHeader>
+            <Table.ColumnHeader>Categoría</Table.ColumnHeader>
+            <Table.ColumnHeader>Tipo</Table.ColumnHeader>
+            <Table.ColumnHeader textAlign="right">Monto</Table.ColumnHeader>
+            <Table.ColumnHeader>Acciones</Table.ColumnHeader>
+          </Table.Row>
+        </Table.Header>
+        <Table.Body>
           {transactions.map((transaction) => (
-            <Tr key={transaction.id}>
-              <Td whiteSpace="nowrap">
+            <Table.Row key={transaction.id}>
+              <Table.Cell whiteSpace="nowrap">
                 {new Date(transaction.date + 'T00:00:00').toLocaleDateString('es-CO')}
-              </Td>
-              <Td>{transaction.description}</Td>
-              <Td>
+              </Table.Cell>
+              <Table.Cell>{transaction.description}</Table.Cell>
+              <Table.Cell>
                 {transaction.category.icon} {transaction.category.name}
-              </Td>
-              <Td>
-                <Badge colorScheme={transaction.type === 'income' ? 'green' : 'red'}>
+              </Table.Cell>
+              <Table.Cell>
+                <Badge colorPalette={transaction.type === 'income' ? 'green' : 'red'}>
                   {transaction.type === 'income' ? 'Ingreso' : 'Gasto'}
                 </Badge>
-              </Td>
-              <Td isNumeric fontWeight="semibold" color={transaction.type === 'income' ? 'green.600' : 'red.600'}>
+              </Table.Cell>
+              <Table.Cell
+                textAlign="right"
+                fontWeight="semibold"
+                color={transaction.type === 'income' ? 'green.600' : 'red.600'}
+              >
                 {transaction.type === 'income' ? '+' : '-'}
                 {formatCurrency(Number(transaction.amount), transaction.currency)}
-              </Td>
-              <Td>
-                <HStack spacing={1}>
+              </Table.Cell>
+              <Table.Cell>
+                <HStack gap={1}>
                   <IconButton
                     aria-label="Editar"
-                    icon={<FiEdit2 />}
                     size="sm"
                     variant="ghost"
                     onClick={() => onEdit(transaction)}
-                  />
+                  >
+                    <FiEdit2 />
+                  </IconButton>
                   <IconButton
                     aria-label="Eliminar"
-                    icon={<FiTrash2 />}
                     size="sm"
                     variant="ghost"
-                    colorScheme="red"
+                    colorPalette="red"
                     onClick={() => handleDeleteClick(transaction.id)}
-                  />
+                  >
+                    <FiTrash2 />
+                  </IconButton>
                 </HStack>
-              </Td>
-            </Tr>
+              </Table.Cell>
+            </Table.Row>
           ))}
-        </Tbody>
-      </Table>
+        </Table.Body>
+      </Table.Root>
 
-      <AlertDialog isOpen={isOpen} leastDestructiveRef={cancelRef} onClose={onClose}>
-        <AlertDialogOverlay>
-          <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Eliminar Transacción
-            </AlertDialogHeader>
-            <AlertDialogBody>
-              ¿Estás seguro? Esta acción no se puede deshacer.
-            </AlertDialogBody>
-            <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={onClose}>
-                Cancelar
-              </Button>
-              <Button colorScheme="red" onClick={handleDelete} ml={3}>
-                Eliminar
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialogOverlay>
-      </AlertDialog>
+      <DialogRoot
+        open={open}
+        onOpenChange={({ open: isOpen }) => !isOpen && onClose()}
+        role="alertdialog"
+      >
+        <DialogBackdrop />
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Eliminar Transacción</DialogTitle>
+          </DialogHeader>
+          <DialogCloseTrigger />
+          <DialogBody>
+            ¿Estás seguro? Esta acción no se puede deshacer.
+          </DialogBody>
+          <DialogFooter>
+            <Button variant="outline" onClick={onClose}>Cancelar</Button>
+            <Button colorPalette="red" onClick={handleDelete} ml={3}>
+              Eliminar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </DialogRoot>
     </>
   )
 }

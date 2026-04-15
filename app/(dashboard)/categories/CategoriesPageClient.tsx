@@ -151,6 +151,8 @@ export function CategoriesPageClient({ userId, initialCategories }: Props) {
         onOpenChange={({ open }) => !open && deleteDisclosure.onClose()}
         role="alertdialog"
         placement="center"
+        lazyMount
+        unmountOnExit
       >
         <DialogBackdrop />
         <DialogPositioner>

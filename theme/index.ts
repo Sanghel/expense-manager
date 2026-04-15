@@ -5,36 +5,40 @@ const config = defineConfig({
     tokens: {
       colors: {
         brand: {
-          50: { value: '#E6F6FF' },
-          100: { value: '#BAE3FF' },
-          200: { value: '#7CC4FA' },
-          300: { value: '#47A3F3' },
-          400: { value: '#2186EB' },
-          500: { value: '#0967D2' },
-          600: { value: '#0552B5' },
-          700: { value: '#03449E' },
-          800: { value: '#01337D' },
-          900: { value: '#002159' },
+          50:  { value: '#EDEFFF' },
+          100: { value: '#D8DCFF' },
+          200: { value: '#B4BAFF' },
+          300: { value: '#8B93FF' },
+          400: { value: '#6B74F8' },
+          500: { value: '#4F46E5' }, // indigo-600 — primary
+          600: { value: '#4338CA' },
+          700: { value: '#3730A3' },
+          800: { value: '#312E81' },
+          900: { value: '#1E1B4B' },
         },
         income: {
-          50: { value: '#E6FAF5' },
-          500: { value: '#2ECC71' },
-          600: { value: '#27AE60' },
+          50:  { value: '#ECFDF5' },
+          500: { value: '#10B981' },
+          600: { value: '#059669' },
         },
         expense: {
-          50: { value: '#FFE6E6' },
-          500: { value: '#E74C3C' },
-          600: { value: '#C0392B' },
+          50:  { value: '#FFF1F2' },
+          500: { value: '#F43F5E' },
+          600: { value: '#E11D48' },
+        },
+        accent: {
+          500: { value: '#F97316' }, // orange accent
+          600: { value: '#EA580C' },
         },
       },
       fonts: {
         heading: { value: 'var(--font-geist-sans), sans-serif' },
-        body: { value: 'var(--font-geist-sans), sans-serif' },
+        body:    { value: 'var(--font-geist-sans), sans-serif' },
       },
     },
     semanticTokens: {
       colors: {
-        'bg.canvas': { value: '{colors.gray.50}' },
+        'bg.canvas': { value: '#F4F4FA' },
       },
     },
   },

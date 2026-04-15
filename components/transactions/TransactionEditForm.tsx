@@ -93,7 +93,7 @@ export function TransactionEditForm({
   const filteredCategories = categories.filter((c) => c.type === formData.type)
 
   return (
-    <DialogRoot open={isOpen} onOpenChange={({ open }) => !open && onClose()} size="lg" placement="center">
+    <DialogRoot open={isOpen} onOpenChange={({ open }) => !open && onClose()} size="lg" placement="center" lazyMount unmountOnExit>
       <DialogBackdrop />
       <DialogPositioner>
       <DialogContent>

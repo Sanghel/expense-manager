@@ -65,7 +65,7 @@ export function CategoryEditForm({ isOpen, onClose, userId, category, onSuccess 
   }
 
   return (
-    <DialogRoot open={isOpen} onOpenChange={({ open }) => !open && onClose()} size="md" placement="center">
+    <DialogRoot open={isOpen} onOpenChange={({ open }) => !open && onClose()} size="md" placement="center" lazyMount unmountOnExit>
       <DialogBackdrop />
       <DialogPositioner>
       <DialogContent>

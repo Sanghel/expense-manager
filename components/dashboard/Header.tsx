@@ -6,6 +6,7 @@ import {
   Heading,
   MenuRoot,
   MenuTrigger,
+  MenuPositioner,
   MenuContent,
   MenuItem,
   Button,
@@ -28,10 +29,10 @@ export function Header() {
       borderBottomWidth="1px"
       borderColor="gray.200"
       px={8}
-      py={4}
+      py={3}
     >
       <Flex justify="space-between" align="center">
-        <Heading size="md" color="brand.600">
+        <Heading size="md" color="brand.500" letterSpacing="tight">
           Expense Manager
         </Heading>
 
@@ -45,16 +46,18 @@ export function Header() {
                 </AvatarRoot>
               </Button>
             </MenuTrigger>
-            <MenuContent>
-              <MenuItem value="settings" onClick={() => router.push('/settings')}>
-                <FiSettings />
-                Configuración
-              </MenuItem>
-              <MenuItem value="logout" onClick={() => signOut()}>
-                <FiLogOut />
-                Cerrar Sesión
-              </MenuItem>
-            </MenuContent>
+            <MenuPositioner>
+              <MenuContent minW="44">
+                <MenuItem value="settings" onClick={() => router.push('/settings')}>
+                  <FiSettings />
+                  Configuración
+                </MenuItem>
+                <MenuItem value="logout" color="red.600" onClick={() => signOut()}>
+                  <FiLogOut />
+                  Cerrar Sesión
+                </MenuItem>
+              </MenuContent>
+            </MenuPositioner>
           </MenuRoot>
         )}
       </Flex>

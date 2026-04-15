@@ -25,6 +25,7 @@ import {
 import { useState, useEffect } from 'react'
 import { updateTransaction } from '@/lib/actions/transactions.actions'
 import { toaster } from '@/lib/toaster'
+import { CurrencyPreview } from './CurrencyPreview'
 import type { Category, TransactionWithCategory } from '@/types/database.types'
 
 interface Props {
@@ -162,6 +163,11 @@ export function TransactionEditForm({
                   </NativeSelectField>
                 </NativeSelectRoot>
               </FieldRoot>
+
+              <CurrencyPreview
+                amount={parseFloat(formData.amount) || 0}
+                fromCurrency={formData.currency}
+              />
 
               <FieldRoot required>
                 <FieldLabel>Descripción</FieldLabel>

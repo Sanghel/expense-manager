@@ -26,6 +26,7 @@ import { useState } from 'react'
 import { createTransaction } from '@/lib/actions/transactions.actions'
 import { toaster } from '@/lib/toaster'
 import type { Category } from '@/types/database.types'
+import { CurrencyPreview } from './CurrencyPreview'
 
 interface Props {
   isOpen: boolean
@@ -146,6 +147,11 @@ export function TransactionForm({ isOpen, onClose, userId, categories, onSuccess
                   </NativeSelectField>
                 </NativeSelectRoot>
               </FieldRoot>
+
+              <CurrencyPreview
+                amount={parseFloat(formData.amount) || 0}
+                fromCurrency={formData.currency}
+              />
 
               <FieldRoot required>
                 <FieldLabel>Descripción</FieldLabel>

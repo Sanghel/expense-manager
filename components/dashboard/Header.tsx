@@ -14,10 +14,12 @@ import {
   AvatarFallback,
 } from '@chakra-ui/react'
 import { signOut, useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import { FiLogOut, FiSettings } from 'react-icons/fi'
 
 export function Header() {
   const { data: session } = useSession()
+  const router = useRouter()
 
   return (
     <Box
@@ -44,7 +46,7 @@ export function Header() {
               </Button>
             </MenuTrigger>
             <MenuContent>
-              <MenuItem value="settings">
+              <MenuItem value="settings" onClick={() => router.push('/settings')}>
                 <FiSettings />
                 Configuración
               </MenuItem>

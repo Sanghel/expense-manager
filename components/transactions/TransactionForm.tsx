@@ -3,6 +3,7 @@
 import {
   DialogRoot,
   DialogBackdrop,
+  DialogPositioner,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -20,6 +21,7 @@ import {
   RadioGroupItem,
   RadioGroupItemControl,
   RadioGroupItemText,
+  RadioGroupItemHiddenInput,
   HStack,
 } from '@chakra-ui/react'
 import { useState } from 'react'
@@ -75,8 +77,9 @@ export function TransactionForm({ isOpen, onClose, userId, categories, onSuccess
   const filteredCategories = categories.filter((c) => c.type === formData.type)
 
   return (
-    <DialogRoot open={isOpen} onOpenChange={({ open }) => !open && onClose()} size="lg">
+    <DialogRoot open={isOpen} onOpenChange={({ open }) => !open && onClose()} size="lg" placement="center">
       <DialogBackdrop />
+      <DialogPositioner>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Nueva Transacción</DialogTitle>
@@ -95,10 +98,12 @@ export function TransactionForm({ isOpen, onClose, userId, categories, onSuccess
                 >
                   <HStack gap={4}>
                     <RadioGroupItem value="expense">
+                      <RadioGroupItemHiddenInput />
                       <RadioGroupItemControl />
                       <RadioGroupItemText>Gasto</RadioGroupItemText>
                     </RadioGroupItem>
                     <RadioGroupItem value="income">
+                      <RadioGroupItemHiddenInput />
                       <RadioGroupItemControl />
                       <RadioGroupItemText>Ingreso</RadioGroupItemText>
                     </RadioGroupItem>
@@ -192,6 +197,7 @@ export function TransactionForm({ isOpen, onClose, userId, categories, onSuccess
           </form>
         </DialogBody>
       </DialogContent>
+      </DialogPositioner>
     </DialogRoot>
   )
 }

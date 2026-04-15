@@ -3,6 +3,7 @@
 import {
   DialogRoot,
   DialogBackdrop,
+  DialogPositioner,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -64,8 +65,9 @@ export function CategoryEditForm({ isOpen, onClose, userId, category, onSuccess 
   }
 
   return (
-    <DialogRoot open={isOpen} onOpenChange={({ open }) => !open && onClose()} size="md">
+    <DialogRoot open={isOpen} onOpenChange={({ open }) => !open && onClose()} size="md" placement="center">
       <DialogBackdrop />
+      <DialogPositioner>
       <DialogContent>
         <DialogHeader>
           <HStack>
@@ -113,6 +115,7 @@ export function CategoryEditForm({ isOpen, onClose, userId, category, onSuccess 
           </form>
         </DialogBody>
       </DialogContent>
+      </DialogPositioner>
     </DialogRoot>
   )
 }

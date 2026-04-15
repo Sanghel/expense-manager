@@ -12,6 +12,7 @@ import {
   SimpleGrid,
   DialogRoot,
   DialogBackdrop,
+  DialogPositioner,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -149,8 +150,10 @@ export function CategoriesPageClient({ userId, initialCategories }: Props) {
         open={deleteDisclosure.open}
         onOpenChange={({ open }) => !open && deleteDisclosure.onClose()}
         role="alertdialog"
+        placement="center"
       >
         <DialogBackdrop />
+        <DialogPositioner>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Eliminar Categoría</DialogTitle>
@@ -174,6 +177,7 @@ export function CategoriesPageClient({ userId, initialCategories }: Props) {
             </HStack>
           </DialogBody>
         </DialogContent>
+        </DialogPositioner>
       </DialogRoot>
     </Box>
   )

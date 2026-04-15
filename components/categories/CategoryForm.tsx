@@ -3,6 +3,7 @@
 import {
   DialogRoot,
   DialogBackdrop,
+  DialogPositioner,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -17,6 +18,7 @@ import {
   RadioGroupItem,
   RadioGroupItemControl,
   RadioGroupItemText,
+  RadioGroupItemHiddenInput,
   Button,
 } from '@chakra-ui/react'
 import { useState } from 'react'
@@ -61,8 +63,9 @@ export function CategoryForm({ isOpen, onClose, userId, onSuccess }: Props) {
   }
 
   return (
-    <DialogRoot open={isOpen} onOpenChange={({ open }) => !open && onClose()} size="md">
+    <DialogRoot open={isOpen} onOpenChange={({ open }) => !open && onClose()} size="md" placement="center">
       <DialogBackdrop />
+      <DialogPositioner>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Nueva Categoría</DialogTitle>
@@ -81,10 +84,12 @@ export function CategoryForm({ isOpen, onClose, userId, onSuccess }: Props) {
                 >
                   <HStack gap={4}>
                     <RadioGroupItem value="expense">
+                      <RadioGroupItemHiddenInput />
                       <RadioGroupItemControl />
                       <RadioGroupItemText>Gasto</RadioGroupItemText>
                     </RadioGroupItem>
                     <RadioGroupItem value="income">
+                      <RadioGroupItemHiddenInput />
                       <RadioGroupItemControl />
                       <RadioGroupItemText>Ingreso</RadioGroupItemText>
                     </RadioGroupItem>
@@ -126,6 +131,7 @@ export function CategoryForm({ isOpen, onClose, userId, onSuccess }: Props) {
           </form>
         </DialogBody>
       </DialogContent>
+      </DialogPositioner>
     </DialogRoot>
   )
 }

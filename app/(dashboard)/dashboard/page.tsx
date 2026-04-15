@@ -1,51 +1,41 @@
-'use client'
+import { Box, Heading, VStack } from '@chakra-ui/react'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { redirect } from 'next/navigation'
+import { insforge } from '@/lib/insforge'
+import { FinancialCards } from '@/components/dashboard/FinancialCards'
+import { MonthlyTrendChart } from '@/components/dashboard/MonthlyTrendChart'
+import { RecentTransactions } from '@/components/dashboard/RecentTransactions'
 
-import { Box, Heading, SimpleGrid } from '@chakra-ui/react'
-import { StatCard } from '@/components/ui/StatCard'
+export default async function DashboardPage() {
+  const session = await getServerSession(authOptions)
 
-export default function DashboardPage() {
+  if (!session?.user?.email) {
+    redirect('/login')
+  }
+
+  // Obtener user ID de la BD
+  const { data: user } = await insforge.database
+    .from('users')
+    .select('id')
+    .eq('email', session.user.email)
+    .single()
+
+  if (!user) {
+    redirect('/login')
+  }
+
   return (
     <Box>
       <Heading mb={8}>Dashboard</Heading>
 
-      <SimpleGrid columns={{ base: 1, md: 3 }} gap={6} mb={8}>
-        <StatCard
-          label="Balance Total"
-          value="$0.00 COP"
-          helpText="Este mes"
-        />
-        <StatCard
-          label="Gastos"
-          value="$0.00"
-          helpText="Este mes"
-        />
-        <StatCard
-          label="Ingresos"
-          value="$0.00"
-          helpText="Este mes"
-        />
-      </SimpleGrid>
+      <VStack gap={8} align="stretch">
+        <FinancialCards userId={user.id} />
 
-      <Box
-        bg="blue.50"
-        p={6}
-        borderRadius="lg"
-        borderLeftWidth="4px"
-        borderLeftColor="blue.500"
-      >
-        <Heading size="sm" mb={2}>
-          ✅ FASE 05 Completada
-        </Heading>
-        <Box fontSize="sm" color="blue.800">
-          • Layout principal configurado
-          <br />
-          • Header y Sidebar funcionales
-          <br />
-          • Tema de Chakra UI v3 aplicado
-          <br />
-          • Componentes base creados
-        </Box>
-      </Box>
+        <MonthlyTrendChart userId={user.id} />
+
+        <RecentTransactions userId={user.id} limit={10} />
+      </VStack>
     </Box>
   )
 }

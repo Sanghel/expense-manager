@@ -1,7 +1,7 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { insforge } from '@/lib/insforge'
+import { insforgeAdmin } from '@/lib/insforge-admin'
 import { TransactionsPageClient } from './TransactionsPageClient'
 import { getCategories } from '@/lib/actions/categories.actions'
 
@@ -12,7 +12,7 @@ export default async function TransactionsPage() {
     redirect('/login')
   }
 
-  const { data: user } = await insforge.database
+  const { data: user } = await insforgeAdmin.database
     .from('users')
     .select('id')
     .eq('email', session.user.email)

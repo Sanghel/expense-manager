@@ -1,7 +1,7 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { insforge } from '@/lib/insforge'
+import { insforgeAdmin } from '@/lib/insforge-admin'
 import { DashboardContent } from '@/components/dashboard/DashboardContent'
 
 export default async function DashboardPage() {
@@ -11,8 +11,7 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
-  // Obtener user ID de la BD
-  const { data: user } = await insforge.database
+  const { data: user } = await insforgeAdmin.database
     .from('users')
     .select('id')
     .eq('email', session.user.email)

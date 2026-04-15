@@ -34,31 +34,55 @@ export const authOptions: NextAuthOptions = {
 
       try {
         // Verificar whitelist
-        const { data, error } = await insforge
+        const { data, error } = await insforge.database
           .from('whitelist')
           .select('email')
           .eq('email', user.email)
-          .single()
+          .maybeSingle()
 
         if (error || !data) {
           console.log('❌ Email not in whitelist:', user.email)
           return false
         }
 
-        // Crear o actualizar usuario en tabla users
-        const { error: upsertError } = await insforge.from('users').upsert(
-          {
-            email: user.email,
-            name: user.name,
-            avatar_url: user.image,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: 'email' }
-        )
+        // Verificar si el usuario ya existe
+        const { data: existingUser } = await insforge.database
+          .from('users')
+          .select('id')
+          .eq('email', user.email)
+          .maybeSingle()
 
-        if (upsertError) {
-          console.error('Error upserting user:', upsertError)
-          return false
+        if (existingUser) {
+          // Actualizar datos del usuario
+          const { error: updateError } = await insforge.database
+            .from('users')
+            .update({
+              name: user.name,
+              avatar_url: user.image,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('email', user.email)
+
+          if (updateError) {
+            console.error('Error updating user:', updateError)
+            return false
+          }
+        } else {
+          // Crear nuevo usuario
+          const { error: insertError } = await insforge.database
+            .from('users')
+            .insert([
+              {
+                email: user.email,
+                name: user.name,
+                avatar_url: user.image,
+              },
+            ])
+
+          if (insertError) {
+            console.error('Error inserting user:', insertError)
+            return false
+          }
         }
 
         console.log('✅ User authorized:', user.email)

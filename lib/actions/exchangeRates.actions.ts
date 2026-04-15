@@ -4,7 +4,7 @@ import { insforge } from '@/lib/insforge'
 
 export async function getLatestRates() {
   try {
-    const { data, error } = await insforge
+    const { data, error } = await insforge.database
       .from('exchange_rates')
       .select('*')
       .order('date', { ascending: false })
@@ -12,7 +12,7 @@ export async function getLatestRates() {
 
     if (error) throw error
     return { success: true, data }
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to fetch rates' }
   }
 }
@@ -25,7 +25,7 @@ export async function convertCurrency(
   if (from === to) return amount
 
   try {
-    const { data, error } = await insforge
+    const { data, error } = await insforge.database
       .from('exchange_rates')
       .select('rate')
       .eq('from_currency', from)
@@ -36,8 +36,8 @@ export async function convertCurrency(
 
     if (error || !data) return amount
 
-    return amount * data.rate
-  } catch (error) {
+    return amount * (data as { rate: number }).rate
+  } catch (_error) {
     return amount
   }
 }

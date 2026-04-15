@@ -11,11 +11,11 @@ export async function getCurrentUserId(): Promise<string | null> {
   const user = await getCurrentUser()
   if (!user?.email) return null
 
-  const { data } = await insforge
+  const { data } = await insforge.database
     .from('users')
     .select('id')
     .eq('email', user.email)
-    .single()
+    .maybeSingle()
 
-  return data?.id ?? null
+  return (data as { id: string } | null)?.id ?? null
 }

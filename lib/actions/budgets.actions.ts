@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { insforge } from '@/lib/insforge'
+import { insforgeAdmin } from '@/lib/insforge-admin'
 import {
   createBudgetSchema,
   type CreateBudgetInput,
@@ -9,7 +9,7 @@ import {
 
 export async function getBudgets(userId: string) {
   try {
-    const { data, error } = await insforge.database
+    const { data, error } = await insforgeAdmin.database
       .from('budgets')
       .select('*, category:categories(*)')
       .eq('user_id', userId)
@@ -26,7 +26,7 @@ export async function createBudget(userId: string, data: CreateBudgetInput) {
   try {
     const validated = createBudgetSchema.parse(data)
 
-    const { data: budget, error } = await insforge.database
+    const { data: budget, error } = await insforgeAdmin.database
       .from('budgets')
       .insert([{ ...validated, user_id: userId }])
       .select()
@@ -50,7 +50,7 @@ export async function updateBudget(
   try {
     const validated = createBudgetSchema.partial().parse(data)
 
-    const { data: budget, error } = await insforge.database
+    const { data: budget, error } = await insforgeAdmin.database
       .from('budgets')
       .update(validated)
       .eq('id', id)
@@ -70,7 +70,7 @@ export async function updateBudget(
 
 export async function deleteBudget(id: string, userId: string) {
   try {
-    const { error } = await insforge.database
+    const { error } = await insforgeAdmin.database
       .from('budgets')
       .delete()
       .eq('id', id)

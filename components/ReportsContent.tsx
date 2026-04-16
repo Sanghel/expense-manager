@@ -6,6 +6,7 @@ import { ExpensesByCategoryChart } from '@/components/charts/ExpensesByCategoryC
 import { MonthlyComparisonChart } from '@/components/charts/MonthlyComparisonChart'
 import { AccumulatedBalanceChart } from '@/components/charts/AccumulatedBalanceChart'
 import { ReportFilters, type ReportFiltersState } from '@/components/ReportFilters'
+import { ReportStatistics } from '@/components/ReportStatistics'
 
 interface Props {
   userId: string
@@ -26,6 +27,8 @@ export function ReportsContent({ userId }: Props) {
       </Heading>
 
       <ReportFilters userId={userId} onFilterChange={setFilters} />
+
+      <ReportStatistics userId={userId} filters={filters} />
 
       <SimpleGrid columns={{ base: 1, md: 2 }} gap={6}>
         <Box gridColumn={{ base: 'auto', md: '1 / -1' }}>

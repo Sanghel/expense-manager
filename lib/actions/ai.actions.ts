@@ -1,9 +1,10 @@
 'use server'
 
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import Anthropic from '@anthropic-ai/sdk'
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!)
-const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
+const client = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+})
 
 export interface CategorizedTransaction {
   amount: number
@@ -48,13 +49,18 @@ Extrae la siguiente información y responde ÚNICAMENTE con un JSON válido (sin
   "date": "<fecha en formato YYYY-MM-DD - 'ayer' → día anterior, 'la semana pasada' → lunes anterior, si no se menciona usa la fecha actual>"
 }`
 
-    const result = await model.generateContent(prompt)
-    const responseText = result.response.text().trim()
+    const response = await client.messages.create({
+      model: 'claude-haiku-4-5',
+      max_tokens: 500,
+      messages: [{ role: 'user', content: prompt }],
+    })
 
-    // Gemini a veces envuelve el JSON en bloques de código markdown — los eliminamos
-    const clean = responseText.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '')
-    const parsed = JSON.parse(clean) as CategorizedTransaction
+    const textContent = response.content.find((b) => b.type === 'text')
+    if (!textContent || textContent.type !== 'text') {
+      return { success: false, error: 'No se recibió respuesta del modelo' }
+    }
 
+    const parsed = JSON.parse(textContent.text) as CategorizedTransaction
     return { success: true, data: parsed }
   } catch (error) {
     console.error('AI categorization error:', error)

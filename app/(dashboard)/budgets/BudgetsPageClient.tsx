@@ -1,10 +1,19 @@
 'use client'
 
-import { VStack, Heading, Button, HStack, SimpleGrid, Box, Text } from '@chakra-ui/react'
+import { VStack, Heading, Button, HStack, Box } from '@chakra-ui/react'
 import { useState, useCallback } from 'react'
 import { BudgetForm } from '@/components/budgets/BudgetForm'
 import { BudgetList } from '@/components/budgets/BudgetList'
 import type { Category } from '@/types/database.types'
+
+interface Budget {
+  id: string
+  category_id: string
+  amount: number
+  currency: 'COP' | 'USD' | 'VES'
+  period: 'monthly' | 'yearly'
+  start_date: string
+}
 
 interface Props {
   userId: string
@@ -14,10 +23,22 @@ interface Props {
 export function BudgetsPageClient({ userId, categories }: Props) {
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [editingBudget, setEditingBudget] = useState<Budget | null>(null)
 
   const handleFormSuccess = useCallback(() => {
     setRefreshKey((k) => k + 1)
+    setEditingBudget(null)
   }, [])
+
+  const handleEdit = (budget: any) => {
+    setEditingBudget(budget)
+    setIsFormOpen(true)
+  }
+
+  const handleClose = () => {
+    setIsFormOpen(false)
+    setEditingBudget(null)
+  }
 
   return (
     <VStack gap={6} align="stretch">
@@ -27,7 +48,10 @@ export function BudgetsPageClient({ userId, categories }: Props) {
           bg="#4F46E5"
           color="white"
           _hover={{ bg: '#4338CA' }}
-          onClick={() => setIsFormOpen(true)}
+          onClick={() => {
+            setEditingBudget(null)
+            setIsFormOpen(true)
+          }}
         >
           Nuevo Presupuesto
         </Button>
@@ -35,35 +59,15 @@ export function BudgetsPageClient({ userId, categories }: Props) {
 
       <Box borderBottomWidth="1px" />
 
-      <SimpleGrid columns={[1, 2, 4]} gap={4}>
-        <Box borderWidth="1px" borderRadius="lg" p={4} bg="#1A1A1A">
-          <Text fontSize="xs" color="#B0B0B0" mb={2}>Presupuestos Activos</Text>
-          <Heading size="md">—</Heading>
-        </Box>
-        <Box borderWidth="1px" borderRadius="lg" p={4} bg="#1A1A1A">
-          <Text fontSize="xs" color="#B0B0B0" mb={2}>Excedidos</Text>
-          <Heading size="md" color="white">—</Heading>
-        </Box>
-        <Box borderWidth="1px" borderRadius="lg" p={4} bg="#1A1A1A">
-          <Text fontSize="xs" color="#B0B0B0" mb={2}>Presupuesto Total</Text>
-          <Heading size="md">—</Heading>
-        </Box>
-        <Box borderWidth="1px" borderRadius="lg" p={4} bg="#1A1A1A">
-          <Text fontSize="xs" color="#B0B0B0" mb={2}>Gastado Total</Text>
-          <Heading size="md">—</Heading>
-        </Box>
-      </SimpleGrid>
-
-      <Box borderBottomWidth="1px" />
-
-      <BudgetList key={refreshKey} userId={userId} onRefresh={handleFormSuccess} onEdit={() => {}} />
+      <BudgetList key={refreshKey} userId={userId} onRefresh={handleFormSuccess} onEdit={handleEdit} />
 
       <BudgetForm
         isOpen={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
+        onClose={handleClose}
         userId={userId}
         categories={categories}
         onSuccess={handleFormSuccess}
+        editingBudget={editingBudget}
       />
     </VStack>
   )

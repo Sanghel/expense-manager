@@ -23,10 +23,19 @@ import {
   RadioGroupItemHiddenInput,
   HStack,
 } from '@chakra-ui/react'
-import { useState } from 'react'
-import { createBudget } from '@/lib/actions/budgets.actions'
+import { useState, useEffect } from 'react'
+import { createBudget, updateBudget } from '@/lib/actions/budgets.actions'
 import { toaster } from '@/lib/toaster'
 import type { Category } from '@/types/database.types'
+
+interface Budget {
+  id: string
+  category_id: string
+  amount: number
+  currency: 'COP' | 'USD' | 'VES'
+  period: 'monthly' | 'yearly'
+  start_date: string
+}
 
 interface Props {
   isOpen: boolean
@@ -34,6 +43,7 @@ interface Props {
   userId: string
   categories: Category[]
   onSuccess: () => void
+  editingBudget?: Budget | null
 }
 
 type BudgetType = 'income' | 'expense'
@@ -49,9 +59,25 @@ const defaultForm = {
 
 type FormData = typeof defaultForm
 
-export function BudgetForm({ isOpen, onClose, userId, categories, onSuccess }: Props) {
+export function BudgetForm({ isOpen, onClose, userId, categories, onSuccess, editingBudget }: Props) {
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState(defaultForm)
+
+  useEffect(() => {
+    if (editingBudget) {
+      const category = categories.find((c) => c.id === editingBudget.category_id)
+      setFormData({
+        type: (category?.type || 'expense') as BudgetType,
+        category_id: editingBudget.category_id,
+        amount: String(editingBudget.amount),
+        currency: editingBudget.currency,
+        period: editingBudget.period,
+        start_date: editingBudget.start_date,
+      })
+    } else {
+      setFormData(defaultForm)
+    }
+  }, [editingBudget, categories, isOpen])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -63,21 +89,29 @@ export function BudgetForm({ isOpen, onClose, userId, categories, onSuccess }: P
       return
     }
 
-    const result = await createBudget(userId, {
+    const budgetData = {
       category_id: formData.category_id,
       amount: parseFloat(formData.amount),
       currency: formData.currency,
       period: formData.period,
       start_date: formData.start_date,
-    })
+    }
+
+    const result = editingBudget
+      ? await updateBudget(editingBudget.id, userId, budgetData)
+      : await createBudget(userId, budgetData)
 
     if (result.success) {
-      toaster.create({ title: 'Presupuesto creado', type: 'success', duration: 3000 })
+      toaster.create({ 
+        title: editingBudget ? 'Presupuesto actualizado' : 'Presupuesto creado', 
+        type: 'success', 
+        duration: 3000 
+      })
       onSuccess()
       onClose()
       setFormData(defaultForm)
     } else {
-      toaster.create({ title: 'Error al crear', description: result.error, type: 'error', duration: 4000 })
+      toaster.create({ title: 'Error al guardar', description: result.error, type: 'error', duration: 4000 })
     }
     setLoading(false)
   }
@@ -90,7 +124,7 @@ export function BudgetForm({ isOpen, onClose, userId, categories, onSuccess }: P
       <DialogPositioner>
         <DialogContent tabIndex={-1}>
           <DialogHeader>
-            <DialogTitle>Nuevo Presupuesto</DialogTitle>
+            <DialogTitle>{editingBudget ? 'Editar Presupuesto' : 'Nuevo Presupuesto'}</DialogTitle>
           </DialogHeader>
           <DialogCloseTrigger />
           <DialogBody pb={6}>
@@ -207,7 +241,7 @@ export function BudgetForm({ isOpen, onClose, userId, categories, onSuccess }: P
                     type="submit"
                     loading={loading}
                   >
-                    Crear Presupuesto
+                    {editingBudget ? 'Guardar Cambios' : 'Crear Presupuesto'}
                   </Button>
                 </HStack>
               </VStack>

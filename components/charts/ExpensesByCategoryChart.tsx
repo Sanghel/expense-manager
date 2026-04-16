@@ -141,7 +141,7 @@ export function ExpensesByCategoryChart({ userId, type = 'expense', filters }: P
       </Heading>
       <Box h="400px">
         <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
+          <PieChart margin={{ top: 20, right: 20, left: 20, bottom: 20 }}>
             <Pie
               data={chartData}
               dataKey="value"

@@ -125,7 +125,7 @@ export function MonthlyComparisonChart({ userId, months = 12, filters }: Props) 
       </Heading>
       <Box h="400px">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={chartData}>
+          <BarChart data={chartData} margin={{ top: 20, right: 30, left: 60, bottom: 60 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
             <YAxis />

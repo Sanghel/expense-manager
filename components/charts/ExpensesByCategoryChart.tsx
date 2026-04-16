@@ -26,19 +26,36 @@ interface Props {
   filters?: ReportFiltersState
 }
 
-const COLORS = [
-  '#E74C3C',
-  '#3498DB',
-  '#2ECC71',
-  '#F39C12',
-  '#9B59B6',
-  '#1ABC9C',
-  '#E67E22',
-  '#C0392B',
-  '#27AE60',
-  '#2980B9',
-  '#8E44AD',
-  '#D35400',
+// Colores para ingresos (tonos positivos: verdes y azules)
+const INCOME_COLORS = [
+  '#2ECC71', // Verde brillante
+  '#27AE60', // Verde oscuro
+  '#16A085', // Verde azulado
+  '#1ABC9C', // Turquesa
+  '#3498DB', // Azul brillante
+  '#2980B9', // Azul oscuro
+  '#8E44AD', // Púrpura (positivo)
+  '#9B59B6', // Púrpura claro
+  '#48C9B0', // Verde agua
+  '#17A589', // Verde agua oscuro
+  '#6C5CE7', // Azul púrpura
+  '#74B9FF', // Azul claro
+]
+
+// Colores para gastos (tonos negativos: amarillos, naranjas y rojos)
+const EXPENSE_COLORS = [
+  '#E74C3C', // Rojo brillante
+  '#C0392B', // Rojo oscuro
+  '#E67E22', // Naranja oscuro
+  '#D35400', // Naranja más oscuro
+  '#F39C12', // Amarillo naranja
+  '#F1C40F', // Amarillo brillante
+  '#E59866', // Naranja claro
+  '#DC7633', // Naranja medio
+  '#CB4335', // Rojo medio
+  '#A93226', // Rojo muy oscuro
+  '#F4D03F', // Amarillo claro
+  '#E8DAEF', // Rosa claro (negativo suave)
 ]
 
 export function ExpensesByCategoryChart({ userId, type = 'expense', filters }: Props) {
@@ -137,9 +154,12 @@ export function ExpensesByCategoryChart({ userId, type = 'expense', filters }: P
                 `${name} ${(percent * 100).toFixed(0)}%`
               }
             >
-              {chartData.map((_, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-              ))}
+              {chartData.map((_, index) => {
+                const colorPalette = type === 'income' ? INCOME_COLORS : EXPENSE_COLORS
+                return (
+                  <Cell key={`cell-${index}`} fill={colorPalette[index % colorPalette.length]} />
+                )
+              })}
             </Pie>
             <Tooltip
               formatter={(value) => `$${Number(value).toFixed(2)}`}

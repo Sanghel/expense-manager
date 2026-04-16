@@ -9,9 +9,6 @@ import {
   Input,
   NativeSelectRoot,
   NativeSelectField,
-  Badge,
-  Wrap,
-  WrapItem,
   Text,
 } from '@chakra-ui/react'
 import { useEffect, useState } from 'react'
@@ -51,6 +48,20 @@ export function ReportFilters({ userId, onFilterChange }: Props) {
     fetchCategories()
   }, [userId])
 
+  const handleTypeChange = (value: string) => {
+    const type = value as 'all' | 'income' | 'expense'
+    const newFilters = { ...filters, transactionType: type }
+    setFilters(newFilters)
+    onFilterChange(newFilters)
+  }
+
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedOptions = Array.from(e.target.selectedOptions, (option) => option.value)
+    const newFilters = { ...filters, categoryIds: selectedOptions }
+    setFilters(newFilters)
+    onFilterChange(newFilters)
+  }
+
   const handleStartDateChange = (value: string) => {
     const newFilters = { ...filters, startDate: value }
     setFilters(newFilters)
@@ -59,22 +70,6 @@ export function ReportFilters({ userId, onFilterChange }: Props) {
 
   const handleEndDateChange = (value: string) => {
     const newFilters = { ...filters, endDate: value }
-    setFilters(newFilters)
-    onFilterChange(newFilters)
-  }
-
-  const handleCategoryToggle = (categoryId: string) => {
-    const categoryIds = filters.categoryIds.includes(categoryId)
-      ? filters.categoryIds.filter((id) => id !== categoryId)
-      : [...filters.categoryIds, categoryId]
-    const newFilters = { ...filters, categoryIds }
-    setFilters(newFilters)
-    onFilterChange(newFilters)
-  }
-
-  const handleTypeChange = (value: string) => {
-    const type = value as 'all' | 'income' | 'expense'
-    const newFilters = { ...filters, transactionType: type }
     setFilters(newFilters)
     onFilterChange(newFilters)
   }
@@ -96,28 +91,8 @@ export function ReportFilters({ userId, onFilterChange }: Props) {
         Filtros
       </Text>
 
-      <HStack gap={4} flexWrap="wrap">
-        <FieldRoot w={{ base: 'full', sm: 'auto' }}>
-          <FieldLabel fontSize="sm">Desde</FieldLabel>
-          <Input
-            type="date"
-            value={filters.startDate}
-            onChange={(e) => handleStartDateChange(e.target.value)}
-            size="sm"
-          />
-        </FieldRoot>
-
-        <FieldRoot w={{ base: 'full', sm: 'auto' }}>
-          <FieldLabel fontSize="sm">Hasta</FieldLabel>
-          <Input
-            type="date"
-            value={filters.endDate}
-            onChange={(e) => handleEndDateChange(e.target.value)}
-            size="sm"
-          />
-        </FieldRoot>
-
-        <FieldRoot w={{ base: 'full', sm: 'auto' }}>
+      <HStack gap={4} flexWrap="wrap" align="flex-end">
+        <FieldRoot w={{ base: 'full', sm: 'auto', md: '140px' }}>
           <FieldLabel fontSize="sm">Tipo</FieldLabel>
           <NativeSelectRoot>
             <NativeSelectField
@@ -130,41 +105,49 @@ export function ReportFilters({ userId, onFilterChange }: Props) {
             </NativeSelectField>
           </NativeSelectRoot>
         </FieldRoot>
-      </HStack>
 
-      {categories.length > 0 && (
-        <FieldRoot>
-          <FieldLabel fontSize="sm" mb={2}>
-            Categorías
-          </FieldLabel>
-          <Wrap gap={2}>
-            {categories.map((category) => (
-              <WrapItem key={category.id}>
-                <Badge
-                  cursor="pointer"
-                  variant={
-                    filters.categoryIds.includes(category.id)
-                      ? 'solid'
-                      : 'subtle'
-                  }
-                  onClick={() => handleCategoryToggle(category.id)}
-                  colorScheme={
-                    filters.categoryIds.includes(category.id)
-                      ? 'blue'
-                      : 'gray'
-                  }
-                >
-                  {category.name}
-                </Badge>
-              </WrapItem>
-            ))}
-          </Wrap>
+        {categories.length > 0 && (
+          <FieldRoot w={{ base: 'full', sm: 'auto', md: '200px' }}>
+            <FieldLabel fontSize="sm">Categoría</FieldLabel>
+            <NativeSelectRoot>
+              <NativeSelectField
+                value={filters.categoryIds}
+                onChange={handleCategoryChange}
+                multiple
+              >
+                <option value="">Todas las categorías</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </NativeSelectField>
+            </NativeSelectRoot>
+          </FieldRoot>
+        )}
+
+        <FieldRoot w={{ base: 'full', sm: 'auto', md: '120px' }}>
+          <FieldLabel fontSize="sm">Desde</FieldLabel>
+          <Input
+            type="date"
+            value={filters.startDate}
+            onChange={(e) => handleStartDateChange(e.target.value)}
+            size="sm"
+          />
         </FieldRoot>
-      )}
 
-      <HStack justify="flex-end">
+        <FieldRoot w={{ base: 'full', sm: 'auto', md: '120px' }}>
+          <FieldLabel fontSize="sm">Hasta</FieldLabel>
+          <Input
+            type="date"
+            value={filters.endDate}
+            onChange={(e) => handleEndDateChange(e.target.value)}
+            size="sm"
+          />
+        </FieldRoot>
+
         <Button onClick={handleReset} size="sm" variant="ghost">
-          Limpiar filtros
+          Limpiar
         </Button>
       </HStack>
     </VStack>

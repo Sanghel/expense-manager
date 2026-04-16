@@ -9,14 +9,58 @@ import {
 
 export async function getBudgets(userId: string) {
   try {
-    const { data, error } = await insforgeAdmin.database
+    const { data: budgets, error: budgetError } = await insforgeAdmin.database
       .from('budgets')
       .select('*, category:categories(*)')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
 
-    if (error) throw error
-    return { success: true, data }
+    if (budgetError) throw budgetError
+
+    if (!budgets || budgets.length === 0) {
+      return { success: true, data: [] }
+    }
+
+    const { data: transactions, error: transError } = await insforgeAdmin.database
+      .from('transactions')
+      .select('category_id, amount, date, type')
+      .eq('user_id', userId)
+      .eq('type', 'expense')
+
+    if (transError) throw transError
+
+    const budgetsWithSpent = budgets.map((budget) => {
+      const now = new Date()
+      const startDate = new Date(budget.start_date)
+      
+      let periodStart: Date, periodEnd: Date
+      
+      if (budget.period === 'monthly') {
+        periodStart = new Date(now.getFullYear(), now.getMonth(), 1)
+        periodEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59)
+      } else {
+        periodStart = new Date(now.getFullYear(), 0, 1)
+        periodEnd = new Date(now.getFullYear(), 11, 31, 23, 59, 59)
+      }
+      
+      const spent = (transactions || [])
+        .filter((t) => {
+          const transDate = new Date(t.date)
+          return (
+            t.category_id === budget.category_id &&
+            transDate >= periodStart &&
+            transDate <= periodEnd
+          )
+        })
+        .reduce((sum, t) => sum + (t.amount || 0), 0)
+
+      return {
+        ...budget,
+        spent,
+      }
+    })
+
+    return { success: true, data: budgetsWithSpent }
   } catch (_error) {
     return { success: false, error: 'Failed to fetch budgets' }
   }

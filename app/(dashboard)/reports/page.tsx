@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { insforgeAdmin } from '@/lib/insforge-admin'
 import { Box, Heading, SimpleGrid } from '@chakra-ui/react'
 import { ExpensesByCategoryChart } from '@/components/charts/ExpensesByCategoryChart'
+import { MonthlyComparisonChart } from '@/components/charts/MonthlyComparisonChart'
 
 export default async function ReportsPage() {
   const session = await getServerSession(authOptions)
@@ -28,6 +29,9 @@ export default async function ReportsPage() {
         Reportes
       </Heading>
       <SimpleGrid columns={{ base: 1, md: 2 }} gap={6}>
+        <Box gridColumn={{ base: 'auto', md: '1 / -1' }}>
+          <MonthlyComparisonChart userId={user.id} months={12} />
+        </Box>
         <ExpensesByCategoryChart userId={user.id} type="expense" />
         <ExpensesByCategoryChart userId={user.id} type="income" />
       </SimpleGrid>

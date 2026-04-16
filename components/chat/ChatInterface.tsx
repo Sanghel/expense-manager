@@ -13,7 +13,7 @@ import {
   Icon,
 } from '@chakra-ui/react'
 import { useState, useRef, useEffect } from 'react'
-import { FiSend, FiCheck, FiX, FiMessageSquare } from 'react-icons/fi'
+import { FiSend, FiCheck, FiX, FiMessageSquare, FiXCircle } from 'react-icons/fi'
 import { categorizePurchase, type CategorizedTransaction } from '@/lib/actions/ai.actions'
 import { createTransaction } from '@/lib/actions/transactions.actions'
 import { toaster } from '@/lib/toaster'
@@ -30,6 +30,7 @@ interface ChatMessage {
 interface Props {
   userId: string
   categories: Category[]
+  onClose?: () => void
 }
 
 const STORAGE_KEY = 'chat-ia-history'
@@ -54,7 +55,7 @@ function saveHistory(messages: ChatMessage[]) {
   }
 }
 
-export function ChatInterface({ userId, categories }: Props) {
+export function ChatInterface({ userId, categories, onClose }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -201,9 +202,16 @@ export function ChatInterface({ userId, categories }: Props) {
           <Icon as={FiMessageSquare} color="brand.500" boxSize={5} />
           <Text fontWeight="semibold" color="gray.700">Chat IA</Text>
         </HStack>
-        <Button size="xs" variant="ghost" colorPalette="gray" onClick={handleClearHistory}>
-          Limpiar historial
-        </Button>
+        <HStack gap={1}>
+          <Button size="xs" variant="ghost" colorPalette="gray" onClick={handleClearHistory}>
+            Limpiar
+          </Button>
+          {onClose && (
+            <Button size="xs" variant="ghost" colorPalette="gray" onClick={onClose} aria-label="Cerrar chat">
+              <Icon as={FiXCircle} />
+            </Button>
+          )}
+        </HStack>
       </HStack>
 
       {/* Mensajes */}

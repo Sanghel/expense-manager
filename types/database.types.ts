@@ -93,3 +93,15 @@ export interface BudgetWithCategory extends Budget {
 export interface RecurringTransactionWithCategory extends RecurringTransaction {
   category: Category
 }
+
+export interface SavingsGoal {
+  id: string
+  user_id: string
+  name: string
+  target_amount: number
+  current_amount: number
+  currency: Currency
+  deadline: string | null // ISO date
+  is_completed: boolean
+  created_at: string
+}

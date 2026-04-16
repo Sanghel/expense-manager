@@ -65,9 +65,19 @@ export function MonthlyComparisonChart({ userId, months = 12, filters }: Props) 
             if (!acc[month]) {
               acc[month] = { month, income: 0, expense: 0 }
             }
-            if (t.type === 'income') {
+            // Solo contar el tipo de transacción correspondiente
+            if (filters?.transactionType === 'all' || !filters?.transactionType) {
+              // Mostrar ambos tipos
+              if (t.type === 'income') {
+                acc[month].income += Number(t.amount)
+              } else {
+                acc[month].expense += Number(t.amount)
+              }
+            } else if (filters.transactionType === 'income') {
+              // Solo ingresos, gastos = 0
               acc[month].income += Number(t.amount)
-            } else {
+            } else if (filters.transactionType === 'expense') {
+              // Solo gastos, ingresos = 0
               acc[month].expense += Number(t.amount)
             }
             return acc

@@ -65,11 +65,22 @@ export function AccumulatedBalanceChart({ userId, filters }: Props) {
         let accumulatedBalance = 0
         const data: ChartDataPoint[] = sorted.map((t) => {
           const amount = Number(t.amount)
-          if (t.type === 'income') {
+
+          if (filters?.transactionType === 'all' || !filters?.transactionType) {
+            // Mostrar balance real: ingresos - gastos
+            if (t.type === 'income') {
+              accumulatedBalance += amount
+            } else {
+              accumulatedBalance -= amount
+            }
+          } else if (filters.transactionType === 'income') {
+            // Solo ingresos acumulados
             accumulatedBalance += amount
-          } else {
+          } else if (filters.transactionType === 'expense') {
+            // Solo gastos acumulados (como negativo)
             accumulatedBalance -= amount
           }
+
           return {
             date: t.date,
             balance: accumulatedBalance,

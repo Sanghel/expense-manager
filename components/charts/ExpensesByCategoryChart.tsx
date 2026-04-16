@@ -69,23 +69,22 @@ export function ExpensesByCategoryChart({ userId, type = 'expense', filters }: P
       if (result.success && result.data) {
         let transactions = result.data as TransactionWithCategory[]
 
+        // Filtrar por el tipo del componente (expense o income)
+        transactions = transactions.filter((t) => t.type === type)
+
+        // Si el filtro de tipo es específico y NO coincide con el type prop, devolver vacío
+        if (filters?.transactionType && filters.transactionType !== 'all' && filters.transactionType !== type) {
+          setChartData([])
+          setLoading(false)
+          return
+        }
+
         // Aplicar filtros de fecha
         if (filters?.startDate) {
           transactions = transactions.filter((t) => t.date >= filters.startDate)
         }
         if (filters?.endDate) {
           transactions = transactions.filter((t) => t.date <= filters.endDate)
-        }
-
-        // Aplicar filtro de tipo
-        if (filters?.transactionType && filters.transactionType !== 'all') {
-          transactions = transactions.filter((t) => t.type === filters.transactionType)
-        } else {
-          // Si no hay filtro de tipo específico, usar el type prop
-          transactions =
-            type === 'expense'
-              ? transactions.filter((t) => t.type === 'expense')
-              : transactions.filter((t) => t.type === 'income')
         }
 
         // Aplicar filtro de categoría

@@ -60,7 +60,8 @@ Extrae la siguiente información y responde ÚNICAMENTE con un JSON válido (sin
       return { success: false, error: 'No se recibió respuesta del modelo' }
     }
 
-    const parsed = JSON.parse(textContent.text) as CategorizedTransaction
+    const clean = textContent.text.trim().replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '')
+    const parsed = JSON.parse(clean) as CategorizedTransaction
     return { success: true, data: parsed }
   } catch (error) {
     console.error('AI categorization error:', error)

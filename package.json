@@ -12,6 +12,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.89.0",
     "@chakra-ui/next-js": "^2.4.2",
     "@chakra-ui/react": "^3.34.0",
     "@emotion/cache": "^11.14.0",

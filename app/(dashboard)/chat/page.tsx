@@ -29,8 +29,8 @@ export default async function ChatPage() {
   return (
     <VStack gap={0} h="full" align="stretch">
       <Box pb={4}>
-        <Heading size="lg" color="gray.800">Chat IA</Heading>
-        <Text color="gray.500" fontSize="sm" mt={1}>
+        <Heading size="lg" color="white">Chat IA</Heading>
+        <Text color="#B0B0B0" fontSize="sm" mt={1}>
           Registra gastos e ingresos escribiendo en lenguaje natural
         </Text>
       </Box>
@@ -38,11 +38,11 @@ export default async function ChatPage() {
       <Box
         flex="1"
         borderWidth="1px"
-        borderColor="gray.200"
+        borderColor="#2d2d35"
         borderRadius="xl"
         overflow="hidden"
-        bg="white"
-        shadow="sm"
+        bg="#18181d"
+        shadow="md"
       >
         <ChatInterface userId={user.id} categories={categories} />
       </Box>

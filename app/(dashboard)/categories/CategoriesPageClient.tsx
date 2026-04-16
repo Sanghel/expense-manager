@@ -83,8 +83,8 @@ export function CategoriesPageClient({ userId, initialCategories }: Props) {
   return (
     <Box p={6}>
       <HStack justify="space-between" mb={6}>
-        <Heading size="lg">Categorías</Heading>
-        <Button colorPalette="brand" onClick={createDisclosure.onOpen}>
+        <Heading size="lg" color="white">Categorías</Heading>
+        <Button bg="#4F46E5" color="white" _hover={{ bg: '#4338CA' }} onClick={createDisclosure.onOpen}>
           <FiPlus />
           Nueva Categoría
         </Button>
@@ -93,7 +93,7 @@ export function CategoriesPageClient({ userId, initialCategories }: Props) {
       <VStack gap={8} align="stretch">
         {/* Categorías predefinidas */}
         <Box>
-          <Text fontWeight="semibold" color="gray.500" mb={3} fontSize="sm" textTransform="uppercase">
+          <Text fontWeight="semibold" color="#B0B0B0" mb={3} fontSize="sm" textTransform="uppercase">
             Predefinidas
           </Text>
           <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 4 }} gap={3}>
@@ -105,11 +105,11 @@ export function CategoriesPageClient({ userId, initialCategories }: Props) {
 
         {/* Categorías del usuario */}
         <Box>
-          <Text fontWeight="semibold" color="gray.500" mb={3} fontSize="sm" textTransform="uppercase">
+          <Text fontWeight="semibold" color="#B0B0B0" mb={3} fontSize="sm" textTransform="uppercase">
             Mis Categorías
           </Text>
           {userCategories.length === 0 ? (
-            <Text color="gray.400" fontSize="sm">
+            <Text color="#808080" fontSize="sm">
               Aún no tienes categorías personalizadas. Crea una con el botón de arriba.
             </Text>
           ) : (
@@ -199,12 +199,12 @@ function CategoryCard({
   return (
     <Box
       borderWidth="1px"
-      borderColor="gray.200"
+      borderColor="#2d2d35"
       borderRadius="lg"
       p={4}
-      bg="white"
-      _hover={{ shadow: 'sm' }}
-      transition="box-shadow 0.15s"
+      bg="#1a1a23"
+      _hover={{ shadow: 'md', bg: '#26262f' }}
+      transition="box-shadow 0.15s, background-color 0.15s"
     >
       <HStack justify="space-between" align="start">
         <HStack gap={3}>
@@ -222,7 +222,7 @@ function CategoryCard({
             {category.icon ?? '🏷️'}
           </Box>
           <Box>
-            <Text fontWeight="medium" fontSize="sm">
+            <Text fontWeight="medium" fontSize="sm" color="white">
               {category.name}
             </Text>
             <Badge

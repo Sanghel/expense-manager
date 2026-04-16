@@ -1,5 +1,16 @@
 @import 'tailwindcss';
 
+/* Dark mode as default */
+html {
+  color-scheme: dark;
+  background-color: #0f0f13;
+}
+
+body {
+  background-color: #0f0f13;
+  color: #ffffff;
+}
+
 /* Fix: dialog backdrop and positioner must not block pointer events once closed.
    Ark UI keeps these nodes in the DOM during the exit animation (unmountSuspended).
    If the keyframe animation never fires / completes, animationend never dispatches

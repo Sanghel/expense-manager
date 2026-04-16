@@ -80,7 +80,7 @@ export function MonthlyTrendChart({ userId }: Props) {
     return (
       <Card>
         <Heading size="md" mb={4}>Tendencia Mensual</Heading>
-        <Text color="gray.500">No hay suficientes datos para mostrar.</Text>
+        <Text color="#B0B0B0">No hay suficientes datos para mostrar.</Text>
       </Card>
     )
   }

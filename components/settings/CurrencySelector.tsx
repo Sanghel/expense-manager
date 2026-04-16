@@ -44,7 +44,7 @@ export function CurrencySelector({ userId, current }: Props) {
 
   return (
     <HStack gap={4}>
-      <Text fontSize="sm" color="gray.600" minW="32">
+      <Text fontSize="sm" color="#B0B0B0" minW="32">
         Moneda preferida
       </Text>
       <NativeSelectRoot w="56" disabled={loading}>

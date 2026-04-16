@@ -32,11 +32,11 @@ export default async function DashboardLayout({
   }
 
   return (
-    <Flex direction="column" h="100vh">
+    <Flex direction="column" h="100vh" bg="#0f0f13">
       <Header />
-      <Flex flex="1" overflow="hidden">
+      <Flex flex="1" overflow="hidden" bg="#0f0f13">
         <Sidebar />
-        <Box as="main" flex="1" overflow="auto" p={8}>
+        <Box as="main" flex="1" overflow="auto" p={8} bg="#0f0f13">
           {children}
         </Box>
       </Flex>

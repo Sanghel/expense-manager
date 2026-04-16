@@ -45,12 +45,13 @@ export function IconPicker({ value, onChange }: Props) {
         py={2}
         borderRadius="md"
         border="1px solid"
-        borderColor={open ? 'brand.500' : 'gray.200'}
-        bg="white"
+        borderColor={open ? 'brand.500' : '#2d2d35'}
+        bg="#18181d"
+        color="white"
         fontSize="xl"
         cursor="pointer"
         minW="10"
-        _hover={{ borderColor: 'gray.400' }}
+        _hover={{ borderColor: '#3a3a42' }}
         transition="border-color 0.15s"
       >
         {value || '🏷️'}
@@ -62,10 +63,10 @@ export function IconPicker({ value, onChange }: Props) {
           top="calc(100% + 4px)"
           left={0}
           zIndex={50}
-          bg="white"
+          bg="#1a1a23"
           borderRadius="lg"
           border="1px solid"
-          borderColor="gray.200"
+          borderColor="#2d2d35"
           boxShadow="lg"
           p={3}
           w="72"
@@ -77,6 +78,9 @@ export function IconPicker({ value, onChange }: Props) {
             onChange={(e) => setSearch(e.target.value)}
             mb={2}
             autoFocus
+            bg="#18181d"
+            borderColor="#2d2d35"
+            color="white"
           />
           <Box maxH="40" overflowY="auto">
             <SimpleGrid columns={8} gap={1}>
@@ -92,8 +96,8 @@ export function IconPicker({ value, onChange }: Props) {
                   borderRadius="md"
                   fontSize="xl"
                   cursor="pointer"
-                  bg={value === icon ? 'brand.100' : 'transparent'}
-                  _hover={{ bg: 'gray.100' }}
+                  bg={value === icon ? '#4F46E5' : 'transparent'}
+                  _hover={{ bg: '#2d2d35' }}
                   textAlign="center"
                 >
                   <Text>{icon}</Text>

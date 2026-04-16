@@ -108,7 +108,7 @@ export function CategoryEditForm({ isOpen, onClose, userId, category, onSuccess 
                 </FieldRoot>
               </HStack>
 
-              <Button type="submit" colorPalette="brand" width="full" loading={loading}>
+              <Button type="submit" bg="#4F46E5" color="white" _hover={{ bg: '#4338CA' }} width="full" loading={loading}>
                 Guardar Cambios
               </Button>
             </VStack>

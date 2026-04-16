@@ -41,9 +41,9 @@ export function MultiCurrencyBalance({ balance, fromCurrency }: Props) {
   return (
     <HStack gap={4} flexWrap="wrap">
       {Object.entries(conversions).map(([currency, value]) => (
-        <Box key={currency} bg="gray.50" borderRadius="md" px={3} py={1}>
-          <Text fontSize="xs" color="gray.500">{currency}</Text>
-          <Text fontSize="sm" fontWeight="medium">{formatCurrency(value, currency)}</Text>
+        <Box key={currency} bg="#26262f" borderRadius="md" px={3} py={1}>
+          <Text fontSize="xs" color="#B0B0B0">{currency}</Text>
+          <Text fontSize="sm" fontWeight="medium" color="white">{formatCurrency(value, currency)}</Text>
         </Box>
       ))}
     </HStack>

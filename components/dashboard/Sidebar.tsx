@@ -27,9 +27,9 @@ export function Sidebar() {
     <Box
       as="nav"
       w="64"
-      bg="white"
+      bg="#18181d"
       borderRightWidth="1px"
-      borderColor="gray.200"
+      borderColor="#2d2d35"
       h="full"
       p={4}
       flexShrink={0}
@@ -41,10 +41,14 @@ export function Sidebar() {
             <Button
               key={item.href}
               asChild
-              variant={isActive ? 'solid' : 'ghost'}
-              colorPalette={isActive ? 'brand' : 'gray'}
               justifyContent="flex-start"
               gap={2}
+              bg={isActive ? '#4F46E5' : 'transparent'}
+              color={isActive ? 'white' : '#B0B0B0'}
+              _hover={{
+                bg: isActive ? '#4338CA' : '#26262f',
+              }}
+              transition="background-color 0.2s ease"
             >
               <Link href={item.href}>
                 <Icon as={item.icon} />

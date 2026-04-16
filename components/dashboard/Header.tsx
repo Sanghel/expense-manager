@@ -25,9 +25,9 @@ export function Header() {
   return (
     <Box
       as="header"
-      bg="white"
+      bg="#18181d"
       borderBottomWidth="1px"
-      borderColor="gray.200"
+      borderColor="#2d2d35"
       px={8}
       py={3}
     >

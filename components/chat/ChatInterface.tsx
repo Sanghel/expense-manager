@@ -197,10 +197,10 @@ export function ChatInterface({ userId, categories, onClose }: Props) {
   return (
     <VStack gap={0} h="full" maxH="calc(100vh - 160px)">
       {/* Encabezado */}
-      <HStack w="full" p={4} borderBottomWidth="1px" borderColor="gray.200" bg="white" justify="space-between">
+      <HStack w="full" p={4} borderBottomWidth="1px" borderColor="#2d2d35" bg="#18181d" justify="space-between">
         <HStack gap={2}>
           <Icon as={FiMessageSquare} color="brand.500" boxSize={5} />
-          <Text fontWeight="semibold" color="gray.700">Chat IA</Text>
+          <Text fontWeight="semibold" color="white">Chat IA</Text>
         </HStack>
         <HStack gap={1}>
           <Button size="xs" variant="ghost" colorPalette="gray" onClick={handleClearHistory}>
@@ -215,7 +215,7 @@ export function ChatInterface({ userId, categories, onClose }: Props) {
       </HStack>
 
       {/* Mensajes */}
-      <Box flex="1" overflowY="auto" w="full" p={4} bg="gray.50">
+      <Box flex="1" overflowY="auto" w="full" p={4} bg="#0f0f13">
         <VStack gap={3} align="stretch">
           {messages.map((msg) => (
             <Box key={msg.id}>
@@ -238,58 +238,58 @@ export function ChatInterface({ userId, categories, onClose }: Props) {
               {msg.role === 'assistant' && (
                 <VStack align="flex-start" gap={2} maxW="85%">
                   <Box
-                    bg="white"
+                    bg="#18181d"
                     border="1px solid"
-                    borderColor="gray.200"
+                    borderColor="#2d2d35"
                     px={4}
                     py={2}
                     borderRadius="2xl"
                     borderBottomLeftRadius="sm"
                   >
-                    <Text fontSize="sm" color="gray.700">{msg.text}</Text>
+                    <Text fontSize="sm" color="white">{msg.text}</Text>
                   </Box>
 
                   {msg.preview && (
                     <Box
-                      bg="white"
+                      bg="#1a1a23"
                       border="1px solid"
-                      borderColor="brand.200"
+                      borderColor="#4F46E5"
                       borderRadius="xl"
                       p={4}
                       w="full"
-                      shadow="sm"
+                      shadow="md"
                     >
-                      <Text fontSize="xs" fontWeight="bold" color="gray.500" mb={2} textTransform="uppercase">
+                      <Text fontSize="xs" fontWeight="bold" color="#B0B0B0" mb={2} textTransform="uppercase">
                         Vista previa
                       </Text>
                       <VStack gap={1} align="stretch" mb={3}>
                         <HStack justify="space-between">
-                          <Text fontSize="sm" color="gray.600">Tipo</Text>
+                          <Text fontSize="sm" color="#B0B0B0">Tipo</Text>
                           <Badge colorPalette={msg.preview.type === 'expense' ? 'red' : 'green'} size="sm">
                             {msg.preview.type === 'expense' ? 'Gasto' : 'Ingreso'}
                           </Badge>
                         </HStack>
                         <Separator />
                         <HStack justify="space-between">
-                          <Text fontSize="sm" color="gray.600">Monto</Text>
-                          <Text fontSize="sm" fontWeight="bold">
+                          <Text fontSize="sm" color="#B0B0B0">Monto</Text>
+                          <Text fontSize="sm" fontWeight="bold" color="white">
                             {new Intl.NumberFormat('es-CO').format(msg.preview.amount)} {msg.preview.currency}
                           </Text>
                         </HStack>
                         <Separator />
                         <HStack justify="space-between">
-                          <Text fontSize="sm" color="gray.600">Descripción</Text>
-                          <Text fontSize="sm">{msg.preview.description}</Text>
+                          <Text fontSize="sm" color="#B0B0B0">Descripción</Text>
+                          <Text fontSize="sm" color="white">{msg.preview.description}</Text>
                         </HStack>
                         <Separator />
                         <HStack justify="space-between">
-                          <Text fontSize="sm" color="gray.600">Categoría</Text>
-                          <Text fontSize="sm">{msg.preview.category_name}</Text>
+                          <Text fontSize="sm" color="#B0B0B0">Categoría</Text>
+                          <Text fontSize="sm" color="white">{msg.preview.category_name}</Text>
                         </HStack>
                         <Separator />
                         <HStack justify="space-between">
-                          <Text fontSize="sm" color="gray.600">Fecha</Text>
-                          <Text fontSize="sm">{msg.preview.date}</Text>
+                          <Text fontSize="sm" color="#B0B0B0">Fecha</Text>
+                          <Text fontSize="sm" color="white">{msg.preview.date}</Text>
                         </HStack>
                       </VStack>
                       <HStack gap={2}>
@@ -330,10 +330,10 @@ export function ChatInterface({ userId, categories, onClose }: Props) {
 
           {loading && (
             <HStack>
-              <Box bg="white" border="1px solid" borderColor="gray.200" px={4} py={2} borderRadius="2xl">
+              <Box bg="#18181d" border="1px solid" borderColor="#2d2d35" px={4} py={2} borderRadius="2xl">
                 <HStack gap={2}>
                   <Spinner size="xs" color="brand.500" />
-                  <Text fontSize="sm" color="gray.500">Analizando...</Text>
+                  <Text fontSize="sm" color="#B0B0B0">Analizando...</Text>
                 </HStack>
               </Box>
             </HStack>
@@ -344,7 +344,7 @@ export function ChatInterface({ userId, categories, onClose }: Props) {
       </Box>
 
       {/* Input */}
-      <HStack w="full" p={4} borderTopWidth="1px" borderColor="gray.200" bg="white" gap={2}>
+      <HStack w="full" p={4} borderTopWidth="1px" borderColor="#2d2d35" bg="#18181d" gap={2}>
         <Input
           placeholder="Escribe tu gasto, ej: &quot;Pagué 80.000 en restaurante&quot;"
           value={input}

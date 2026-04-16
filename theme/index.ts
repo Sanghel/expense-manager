@@ -38,7 +38,36 @@ const config = defineConfig({
     },
     semanticTokens: {
       colors: {
-        'bg.canvas': { value: '#F4F4FA' },
+        'bg.canvas': {
+          value: '#1A1A23',
+        },
+        'bg.default': {
+          value: '#0F0F13',
+        },
+        'bg.subtle': {
+          value: '#18181D',
+        },
+        'text.primary': {
+          value: '#FFFFFF',
+        },
+        'text.secondary': {
+          value: '#B0B0B0',
+        },
+        'text.muted': {
+          value: '#808080',
+        },
+        'border.default': {
+          value: '#2D2D35',
+        },
+        'border.subtle': {
+          value: '#262630',
+        },
+        'shadow.sm': {
+          value: 'rgba(0, 0, 0, 0.3)',
+        },
+        'shadow.md': {
+          value: 'rgba(0, 0, 0, 0.5)',
+        },
       },
     },
   },

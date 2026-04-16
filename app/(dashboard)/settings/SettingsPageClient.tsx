@@ -14,13 +14,13 @@ interface Props {
 export function SettingsPageClient({ userId, preferredCurrency, initialRates }: Props) {
   return (
     <Box p={6} maxW="2xl">
-      <Heading size="lg" mb={8}>Configuración</Heading>
+      <Heading size="lg" mb={8} color="white">Configuración</Heading>
 
       <VStack gap={8} align="stretch">
         {/* Moneda preferida */}
         <Box>
-          <Text fontWeight="semibold" mb={1}>Moneda preferida</Text>
-          <Text fontSize="sm" color="gray.500" mb={4}>
+          <Text fontWeight="semibold" mb={1} color="white">Moneda preferida</Text>
+          <Text fontSize="sm" color="#B0B0B0" mb={4}>
             Se usará como moneda principal en el dashboard y reportes.
           </Text>
           <CurrencySelector userId={userId} current={preferredCurrency} />
@@ -30,8 +30,8 @@ export function SettingsPageClient({ userId, preferredCurrency, initialRates }: 
 
         {/* Tasas de cambio */}
         <Box>
-          <Text fontWeight="semibold" mb={1}>Tasas de cambio</Text>
-          <Text fontSize="sm" color="gray.500" mb={4}>
+          <Text fontWeight="semibold" mb={1} color="white">Tasas de cambio</Text>
+          <Text fontSize="sm" color="#B0B0B0" mb={4}>
             Actualiza las tasas manualmente. Los cambios aplican a partir de hoy.
           </Text>
           <ExchangeRatesForm initialRates={initialRates} />

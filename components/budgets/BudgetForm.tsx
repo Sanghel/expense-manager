@@ -23,7 +23,7 @@ import {
   RadioGroupItemHiddenInput,
   HStack,
 } from '@chakra-ui/react'
-import { useState, useEffect } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { createBudget, updateBudget } from '@/lib/actions/budgets.actions'
 import { toaster } from '@/lib/toaster'
 import type { Category } from '@/types/database.types'
@@ -63,21 +63,30 @@ export function BudgetForm({ isOpen, onClose, userId, categories, onSuccess, edi
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState(defaultForm)
 
-  useEffect(() => {
-    if (editingBudget) {
-      const category = categories.find((c) => c.id === editingBudget.category_id)
-      setFormData({
-        type: (category?.type || 'expense') as BudgetType,
-        category_id: editingBudget.category_id,
-        amount: String(editingBudget.amount),
-        currency: editingBudget.currency,
-        period: editingBudget.period,
-        start_date: editingBudget.start_date,
-      })
-    } else {
-      setFormData(defaultForm)
+  const initialFormData = useMemo(() => {
+    if (!editingBudget) return defaultForm
+    
+    const category = categories.find((c) => c.id === editingBudget.category_id)
+    return {
+      type: (category?.type || 'expense') as BudgetType,
+      category_id: editingBudget.category_id,
+      amount: String(editingBudget.amount),
+      currency: editingBudget.currency,
+      period: editingBudget.period,
+      start_date: editingBudget.start_date,
     }
-  }, [editingBudget, categories, isOpen])
+  }, [editingBudget, categories])
+
+  const handleOpenChange = useCallback(
+    ({ open }: { open: boolean }) => {
+      if (open) {
+        setFormData(initialFormData)
+      } else {
+        onClose()
+      }
+    },
+    [initialFormData, onClose]
+  )
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -119,7 +128,7 @@ export function BudgetForm({ isOpen, onClose, userId, categories, onSuccess, edi
   const filteredCategories = categories.filter((c) => c.type === formData.type)
 
   return (
-    <DialogRoot open={isOpen} onOpenChange={({ open }) => !open && onClose()} size="lg" placement="center" lazyMount unmountOnExit>
+    <DialogRoot open={isOpen} onOpenChange={handleOpenChange} size="lg" placement="center" lazyMount unmountOnExit>
       <DialogBackdrop />
       <DialogPositioner>
         <DialogContent tabIndex={-1}>

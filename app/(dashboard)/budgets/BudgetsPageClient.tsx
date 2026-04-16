@@ -1,16 +1,10 @@
 'use client'
 
-import { VStack, Heading, Button, HStack, SimpleGrid, Box, Text, Divider } from '@chakra-ui/react'
+import { VStack, Heading, Button, HStack, SimpleGrid, Box, Text } from '@chakra-ui/react'
 import { useState, useCallback } from 'react'
 import { BudgetForm } from '@/components/budgets/BudgetForm'
 import { BudgetList } from '@/components/budgets/BudgetList'
-import { getBudgets } from '@/lib/actions/budgets.actions'
-import type { Category, Budget } from '@/types/database.types'
-
-interface BudgetWithSpent extends Budget {
-  spent: number
-  category: { name: string; type: string }
-}
+import type { Category } from '@/types/database.types'
 
 interface Props {
   userId: string
@@ -20,27 +14,10 @@ interface Props {
 export function BudgetsPageClient({ userId, categories }: Props) {
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
-  const [budgets, setBudgets] = useState<BudgetWithSpent[]>([])
 
   const handleFormSuccess = useCallback(() => {
     setRefreshKey((k) => k + 1)
   }, [])
-
-  const handleLoadBudgets = useCallback(async () => {
-    const result = await getBudgets(userId)
-    if (result.success && result.data) {
-      const budgetsData = (result.data as any[]).map((budget) => ({
-        ...budget,
-        spent: budget.spent || 0,
-      }))
-      setBudgets(budgetsData)
-    }
-  }, [userId])
-
-  const totalBudgets = budgets.length
-  const totalExceeded = budgets.filter((b) => b.spent > b.amount).length
-  const totalAmount = budgets.reduce((sum, b) => sum + b.amount, 0)
-  const totalSpent = budgets.reduce((sum, b) => sum + b.spent, 0)
 
   return (
     <VStack gap={6} align="stretch">
@@ -56,34 +33,31 @@ export function BudgetsPageClient({ userId, categories }: Props) {
         </Button>
       </HStack>
 
-      <Divider />
+      <Box borderBottomWidth="1px" />
 
-      {/* Resumen */}
       <SimpleGrid columns={[1, 2, 4]} gap={4}>
         <Box borderWidth="1px" borderRadius="lg" p={4} bg="#1A1A1A">
-          <Text fontSize="xs" color="#B0B0B0" mb={2}>Total de Presupuestos</Text>
-          <Heading size="md">{totalBudgets}</Heading>
+          <Text fontSize="xs" color="#B0B0B0" mb={2}>Presupuestos Activos</Text>
+          <Heading size="md">—</Heading>
         </Box>
         <Box borderWidth="1px" borderRadius="lg" p={4} bg="#1A1A1A">
           <Text fontSize="xs" color="#B0B0B0" mb={2}>Excedidos</Text>
-          <Heading size="md" color={totalExceeded > 0 ? '#EF4444' : 'white'}>{totalExceeded}</Heading>
+          <Heading size="md" color="white">—</Heading>
         </Box>
         <Box borderWidth="1px" borderRadius="lg" p={4} bg="#1A1A1A">
           <Text fontSize="xs" color="#B0B0B0" mb={2}>Presupuesto Total</Text>
-          <Heading size="md">{totalAmount.toLocaleString('es-CO', { maximumFractionDigits: 0 })}</Heading>
+          <Heading size="md">—</Heading>
         </Box>
         <Box borderWidth="1px" borderRadius="lg" p={4} bg="#1A1A1A">
           <Text fontSize="xs" color="#B0B0B0" mb={2}>Gastado Total</Text>
-          <Heading size="md">{totalSpent.toLocaleString('es-CO', { maximumFractionDigits: 0 })}</Heading>
+          <Heading size="md">—</Heading>
         </Box>
       </SimpleGrid>
 
-      <Divider />
+      <Box borderBottomWidth="1px" />
 
-      {/* Lista de presupuestos */}
       <BudgetList key={refreshKey} userId={userId} onRefresh={handleFormSuccess} onEdit={() => {}} />
 
-      {/* Formulario */}
       <BudgetForm
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}

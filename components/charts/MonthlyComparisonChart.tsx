@@ -15,6 +15,7 @@ import {
 import { getTransactions } from '@/lib/actions/transactions.actions'
 import { Card } from '@/components/ui/Card'
 import type { TransactionWithCategory } from '@/types/database.types'
+import type { ReportFiltersState } from '@/components/ReportFilters'
 
 interface ChartDataPoint {
   month: string
@@ -25,9 +26,10 @@ interface ChartDataPoint {
 interface Props {
   userId: string
   months?: number
+  filters?: ReportFiltersState
 }
 
-export function MonthlyComparisonChart({ userId, months = 12 }: Props) {
+export function MonthlyComparisonChart({ userId, months = 12, filters }: Props) {
   const [chartData, setChartData] = useState<ChartDataPoint[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -36,7 +38,25 @@ export function MonthlyComparisonChart({ userId, months = 12 }: Props) {
       const result = await getTransactions(userId, 500)
 
       if (result.success && result.data) {
-        const transactions = result.data as TransactionWithCategory[]
+        let transactions = result.data as TransactionWithCategory[]
+
+        // Aplicar filtros de fecha
+        if (filters?.startDate) {
+          transactions = transactions.filter((t) => t.date >= filters.startDate)
+        }
+        if (filters?.endDate) {
+          transactions = transactions.filter((t) => t.date <= filters.endDate)
+        }
+
+        // Aplicar filtro de tipo
+        if (filters?.transactionType && filters.transactionType !== 'all') {
+          transactions = transactions.filter((t) => t.type === filters.transactionType)
+        }
+
+        // Aplicar filtro de categoría
+        if (filters?.categoryIds && filters.categoryIds.length > 0) {
+          transactions = transactions.filter((t) => filters.categoryIds.includes(t.category_id || ''))
+        }
 
         // Agrupar por mes
         const grouped = transactions.reduce<Record<string, ChartDataPoint>>(
@@ -65,7 +85,7 @@ export function MonthlyComparisonChart({ userId, months = 12 }: Props) {
       setLoading(false)
     }
     fetchData()
-  }, [userId, months])
+  }, [userId, months, filters])
 
   if (loading) {
     return (

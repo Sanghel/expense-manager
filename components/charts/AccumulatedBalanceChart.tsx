@@ -15,6 +15,7 @@ import {
 import { getTransactions } from '@/lib/actions/transactions.actions'
 import { Card } from '@/components/ui/Card'
 import type { TransactionWithCategory } from '@/types/database.types'
+import type { ReportFiltersState } from '@/components/ReportFilters'
 
 interface ChartDataPoint {
   date: string
@@ -23,9 +24,10 @@ interface ChartDataPoint {
 
 interface Props {
   userId: string
+  filters?: ReportFiltersState
 }
 
-export function AccumulatedBalanceChart({ userId }: Props) {
+export function AccumulatedBalanceChart({ userId, filters }: Props) {
   const [chartData, setChartData] = useState<ChartDataPoint[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -34,7 +36,25 @@ export function AccumulatedBalanceChart({ userId }: Props) {
       const result = await getTransactions(userId, 500)
 
       if (result.success && result.data) {
-        const transactions = result.data as TransactionWithCategory[]
+        let transactions = result.data as TransactionWithCategory[]
+
+        // Aplicar filtros de fecha
+        if (filters?.startDate) {
+          transactions = transactions.filter((t) => t.date >= filters.startDate)
+        }
+        if (filters?.endDate) {
+          transactions = transactions.filter((t) => t.date <= filters.endDate)
+        }
+
+        // Aplicar filtro de tipo
+        if (filters?.transactionType && filters.transactionType !== 'all') {
+          transactions = transactions.filter((t) => t.type === filters.transactionType)
+        }
+
+        // Aplicar filtro de categoría
+        if (filters?.categoryIds && filters.categoryIds.length > 0) {
+          transactions = transactions.filter((t) => filters.categoryIds.includes(t.category_id || ''))
+        }
 
         // Ordenar por fecha
         const sorted = [...transactions].sort((a, b) =>
@@ -62,7 +82,7 @@ export function AccumulatedBalanceChart({ userId }: Props) {
       setLoading(false)
     }
     fetchData()
-  }, [userId])
+  }, [userId, filters])
 
   if (loading) {
     return (

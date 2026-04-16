@@ -13,6 +13,7 @@ import {
 import { getTransactions } from '@/lib/actions/transactions.actions'
 import { Card } from '@/components/ui/Card'
 import type { TransactionWithCategory } from '@/types/database.types'
+import type { ReportFiltersState } from '@/components/ReportFilters'
 
 interface ChartDataPoint {
   name: string
@@ -22,6 +23,7 @@ interface ChartDataPoint {
 interface Props {
   userId: string
   type?: 'expense' | 'income'
+  filters?: ReportFiltersState
 }
 
 const COLORS = [
@@ -39,7 +41,7 @@ const COLORS = [
   '#D35400',
 ]
 
-export function ExpensesByCategoryChart({ userId, type = 'expense' }: Props) {
+export function ExpensesByCategoryChart({ userId, type = 'expense', filters }: Props) {
   const [chartData, setChartData] = useState<ChartDataPoint[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -48,16 +50,34 @@ export function ExpensesByCategoryChart({ userId, type = 'expense' }: Props) {
       const result = await getTransactions(userId, 500)
 
       if (result.success && result.data) {
-        const transactions = result.data as TransactionWithCategory[]
+        let transactions = result.data as TransactionWithCategory[]
 
-        // Filtrar por tipo si es necesario
-        const filtered =
-          type === 'expense'
-            ? transactions.filter((t) => t.type === 'expense')
-            : transactions.filter((t) => t.type === 'income')
+        // Aplicar filtros de fecha
+        if (filters?.startDate) {
+          transactions = transactions.filter((t) => t.date >= filters.startDate)
+        }
+        if (filters?.endDate) {
+          transactions = transactions.filter((t) => t.date <= filters.endDate)
+        }
+
+        // Aplicar filtro de tipo
+        if (filters?.transactionType && filters.transactionType !== 'all') {
+          transactions = transactions.filter((t) => t.type === filters.transactionType)
+        } else {
+          // Si no hay filtro de tipo específico, usar el type prop
+          transactions =
+            type === 'expense'
+              ? transactions.filter((t) => t.type === 'expense')
+              : transactions.filter((t) => t.type === 'income')
+        }
+
+        // Aplicar filtro de categoría
+        if (filters?.categoryIds && filters.categoryIds.length > 0) {
+          transactions = transactions.filter((t) => filters.categoryIds.includes(t.category_id || ''))
+        }
 
         // Agrupar por categoría
-        const grouped = filtered.reduce<Record<string, number>>((acc, t) => {
+        const grouped = transactions.reduce<Record<string, number>>((acc, t) => {
           const categoryName = t.category?.name || 'Sin categoría'
           acc[categoryName] = (acc[categoryName] || 0) + Number(t.amount)
           return acc
@@ -73,7 +93,7 @@ export function ExpensesByCategoryChart({ userId, type = 'expense' }: Props) {
       setLoading(false)
     }
     fetchData()
-  }, [userId, type])
+  }, [userId, type, filters])
 
   const title = type === 'expense' ? 'Gastos por Categoría' : 'Ingresos por Categoría'
 

@@ -113,11 +113,11 @@ export function ExpensesByCategoryChart({ userId, type = 'expense' }: Props) {
               cx="50%"
               cy="50%"
               outerRadius={120}
-              label={({ name, percent }) =>
+              label={({ name, percent = 0 }) =>
                 `${name} ${(percent * 100).toFixed(0)}%`
               }
             >
-              {chartData.map((entry, index) => (
+              {chartData.map((_, index) => (
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>

@@ -27,7 +27,7 @@ export default async function ReportsPage() {
       <Heading mb={8} size="lg">
         Reportes
       </Heading>
-      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
+      <SimpleGrid columns={{ base: 1, md: 2 }} gap={6}>
         <ExpensesByCategoryChart userId={user.id} type="expense" />
         <ExpensesByCategoryChart userId={user.id} type="income" />
       </SimpleGrid>

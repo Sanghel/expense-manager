@@ -55,9 +55,9 @@ export function ReportFilters({ userId, onFilterChange }: Props) {
     onFilterChange(newFilters)
   }
 
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedOptions = Array.from(e.target.selectedOptions, (option) => option.value)
-    const newFilters = { ...filters, categoryIds: selectedOptions }
+  const handleCategoryChange = (categoryId: string) => {
+    const categoryIds = categoryId ? [categoryId] : []
+    const newFilters = { ...filters, categoryIds }
     setFilters(newFilters)
     onFilterChange(newFilters)
   }
@@ -111,14 +111,13 @@ export function ReportFilters({ userId, onFilterChange }: Props) {
             <FieldLabel fontSize="sm">Categoría</FieldLabel>
             <NativeSelectRoot>
               <NativeSelectField
-                value={filters.categoryIds}
-                onChange={handleCategoryChange}
-                multiple
+                value={filters.categoryIds[0] || ''}
+                onChange={(e) => handleCategoryChange(e.target.value)}
               >
-                <option value="">Todas las categorías</option>
+                <option value="">Todas</option>
                 {categories.map((category) => (
                   <option key={category.id} value={category.id}>
-                    {category.name}
+                    {category.icon} {category.name}
                   </option>
                 ))}
               </NativeSelectField>

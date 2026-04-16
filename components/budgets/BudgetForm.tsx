@@ -105,13 +105,15 @@ export function BudgetForm({ isOpen, onClose, userId, categories, onSuccess }: P
                     }
                     colorPalette="brand"
                   >
-                    <HStack>
+                    <HStack gap={4}>
                       <RadioGroupItem value="expense">
-                        <RadioGroupItemControl />
+                        <RadioGroupItemHiddenInput />
+                        <RadioGroupItemControl borderColor="#4F46E5" _checked={{ bg: '#4F46E5', borderColor: '#4F46E5' }} />
                         <RadioGroupItemText>Gasto</RadioGroupItemText>
                       </RadioGroupItem>
                       <RadioGroupItem value="income">
-                        <RadioGroupItemControl />
+                        <RadioGroupItemHiddenInput />
+                        <RadioGroupItemControl borderColor="#4F46E5" _checked={{ bg: '#4F46E5', borderColor: '#4F46E5' }} />
                         <RadioGroupItemText>Ingreso</RadioGroupItemText>
                       </RadioGroupItem>
                     </HStack>
@@ -120,14 +122,15 @@ export function BudgetForm({ isOpen, onClose, userId, categories, onSuccess }: P
 
                 <FieldRoot required>
                   <FieldLabel>Categoría</FieldLabel>
-                  <NativeSelectRoot
-                    value={formData.category_id}
-                    onValueChange={({ value }) => setFormData({ ...formData, category_id: value })}
-                  >
-                    <NativeSelectField placeholder="Selecciona una categoría">
-                      {filteredCategories.map((category) => (
-                        <option key={category.id} value={category.id}>
-                          {category.name}
+                  <NativeSelectRoot>
+                    <NativeSelectField
+                      value={formData.category_id}
+                      onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
+                    >
+                      <option value="">Seleccionar...</option>
+                      {filteredCategories.map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.icon} {cat.name}
                         </option>
                       ))}
                     </NativeSelectField>
@@ -149,11 +152,11 @@ export function BudgetForm({ isOpen, onClose, userId, categories, onSuccess }: P
 
                 <FieldRoot required>
                   <FieldLabel>Moneda</FieldLabel>
-                  <NativeSelectRoot
-                    value={formData.currency}
-                    onValueChange={({ value }) => setFormData({ ...formData, currency: value as FormData['currency'] })}
-                  >
-                    <NativeSelectField>
+                  <NativeSelectRoot>
+                    <NativeSelectField
+                      value={formData.currency}
+                      onChange={(e) => setFormData({ ...formData, currency: e.target.value as FormData['currency'] })}
+                    >
                       <option value="COP">COP</option>
                       <option value="USD">USD</option>
                       <option value="VES">VES</option>
@@ -168,13 +171,15 @@ export function BudgetForm({ isOpen, onClose, userId, categories, onSuccess }: P
                     onValueChange={({ value }) => setFormData({ ...formData, period: value as FormData['period'] })}
                     colorPalette="brand"
                   >
-                    <HStack>
+                    <HStack gap={4}>
                       <RadioGroupItem value="monthly">
-                        <RadioGroupItemControl />
+                        <RadioGroupItemHiddenInput />
+                        <RadioGroupItemControl borderColor="#4F46E5" _checked={{ bg: '#4F46E5', borderColor: '#4F46E5' }} />
                         <RadioGroupItemText>Mensual</RadioGroupItemText>
                       </RadioGroupItem>
                       <RadioGroupItem value="yearly">
-                        <RadioGroupItemControl />
+                        <RadioGroupItemHiddenInput />
+                        <RadioGroupItemControl borderColor="#4F46E5" _checked={{ bg: '#4F46E5', borderColor: '#4F46E5' }} />
                         <RadioGroupItemText>Anual</RadioGroupItemText>
                       </RadioGroupItem>
                     </HStack>

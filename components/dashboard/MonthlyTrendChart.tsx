@@ -90,7 +90,7 @@ export function MonthlyTrendChart({ userId }: Props) {
       <Heading size="md" mb={4}>Tendencia Mensual</Heading>
       <Box h="300px">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartData}>
+          <LineChart data={chartData} margin={{ top: 20, right: 30, left: 60, bottom: 60 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
             <YAxis />

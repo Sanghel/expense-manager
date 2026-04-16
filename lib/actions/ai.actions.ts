@@ -39,14 +39,23 @@ ${categories.map((c) => `- ID: ${c.id} | Nombre: ${c.name} | Tipo: ${c.type}`).j
 
 Fecha actual: ${today}
 
-Extrae la siguiente información y responde ÚNICAMENTE con un JSON válido (sin markdown, sin explicaciones):
+Responde ÚNICAMENTE con un JSON válido (sin markdown, sin explicaciones).
+
+Si el mensaje describe un gasto o ingreso, responde:
 {
+  "valid": true,
   "amount": <número positivo>,
   "description": "<descripción breve y clara del gasto/ingreso>",
   "category_id": "<id de la categoría más apropiada del listado>",
   "type": "<'income' o 'expense'>",
   "currency": "<'COP', 'USD' o 'VES' - detecta según el contexto: 'dólares'/'USD'/'$' → USD, 'bolívares'/'VES'/'Bs' → VES, por defecto COP>",
   "date": "<fecha en formato YYYY-MM-DD - 'ayer' → día anterior, 'la semana pasada' → lunes anterior, si no se menciona usa la fecha actual>"
+}
+
+Si el mensaje NO describe un gasto ni un ingreso, responde:
+{
+  "valid": false,
+  "message": "<mensaje breve y amigable explicando que solo puedes registrar transacciones>"
 }`
 
     const response = await client.messages.create({
@@ -61,7 +70,12 @@ Extrae la siguiente información y responde ÚNICAMENTE con un JSON válido (sin
     }
 
     const clean = textContent.text.trim().replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '')
-    const parsed = JSON.parse(clean) as CategorizedTransaction
+    const parsed = JSON.parse(clean) as CategorizedTransaction & { valid: boolean; message?: string }
+
+    if (!parsed.valid) {
+      return { success: false, error: parsed.message ?? 'Solo puedo ayudarte a registrar gastos e ingresos.' }
+    }
+
     return { success: true, data: parsed }
   } catch (error) {
     console.error('AI categorization error:', error)

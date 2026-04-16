@@ -12,12 +12,12 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.89.0",
     "@chakra-ui/next-js": "^2.4.2",
     "@chakra-ui/react": "^3.34.0",
     "@emotion/cache": "^11.14.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "@google/generative-ai": "^0.24.1",
     "@insforge/sdk": "^1.2.4",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.38.0",

@@ -53,9 +53,9 @@ export function ColorPicker({ value, onChange }: Props) {
         borderRadius="md"
         bg={value}
         border="2px solid"
-        borderColor={open ? 'gray.700' : 'gray.300'}
+        borderColor={open ? '#4F46E5' : '#3a3a42'}
         cursor="pointer"
-        _hover={{ borderColor: 'gray.500' }}
+        _hover={{ borderColor: '#4F46E5' }}
         transition="border-color 0.15s"
       />
 
@@ -65,10 +65,10 @@ export function ColorPicker({ value, onChange }: Props) {
           top="calc(100% + 4px)"
           right={0}
           zIndex={50}
-          bg="white"
+          bg="#1a1a23"
           borderRadius="lg"
           border="1px solid"
-          borderColor="gray.200"
+          borderColor="#2d2d35"
           boxShadow="lg"
           p={3}
           w="50"
@@ -87,7 +87,7 @@ export function ColorPicker({ value, onChange }: Props) {
                 borderRadius="md"
                 bg={color}
                 border="2px solid"
-                borderColor={value === color ? 'gray.800' : 'transparent'}
+                borderColor={value === color ? 'white' : 'transparent'}
                 cursor="pointer"
                 _hover={{ transform: 'scale(1.15)' }}
                 transition="transform 0.1s"

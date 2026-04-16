@@ -49,7 +49,7 @@ export function RecentTransactions({ userId, limit = 10 }: Props) {
     return (
       <Card>
         <Heading size="md" mb={4}>Últimas Transacciones</Heading>
-        <Text color="gray.500">No hay transacciones registradas.</Text>
+        <Text color="#B0B0B0">No hay transacciones registradas.</Text>
       </Card>
     )
   }

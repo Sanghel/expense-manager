@@ -37,11 +37,11 @@ export function CurrencyPreview({ amount, fromCurrency }: Props) {
   if (!amount || amount <= 0 || Object.keys(conversions).length === 0) return null
 
   return (
-    <Box bg="gray.50" borderRadius="md" px={3} py={2} w="full">
-      <Text fontSize="xs" color="gray.500" mb={1}>Equivalente aproximado</Text>
+    <Box bg="#26262f" borderRadius="md" px={3} py={2} w="full">
+      <Text fontSize="xs" color="#B0B0B0" mb={1}>Equivalente aproximado</Text>
       <HStack gap={4} flexWrap="wrap">
         {Object.entries(conversions).map(([currency, value]) => (
-          <Text key={currency} fontSize="sm" color="gray.700">
+          <Text key={currency} fontSize="sm" color="white">
             {formatCurrency(value, currency)}
           </Text>
         ))}

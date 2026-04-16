@@ -3,12 +3,12 @@ import { Box, BoxProps } from '@chakra-ui/react'
 export function Card({ children, ...props }: BoxProps) {
   return (
     <Box
-      bg="white"
+      bg="#1a1a23"
       borderRadius="lg"
       borderWidth="1px"
-      borderColor="gray.200"
+      borderColor="#2d2d35"
       p={6}
-      shadow="sm"
+      shadow="md"
       {...props}
     >
       {children}

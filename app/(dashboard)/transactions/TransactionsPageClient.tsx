@@ -96,8 +96,8 @@ export function TransactionsPageClient({ userId, categories }: Props) {
   return (
     <Box>
       <HStack justify="space-between" mb={6}>
-        <Heading size="lg">Transacciones</Heading>
-        <Button colorPalette="brand" onClick={onCreateOpen}>
+        <Heading size="lg" color="white">Transacciones</Heading>
+        <Button bg="#4F46E5" color="white" _hover={{ bg: '#4338CA' }} onClick={onCreateOpen}>
           <FiPlus />
           Nueva Transacción
         </Button>
@@ -133,7 +133,7 @@ export function TransactionsPageClient({ userId, categories }: Props) {
                 >
                   Anterior
                 </Button>
-                <Text fontSize="sm" color="gray.600">
+                <Text fontSize="sm" color="#B0B0B0">
                   Página {page} de {totalPages}
                 </Text>
                 <Button

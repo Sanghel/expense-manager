@@ -31,11 +31,11 @@ export function FloatingChat({ userId, categories }: Props) {
             right="24px"
             w="380px"
             h="520px"
-            bg="white"
+            bg="#18181d"
             borderRadius="2xl"
             shadow="2xl"
             borderWidth="1px"
-            borderColor="gray.200"
+            borderColor="#2d2d35"
             overflow="hidden"
             zIndex={1000}
           >

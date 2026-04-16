@@ -95,7 +95,7 @@ export function ExchangeRatesForm({ initialRates }: Props) {
                 <Table.Row key={`${from}_${to}`}>
                   <Table.Cell fontWeight="medium">{label}</Table.Cell>
                   <Table.Cell>{r ? r.rate.toLocaleString('es-CO') : '—'}</Table.Cell>
-                  <Table.Cell color="gray.500" fontSize="xs">{r?.date ?? '—'}</Table.Cell>
+                  <Table.Cell color="#B0B0B0" fontSize="xs">{r?.date ?? '—'}</Table.Cell>
                 </Table.Row>
               )
             })}
@@ -105,13 +105,13 @@ export function ExchangeRatesForm({ initialRates }: Props) {
 
       {/* Formulario de actualización */}
       <VStack gap={4} align="stretch">
-        <Text fontWeight="semibold" fontSize="sm">Actualizar tasas</Text>
+        <Text fontWeight="semibold" fontSize="sm" color="white">Actualizar tasas</Text>
 
         {PAIRS.map(({ from, to, label }) => {
           const key = `${from}_${to}` as keyof typeof inputs
           return (
             <HStack key={key} gap={4}>
-              <Text fontSize="sm" color="gray.600" minW="28">{label}</Text>
+              <Text fontSize="sm" color="#B0B0B0" minW="28">{label}</Text>
               <Input
                 type="number"
                 step="0.0001"
@@ -126,7 +126,9 @@ export function ExchangeRatesForm({ initialRates }: Props) {
         })}
 
         <Button
-          colorPalette="brand"
+          bg="#4F46E5"
+          color="white"
+          _hover={{ bg: '#4338CA' }}
           alignSelf="flex-start"
           loading={loading}
           onClick={handleSave}

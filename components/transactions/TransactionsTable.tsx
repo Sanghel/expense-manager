@@ -57,7 +57,7 @@ export function TransactionsTable({ transactions, userId, onUpdate, onEdit }: Pr
 
   if (transactions.length === 0) {
     return (
-      <Text color="gray.500" textAlign="center" py={8}>
+      <Text color="#B0B0B0" textAlign="center" py={8}>
         No hay transacciones. ¡Crea una nueva!
       </Text>
     )

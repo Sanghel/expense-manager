@@ -81,16 +81,17 @@ export function CategoryForm({ isOpen, onClose, userId, onSuccess }: Props) {
                   onValueChange={({ value }) =>
                     setFormData({ ...formData, type: value as 'income' | 'expense' })
                   }
+                  colorPalette="brand"
                 >
                   <HStack gap={4}>
                     <RadioGroupItem value="expense">
                       <RadioGroupItemHiddenInput />
-                      <RadioGroupItemControl />
+                      <RadioGroupItemControl borderColor="#4F46E5" _checked={{ bg: '#4F46E5', borderColor: '#4F46E5' }} />
                       <RadioGroupItemText>Gasto</RadioGroupItemText>
                     </RadioGroupItem>
                     <RadioGroupItem value="income">
                       <RadioGroupItemHiddenInput />
-                      <RadioGroupItemControl />
+                      <RadioGroupItemControl borderColor="#4F46E5" _checked={{ bg: '#4F46E5', borderColor: '#4F46E5' }} />
                       <RadioGroupItemText>Ingreso</RadioGroupItemText>
                     </RadioGroupItem>
                   </HStack>
@@ -124,7 +125,7 @@ export function CategoryForm({ isOpen, onClose, userId, onSuccess }: Props) {
                 </FieldRoot>
               </HStack>
 
-              <Button type="submit" colorPalette="brand" width="full" loading={loading}>
+              <Button type="submit" bg="#4F46E5" color="white" _hover={{ bg: '#4338CA' }} width="full" loading={loading}>
                 Crear Categoría
               </Button>
             </VStack>

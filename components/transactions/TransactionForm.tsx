@@ -96,16 +96,17 @@ export function TransactionForm({ isOpen, onClose, userId, categories, onSuccess
                   onValueChange={({ value }) =>
                     setFormData({ ...formData, type: value as FormData['type'], category_id: '' })
                   }
+                  colorPalette="brand"
                 >
                   <HStack gap={4}>
                     <RadioGroupItem value="expense">
                       <RadioGroupItemHiddenInput />
-                      <RadioGroupItemControl />
+                      <RadioGroupItemControl borderColor="#4F46E5" _checked={{ bg: '#4F46E5', borderColor: '#4F46E5' }} />
                       <RadioGroupItemText>Gasto</RadioGroupItemText>
                     </RadioGroupItem>
                     <RadioGroupItem value="income">
                       <RadioGroupItemHiddenInput />
-                      <RadioGroupItemControl />
+                      <RadioGroupItemControl borderColor="#4F46E5" _checked={{ bg: '#4F46E5', borderColor: '#4F46E5' }} />
                       <RadioGroupItemText>Ingreso</RadioGroupItemText>
                     </RadioGroupItem>
                   </HStack>
@@ -190,7 +191,9 @@ export function TransactionForm({ isOpen, onClose, userId, categories, onSuccess
 
               <Button
                 type="submit"
-                colorPalette="brand"
+                bg="#4F46E5"
+                color="white"
+                _hover={{ bg: '#4338CA' }}
                 width="full"
                 loading={loading}
               >

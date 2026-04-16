@@ -1,6 +1,6 @@
 'use client'
 
-import { VStack, HStack, Box, Text, Button, Heading, useDisclosure, DialogRoot, DialogBackdrop, DialogContent, DialogHeader, DialogTitle, DialogBody, DialogFooter, DialogCloseTrigger } from '@chakra-ui/react'
+import { VStack, HStack, Box, Text, Button, Heading, useDisclosure, AlertDialogRoot, AlertDialogBackdrop, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogBody, AlertDialogFooter } from '@chakra-ui/react'
 import { useEffect, useState } from 'react'
 import { getBudgets, deleteBudget } from '@/lib/actions/budgets.actions'
 import { toaster } from '@/lib/toaster'
@@ -116,28 +116,28 @@ export function BudgetList({ userId, onEdit, onRefresh }: Props) {
         ))}
       </VStack>
 
-      <DialogRoot
+      <AlertDialogRoot
         open={open}
         onOpenChange={({ open: isOpen }) => !isOpen && onClose()}
-        role="alertdialog"
       >
-        <DialogBackdrop />
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Eliminar Presupuesto</DialogTitle>
-          </DialogHeader>
-          <DialogCloseTrigger />
-          <DialogBody>
+        <AlertDialogBackdrop />
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar Presupuesto</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogBody>
             ¿Estás seguro? Esta acción no se puede deshacer.
-          </DialogBody>
-          <DialogFooter>
-            <Button variant="outline" onClick={onClose}>Cancelar</Button>
+          </AlertDialogBody>
+          <AlertDialogFooter>
+            <Button variant="outline" onClick={onClose}>
+              Cancelar
+            </Button>
             <Button colorScheme="red" onClick={handleDelete} ml={3}>
               Eliminar
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </DialogRoot>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialogRoot>
     </>
   )
 }

@@ -9,6 +9,7 @@ import {
   FiTag,
   FiTrendingUp,
   FiMessageSquare,
+  FiSettings,
 } from 'react-icons/fi'
 import { IconType } from 'react-icons'
 
@@ -18,6 +19,7 @@ const navItems: { href: string; label: string; icon: IconType }[] = [
   { href: '/categories', label: 'Categorías', icon: FiTag },
   { href: '/budgets', label: 'Presupuestos', icon: FiTrendingUp },
   { href: '/chat', label: 'Chat IA', icon: FiMessageSquare },
+  { href: '/settings', label: 'Configuración', icon: FiSettings },
 ]
 
 export function Sidebar() {

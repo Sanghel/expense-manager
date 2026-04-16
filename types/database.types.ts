@@ -1,4 +1,4 @@
-export type Currency = 'COP' | 'USD' | 'BOB'
+export type Currency = 'COP' | 'USD' | 'VES'
 export type TransactionType = 'income' | 'expense'
 export type BudgetPeriod = 'monthly' | 'yearly'
 export type TransactionSource = 'manual' | 'conversational'

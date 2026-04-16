@@ -1,19 +1,30 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Box, Heading, VStack, HStack } from '@chakra-ui/react'
 import { FinancialCards } from './FinancialCards'
 import { MonthlyTrendChart } from './MonthlyTrendChart'
 import { RecentTransactions } from './RecentTransactions'
 import { MonthSelector } from './MonthSelector'
+import { getUserProfile } from '@/lib/actions/users.actions'
+import type { Currency } from '@/types/database.types'
 
 interface Props {
   userId: string
 }
 
 export function DashboardContent({ userId }: Props) {
-  const currentMonth = new Date().toISOString().slice(0, 7) // YYYY-MM
+  const currentMonth = new Date().toISOString().slice(0, 7)
   const [selectedMonth, setSelectedMonth] = useState(currentMonth)
+  const [preferredCurrency, setPreferredCurrency] = useState<Currency>('COP')
+
+  useEffect(() => {
+    getUserProfile(userId).then((result) => {
+      if (result.success && result.data) {
+        setPreferredCurrency(result.data.preferred_currency)
+      }
+    })
+  }, [userId])
 
   return (
     <Box>
@@ -23,7 +34,11 @@ export function DashboardContent({ userId }: Props) {
       </HStack>
 
       <VStack gap={8} align="stretch">
-        <FinancialCards userId={userId} month={selectedMonth} />
+        <FinancialCards
+          userId={userId}
+          month={selectedMonth}
+          preferredCurrency={preferredCurrency}
+        />
 
         <MonthlyTrendChart userId={userId} />
 

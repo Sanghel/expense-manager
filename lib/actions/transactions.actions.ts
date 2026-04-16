@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { insforge } from '@/lib/insforge'
+import { insforgeAdmin } from '@/lib/insforge-admin'
 import {
   createTransactionSchema,
   updateTransactionSchema,
@@ -16,7 +16,7 @@ export async function createTransaction(
   try {
     const validated = createTransactionSchema.parse(data)
 
-    const { data: transaction, error } = await insforge.database
+    const { data: transaction, error } = await insforgeAdmin.database
       .from('transactions')
       .insert([{ ...validated, user_id: userId, source: 'manual' }])
       .select()
@@ -34,7 +34,7 @@ export async function createTransaction(
 
 export async function getTransactions(userId: string, limit = 50) {
   try {
-    const { data, error } = await insforge.database
+    const { data, error } = await insforgeAdmin.database
       .from('transactions')
       .select('*, category:categories(*)')
       .eq('user_id', userId)
@@ -56,7 +56,7 @@ export async function updateTransaction(
   try {
     const validated = updateTransactionSchema.parse(data)
 
-    const { data: transaction, error } = await insforge.database
+    const { data: transaction, error } = await insforgeAdmin.database
       .from('transactions')
       .update(validated)
       .eq('id', id)
@@ -76,7 +76,7 @@ export async function updateTransaction(
 
 export async function deleteTransaction(id: string, userId: string) {
   try {
-    const { error } = await insforge.database
+    const { error } = await insforgeAdmin.database
       .from('transactions')
       .delete()
       .eq('id', id)

@@ -5,6 +5,7 @@ import { Box, Heading, VStack, HStack } from '@chakra-ui/react'
 import { FinancialCards } from './FinancialCards'
 import { MonthlyTrendChart } from './MonthlyTrendChart'
 import { RecentTransactions } from './RecentTransactions'
+import { BudgetWidget } from '@/components/budgets/BudgetWidget'
 import { MonthSelector } from './MonthSelector'
 import { getUserProfile } from '@/lib/actions/users.actions'
 import type { Currency } from '@/types/database.types'
@@ -43,6 +44,8 @@ export function DashboardContent({ userId }: Props) {
         <MonthlyTrendChart userId={userId} />
 
         <RecentTransactions userId={userId} limit={10} />
+
+        <BudgetWidget userId={userId} />
       </VStack>
     </Box>
   )

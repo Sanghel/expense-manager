@@ -5,6 +5,7 @@ import { insforgeAdmin } from '@/lib/insforge-admin'
 import { Box, Heading, SimpleGrid } from '@chakra-ui/react'
 import { ExpensesByCategoryChart } from '@/components/charts/ExpensesByCategoryChart'
 import { MonthlyComparisonChart } from '@/components/charts/MonthlyComparisonChart'
+import { AccumulatedBalanceChart } from '@/components/charts/AccumulatedBalanceChart'
 
 export default async function ReportsPage() {
   const session = await getServerSession(authOptions)
@@ -29,6 +30,9 @@ export default async function ReportsPage() {
         Reportes
       </Heading>
       <SimpleGrid columns={{ base: 1, md: 2 }} gap={6}>
+        <Box gridColumn={{ base: 'auto', md: '1 / -1' }}>
+          <AccumulatedBalanceChart userId={user.id} />
+        </Box>
         <Box gridColumn={{ base: 'auto', md: '1 / -1' }}>
           <MonthlyComparisonChart userId={user.id} months={12} />
         </Box>

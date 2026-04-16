@@ -1,6 +1,6 @@
 'use client'
 
-import { VStack, HStack, Input, Button, Box, Text } from '@chakra-ui/react'
+import { VStack, HStack, Input, Button, Box } from '@chakra-ui/react'
 import { useCallback, useEffect, useState } from 'react'
 import { getTags, createTag } from '@/lib/actions/tags.actions'
 import { toaster } from '@/lib/toaster'
@@ -23,7 +23,7 @@ export function TagInput({ userId, onTagsChange, selectedTags = [] }: Props) {
     const loadTags = async () => {
       const result = await getTags(userId)
       if (result.success) {
-        setAllTags(result.data)
+        setAllTags(result.data || [])
       }
     }
     loadTags()
@@ -55,13 +55,13 @@ export function TagInput({ userId, onTagsChange, selectedTags = [] }: Props) {
     setLoading(true)
     const result = await createTag(userId, { name: input, color: generateColor() })
     setLoading(false)
-    if (result.success) {
+    if (result.success && result.data) {
       handleAddTag(result.data)
       const newAllTags = [...allTags, result.data]
       setAllTags(newAllTags)
-      toaster.success('Tag created')
+      toaster.success({ title: 'Tag created' })
     } else {
-      toaster.error(result.error)
+      toaster.error({ title: result.error || 'Error' })
     }
   }
 

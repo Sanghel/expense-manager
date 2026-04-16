@@ -31,8 +31,7 @@ export async function getBudgets(userId: string) {
 
     const budgetsWithSpent = budgets.map((budget) => {
       const now = new Date()
-      const startDate = new Date(budget.start_date)
-      
+
       let periodStart: Date, periodEnd: Date
       
       if (budget.period === 'monthly') {

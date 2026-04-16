@@ -17,11 +17,11 @@ export function ExportButtons({ userId }: Props) {
     const result = await exportTransactions(userId, format)
     setLoading(null)
 
-    if (result.success) {
+    if (result.success && result.data && result.filename) {
       downloadFile(result.data, result.filename, format === 'json' ? 'application/json' : 'text/csv')
-      toaster.success(`Exported as ${format.toUpperCase()}`)
+      toaster.success({ title: `Exported as ${format.toUpperCase()}` })
     } else {
-      toaster.error(result.error)
+      toaster.error({ title: result.error || 'Export failed' })
     }
   }
 

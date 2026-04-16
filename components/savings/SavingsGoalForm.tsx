@@ -44,7 +44,7 @@ export function SavingsGoalForm({ isOpen, onClose, userId, onSuccess }: Props) {
 
   const handleSubmit = async () => {
     if (!form.name || !form.target_amount) {
-      toaster.error('Please fill in required fields')
+      toaster.error({ title: 'Please fill in required fields' })
       return
     }
 
@@ -59,17 +59,17 @@ export function SavingsGoalForm({ isOpen, onClose, userId, onSuccess }: Props) {
     setLoading(false)
 
     if (result.success) {
-      toaster.success('Savings goal created')
+      toaster.success({ title: 'Savings goal created' })
       setForm({ name: '', target_amount: '', currency: 'COP', deadline: '' })
       onClose()
       onSuccess()
     } else {
-      toaster.error(result.error)
+      toaster.error({ title: result.error || 'Error' })
     }
   }
 
   return (
-    <DialogRoot isOpen={isOpen} onOpenChange={{ onOpenChange: onClose }}>
+    <DialogRoot open={isOpen} onOpenChange={details => !details.open && onClose()}>
       <DialogBackdrop />
       <DialogPositioner>
         <DialogContent>

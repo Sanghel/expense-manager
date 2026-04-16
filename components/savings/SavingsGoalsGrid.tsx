@@ -20,9 +20,9 @@ export function SavingsGoalsGrid({ userId, refresh }: Props) {
     setLoading(true)
     const result = await getSavingsGoals(userId)
     if (result.success) {
-      setGoals(result.data)
+      setGoals(result.data || [])
     } else {
-      toaster.error(result.error)
+      toaster.error({ title: result.error || 'Error' })
     }
     setLoading(false)
   }, [userId])

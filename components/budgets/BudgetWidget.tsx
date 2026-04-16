@@ -61,9 +61,9 @@ export function BudgetWidget({ userId }: Props) {
             No hay presupuestos. Crea uno para empezar.
           </Text>
         ) : (
-          <VStack gap={4} align="stretch" divider={<Box borderBottomWidth="1px" />}>
-            {budgets.map((budget) => (
-              <VStack key={budget.id} gap={2} align="stretch">
+          <VStack gap={4} align="stretch">
+            {budgets.map((budget, idx) => (
+              <VStack key={budget.id} gap={2} align="stretch" borderBottomWidth={idx < budgets.length - 1 ? "1px" : "0"} pb={idx < budgets.length - 1 ? "4" : "0"}>
                 <HStack justify="space-between">
                   <Heading size="sm">{budget.category?.name || 'Unknown'}</Heading>
                   <Text fontSize="sm" fontWeight="medium">

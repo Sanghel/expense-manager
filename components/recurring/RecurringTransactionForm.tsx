@@ -50,13 +50,14 @@ export function RecurringTransactionForm({ isOpen, onClose, userId, categories, 
   const [form, setForm] = useState(defaultForm)
   const [loading, setLoading] = useState(false)
 
-  const handleChange = (field: string, value: string | number) => {
-    setForm(prev => ({ ...prev, [field]: value }))
+  const handleChange = (field: string, value: any) => {
+    const actualValue = typeof value === 'object' && value?.value ? value.value : value
+    setForm(prev => ({ ...prev, [field]: actualValue }))
   }
 
   const handleSubmit = async () => {
     if (!form.amount || !form.category_id || !form.description) {
-      toaster.error('Please fill in all required fields')
+      toaster.error({ title: 'Please fill in all required fields' })
       return
     }
 
@@ -75,17 +76,17 @@ export function RecurringTransactionForm({ isOpen, onClose, userId, categories, 
     setLoading(false)
 
     if (result.success) {
-      toaster.success('Recurring transaction created')
+      toaster.success({ title: 'Recurring transaction created' })
       setForm(defaultForm)
       onClose()
       onSuccess()
     } else {
-      toaster.error(result.error || 'Failed to create recurring transaction')
+      toaster.error({ title: result.error || 'Failed to create recurring transaction' })
     }
   }
 
   return (
-    <DialogRoot isOpen={isOpen} onOpenChange={{ onOpenChange: onClose }}>
+    <DialogRoot open={isOpen} onOpenChange={details => !details.open && onClose()}>
       <DialogBackdrop />
       <DialogPositioner>
         <DialogContent>

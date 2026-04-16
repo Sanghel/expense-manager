@@ -6,7 +6,6 @@ import {
   HStack,
   Text,
   Button,
-  Progress,
   Badge,
   Input,
   IconButton,
@@ -14,7 +13,6 @@ import {
   MenuContent,
   MenuItem,
   MenuTrigger,
-  Dialog,
   DialogRoot,
   DialogBackdrop,
   DialogPositioner,
@@ -44,7 +42,7 @@ export function SavingsGoalCard({ goal, userId, onRefresh }: Props) {
 
   const handleAddFunds = async () => {
     if (!fundsAmount) {
-      toaster.error('Please enter amount')
+      toaster.error({ title: 'Please enter amount' })
       return
     }
 
@@ -56,12 +54,12 @@ export function SavingsGoalCard({ goal, userId, onRefresh }: Props) {
     setLoading(false)
 
     if (result.success) {
-      toaster.success('Funds added')
+      toaster.success({ title: 'Funds added' })
       setFundsAmount('')
       setIsAddFundsOpen(false)
       onRefresh()
     } else {
-      toaster.error(result.error)
+      toaster.error({ title: result.error || 'Error' })
     }
   }
 
@@ -69,10 +67,10 @@ export function SavingsGoalCard({ goal, userId, onRefresh }: Props) {
     if (!confirm('Delete this goal?')) return
     const result = await deleteSavingsGoal(goal.id, userId)
     if (result.success) {
-      toaster.success('Deleted')
+      toaster.success({ title: 'Deleted' })
       onRefresh()
     } else {
-      toaster.error(result.error)
+      toaster.error({ title: result.error || 'Error' })
     }
   }
 
@@ -98,7 +96,9 @@ export function SavingsGoalCard({ goal, userId, onRefresh }: Props) {
                 {goal.current_amount.toLocaleString()} / {goal.target_amount.toLocaleString()} {goal.currency}
               </Text>
             </HStack>
-            <Progress value={progress} width="100%" />
+            <Box width="100%" height="2" bg="gray.200" borderRadius="md" overflow="hidden">
+              <Box height="100%" bg="blue.500" width={`${progress}%`} transition="width 0.3s" />
+            </Box>
             <Text fontSize="xs" color="fg.muted">
               {progress.toFixed(1)}%
             </Text>
@@ -128,7 +128,7 @@ export function SavingsGoalCard({ goal, userId, onRefresh }: Props) {
         </VStack>
       </Box>
 
-      <DialogRoot isOpen={isAddFundsOpen} onOpenChange={{ onOpenChange: setIsAddFundsOpen }}>
+      <DialogRoot open={isAddFundsOpen} onOpenChange={details => setIsAddFundsOpen(details.open)}>
         <DialogBackdrop />
         <DialogPositioner>
           <DialogContent>

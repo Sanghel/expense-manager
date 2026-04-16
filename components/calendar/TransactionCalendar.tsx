@@ -8,7 +8,6 @@ import {
   Text,
   VStack,
   Badge,
-  Dialog,
   DialogRoot,
   DialogBackdrop,
   DialogPositioner,
@@ -40,9 +39,11 @@ export function TransactionCalendar({ userId }: Props) {
     setLoading(true)
     const result = await getTransactions(userId, 1000)
     if (result.success) {
-      setTransactions(result.data)
+      setTransactions(result.data || [])
     } else {
-      toaster.error(result.error)
+      if (result.error) {
+        toaster.error({ title: result.error })
+      }
     }
     setLoading(false)
   }, [userId])
@@ -176,7 +177,7 @@ export function TransactionCalendar({ userId }: Props) {
       </Box>
 
       {/* Day details dialog */}
-      <DialogRoot isOpen={selectedDay !== null} onOpenChange={{ onOpenChange: () => setSelectedDay(null) }}>
+      <DialogRoot open={selectedDay !== null} onOpenChange={details => !details.open && setSelectedDay(null)}>
         <DialogBackdrop />
         <DialogPositioner>
           <DialogContent maxW="md">

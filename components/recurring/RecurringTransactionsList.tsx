@@ -31,9 +31,9 @@ export function RecurringTransactionsList({ userId, refresh }: Props) {
     setLoading(true)
     const result = await getRecurringTransactions(userId)
     if (result.success) {
-      setTransactions(result.data)
+      setTransactions(result.data || [])
     } else {
-      toaster.error(result.error)
+      toaster.error({ title: result.error || 'Error' })
     }
     setLoading(false)
   }, [userId])
@@ -46,20 +46,20 @@ export function RecurringTransactionsList({ userId, refresh }: Props) {
     if (!confirm('Are you sure?')) return
     const result = await deleteRecurringTransaction(id, userId)
     if (result.success) {
-      toaster.success('Deleted')
+      toaster.success({ title: 'Deleted' })
       loadTransactions()
     } else {
-      toaster.error(result.error)
+      toaster.error({ title: result.error || 'Error' })
     }
   }
 
   const handleToggle = async (id: string, isActive: boolean) => {
     const result = await toggleRecurringTransaction(id, userId, !isActive)
     if (result.success) {
-      toaster.success(isActive ? 'Paused' : 'Activated')
+      toaster.success({ title: isActive ? 'Paused' : 'Activated' })
       loadTransactions()
     } else {
-      toaster.error(result.error)
+      toaster.error({ title: result.error || 'Error' })
     }
   }
 

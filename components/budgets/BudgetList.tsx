@@ -1,6 +1,6 @@
 'use client'
 
-import { VStack, HStack, Box, Text, Button, Heading, useDisclosure, AlertDialogRoot, AlertDialogBackdrop, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogBody, AlertDialogFooter } from '@chakra-ui/react'
+import { VStack, HStack, Box, Text, Button, Heading, useDisclosure, DialogRoot, DialogBackdrop, DialogContent, DialogHeader, DialogTitle, DialogBody, DialogFooter, DialogCloseTrigger } from '@chakra-ui/react'
 import { useEffect, useState } from 'react'
 import { getBudgets, deleteBudget } from '@/lib/actions/budgets.actions'
 import { toaster } from '@/lib/toaster'
@@ -23,6 +23,7 @@ export function BudgetList({ userId, onEdit, onRefresh }: Props) {
   const [loading, setLoading] = useState(true)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const { open, onOpen, onClose } = useDisclosure()
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     loadBudgets()
@@ -45,7 +46,10 @@ export function BudgetList({ userId, onEdit, onRefresh }: Props) {
   const handleDelete = async () => {
     if (!selectedId) return
 
+    setIsDeleting(true)
     const result = await deleteBudget(selectedId, userId)
+    setIsDeleting(false)
+
     if (result.success) {
       toaster.create({ title: 'Presupuesto eliminado', type: 'success', duration: 3000 })
       onClose()
@@ -116,28 +120,29 @@ export function BudgetList({ userId, onEdit, onRefresh }: Props) {
         ))}
       </VStack>
 
-      <AlertDialogRoot
+      <DialogRoot
         open={open}
         onOpenChange={({ open: isOpen }) => !isOpen && onClose()}
       >
-        <AlertDialogBackdrop />
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Eliminar Presupuesto</AlertDialogTitle>
-          </AlertDialogHeader>
-          <AlertDialogBody>
+        <DialogBackdrop />
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Eliminar Presupuesto</DialogTitle>
+          </DialogHeader>
+          <DialogCloseTrigger />
+          <DialogBody>
             ¿Estás seguro? Esta acción no se puede deshacer.
-          </AlertDialogBody>
-          <AlertDialogFooter>
+          </DialogBody>
+          <DialogFooter>
             <Button variant="outline" onClick={onClose}>
               Cancelar
             </Button>
-            <Button colorScheme="red" onClick={handleDelete} ml={3}>
+            <Button colorScheme="red" onClick={handleDelete} loading={isDeleting} ml={3}>
               Eliminar
             </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialogRoot>
+          </DialogFooter>
+        </DialogContent>
+      </DialogRoot>
     </>
   )
 }

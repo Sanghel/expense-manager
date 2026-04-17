@@ -1,38 +1,24 @@
 'use client'
 
 import { VStack, Heading, Box, Text } from '@chakra-ui/react'
-import { useCallback, useEffect, useState } from 'react'
-import { getTags, deleteTag } from '@/lib/actions/tags.actions'
+import { useState } from 'react'
+import { deleteTag } from '@/lib/actions/tags.actions'
 import { TagBadge } from '@/components/tags/TagBadge'
 import { Button, HStack } from '@chakra-ui/react'
 import { toaster } from '@/lib/toaster'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { useRouter } from 'next/navigation'
 import type { Tag } from '@/types/database.types'
 
 interface Props {
   userId: string
+  initialTags: Tag[]
 }
 
-export function TagsPageContent({ userId }: Props) {
-  const [tags, setTags] = useState<Tag[]>([])
-  const [loading, setLoading] = useState(true)
+export function TagsPageContent({ userId, initialTags }: Props) {
+  const router = useRouter()
   const [deletingTagId, setDeletingTagId] = useState<string | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
-
-  const loadTags = useCallback(async () => {
-    setLoading(true)
-    const result = await getTags(userId)
-    if (result.success) {
-      setTags(result.data || [])
-    } else {
-      toaster.create({ title: result.error || 'Error', type: 'error', duration: 3000 })
-    }
-    setLoading(false)
-  }, [userId])
-
-  useEffect(() => {
-    loadTags()
-  }, [loadTags])
 
   const handleDelete = (tagId: string) => {
     setDeletingTagId(tagId)
@@ -46,25 +32,23 @@ export function TagsPageContent({ userId }: Props) {
     setDeletingTagId(null)
     if (result.success) {
       toaster.create({ title: 'Etiqueta eliminada', type: 'success', duration: 3000 })
-      loadTags()
+      router.refresh()
     } else {
       toaster.create({ title: result.error || 'Error', type: 'error', duration: 3000 })
     }
   }
-
-  if (loading) return <Text>Cargando...</Text>
 
   return (
     <>
       <VStack alignItems="flex-start" gap={6}>
         <Heading size="lg">Gestión de Etiquetas</Heading>
 
-        {tags.length === 0 ? (
+        {initialTags.length === 0 ? (
           <Text color="fg.muted">No hay etiquetas. Créalas al editar transacciones.</Text>
         ) : (
           <Box width="100%">
             <HStack flexWrap="wrap" gap={2}>
-              {tags.map(tag => (
+              {initialTags.map(tag => (
                 <HStack key={tag.id} gap={2}>
                   <TagBadge tag={tag} />
                   <Button

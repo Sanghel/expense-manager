@@ -1,18 +1,31 @@
-'use client'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { redirect } from 'next/navigation'
+import { insforgeAdmin } from '@/lib/insforge-admin'
+import { CalendarPageContent } from '@/components/calendar/CalendarPageContent'
+import { getTransactions } from '@/lib/actions/transactions.actions'
+import type { TransactionWithCategory } from '@/types/database.types'
 
-import { VStack, Heading } from '@chakra-ui/react'
-import { useSession } from 'next-auth/react'
-import { TransactionCalendar } from '@/components/calendar/TransactionCalendar'
+export default async function CalendarPage() {
+  const session = await getServerSession(authOptions)
 
-export default function CalendarPage() {
-  const { data: session } = useSession()
+  if (!session?.user?.email) {
+    redirect('/login')
+  }
 
-  if (!session?.user?.id) return null
+  const { data: user, error: userError } = await insforgeAdmin.database
+    .from('users')
+    .select('id')
+    .eq('email', session.user.email)
+    .single()
 
-  return (
-    <VStack alignItems="flex-start" gap={6}>
-      <Heading size="lg">Calendario de Transacciones</Heading>
-      <TransactionCalendar userId={session.user.id} />
-    </VStack>
-  )
+  if (!user?.id || userError) {
+    console.error('User not found or error:', userError)
+    redirect('/login')
+  }
+
+  const transactionsResult = await getTransactions(user.id, 1000)
+  const transactions: TransactionWithCategory[] = transactionsResult.success ? (transactionsResult.data ?? []) : []
+
+  return <CalendarPageContent userId={user.id} initialTransactions={transactions} />
 }

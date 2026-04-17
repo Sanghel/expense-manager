@@ -17,44 +17,21 @@ import {
   DialogBody,
   DialogCloseTrigger,
 } from '@chakra-ui/react'
-import { useCallback, useEffect, useState } from 'react'
-import { getTransactions } from '@/lib/actions/transactions.actions'
-import { toaster } from '@/lib/toaster'
+import { useState } from 'react'
 import type { TransactionWithCategory } from '@/types/database.types'
 
 interface Props {
   userId: string
+  initialTransactions: TransactionWithCategory[]
 }
 
 const WEEKDAYS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
 const MONTHS = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
 
-export function TransactionCalendar({ userId }: Props) {
+export function TransactionCalendar({ initialTransactions }: Props) {
   const [currentDate, setCurrentDate] = useState(new Date())
-  const [transactions, setTransactions] = useState<TransactionWithCategory[]>([])
+  const [transactions] = useState<TransactionWithCategory[]>(initialTransactions)
   const [selectedDay, setSelectedDay] = useState<TransactionWithCategory[] | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  const loadTransactions = useCallback(async () => {
-    setLoading(true)
-    const result = await getTransactions(userId, 1000)
-    if (result.success) {
-      setTransactions(result.data || [])
-    } else {
-      if (result.error) {
-        toaster.create({ title: result.error, type: 'error', duration: 3000 })
-      }
-    }
-    setLoading(false)
-  }, [userId])
-
-  useEffect(() => {
-    if (!userId) {
-      setLoading(false)
-      return
-    }
-    loadTransactions()
-  }, [loadTransactions])
 
   const getDaysInMonth = (date: Date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
@@ -96,8 +73,6 @@ export function TransactionCalendar({ userId }: Props) {
   for (let i = 1; i <= daysInMonth; i++) {
     days.push(i)
   }
-
-  if (loading) return <Text>Cargando...</Text>
 
   return (
     <>

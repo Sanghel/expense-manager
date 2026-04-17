@@ -13,41 +13,22 @@ import {
   MenuTrigger,
   IconButton,
 } from '@chakra-ui/react'
-import { useCallback, useEffect, useState } from 'react'
-import { getRecurringTransactions, deleteRecurringTransaction, toggleRecurringTransaction } from '@/lib/actions/recurring.actions'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { deleteRecurringTransaction, toggleRecurringTransaction } from '@/lib/actions/recurring.actions'
 import { toaster } from '@/lib/toaster'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import type { RecurringTransactionWithCategory } from '@/types/database.types'
 
 interface Props {
   userId: string
-  refresh: number
+  transactions: RecurringTransactionWithCategory[]
 }
 
-export function RecurringTransactionsList({ userId, refresh }: Props) {
-  const [transactions, setTransactions] = useState<RecurringTransactionWithCategory[]>([])
-  const [loading, setLoading] = useState(true)
+export function RecurringTransactionsList({ userId, transactions }: Props) {
+  const router = useRouter()
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
-
-  const loadTransactions = useCallback(async () => {
-    setLoading(true)
-    const result = await getRecurringTransactions(userId)
-    if (result.success) {
-      setTransactions(result.data || [])
-    } else {
-      toaster.create({ title: result.error || 'Error', type: 'error', duration: 3000 })
-    }
-    setLoading(false)
-  }, [userId])
-
-  useEffect(() => {
-    if (!userId) {
-      setLoading(false)
-      return
-    }
-    loadTransactions()
-  }, [loadTransactions, refresh])
 
   const handleDelete = (id: string) => {
     setDeletingId(id)
@@ -61,7 +42,7 @@ export function RecurringTransactionsList({ userId, refresh }: Props) {
     setDeletingId(null)
     if (result.success) {
       toaster.create({ title: 'Eliminada', type: 'success', duration: 3000 })
-      loadTransactions()
+      router.refresh()
     } else {
       toaster.create({ title: result.error || 'Error', type: 'error', duration: 3000 })
     }
@@ -71,13 +52,11 @@ export function RecurringTransactionsList({ userId, refresh }: Props) {
     const result = await toggleRecurringTransaction(id, userId, !isActive)
     if (result.success) {
       toaster.create({ title: isActive ? 'Pausada' : 'Activada', type: 'success', duration: 3000 })
-      loadTransactions()
+      router.refresh()
     } else {
       toaster.create({ title: result.error || 'Error', type: 'error', duration: 3000 })
     }
   }
-
-  if (loading) return <Text>Cargando...</Text>
 
   if (transactions.length === 0) {
     return <Text color="fg.muted">Sin transacciones recurrentes</Text>

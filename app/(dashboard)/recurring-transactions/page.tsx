@@ -1,53 +1,35 @@
-'use client'
-
-import { VStack, Heading, Button, HStack } from '@chakra-ui/react'
-import { useState } from 'react'
-import { useSession } from 'next-auth/react'
-import { RecurringTransactionForm } from '@/components/recurring/RecurringTransactionForm'
-import { RecurringTransactionsList } from '@/components/recurring/RecurringTransactionsList'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { redirect } from 'next/navigation'
+import { insforgeAdmin } from '@/lib/insforge-admin'
+import { RecurringTransactionsPageContent } from '@/components/recurring/RecurringTransactionsPageContent'
 import { getCategories } from '@/lib/actions/categories.actions'
-import { useEffect } from 'react'
-import type { Category } from '@/types/database.types'
+import { getRecurringTransactions } from '@/lib/actions/recurring.actions'
 
-export default function RecurringTransactionsPage() {
-  const { data: session } = useSession()
-  const [isFormOpen, setIsFormOpen] = useState(false)
-  const [categories, setCategories] = useState<Category[]>([])
-  const [refresh, setRefresh] = useState(0)
+export default async function RecurringTransactionsPage() {
+  const session = await getServerSession(authOptions)
 
-  useEffect(() => {
-    const loadCategories = async () => {
-      if (session?.user?.email) {
-        const result = await getCategories(session.user.id as string)
-        if (result.success) {
-          setCategories(result.data || [])
-        }
-      }
-    }
-    loadCategories()
-  }, [session])
+  if (!session?.user?.email) {
+    redirect('/login')
+  }
 
-  if (!session?.user?.id) return null
+  const { data: user, error: userError } = await insforgeAdmin.database
+    .from('users')
+    .select('id')
+    .eq('email', session.user.email)
+    .single()
 
-  return (
-    <VStack alignItems="flex-start" gap={6}>
-      <HStack justifyContent="space-between" width="100%">
-        <Heading size="lg">Gastos Recurrentes</Heading>
-        <Button onClick={() => setIsFormOpen(true)}>+ Crear Recurrente</Button>
-      </HStack>
+  if (!user?.id || userError) {
+    console.error('User not found or error:', userError)
+    redirect('/login')
+  }
 
-      <RecurringTransactionForm
-        isOpen={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
-        userId={session.user.id}
-        categories={categories}
-        onSuccess={() => {
-          setRefresh(prev => prev + 1)
-          setIsFormOpen(false)
-        }}
-      />
+  const [categoriesResult, transactionsResult] = await Promise.all([
+    getCategories(user.id),
+    getRecurringTransactions(user.id),
+  ])
+  const categories = categoriesResult.success ? (categoriesResult.data ?? []) : []
+  const transactions = transactionsResult.success ? (transactionsResult.data ?? []) : []
 
-      <RecurringTransactionsList userId={session.user.id} refresh={refresh} />
-    </VStack>
-  )
+  return <RecurringTransactionsPageContent userId={user.id} categories={categories} initialTransactions={transactions} />
 }

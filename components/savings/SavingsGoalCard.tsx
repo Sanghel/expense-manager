@@ -23,6 +23,7 @@ import {
   DialogCloseTrigger,
 } from '@chakra-ui/react'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { addFundsToGoal, deleteSavingsGoal } from '@/lib/actions/savings.actions'
 import { toaster } from '@/lib/toaster'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
@@ -31,10 +32,10 @@ import type { SavingsGoal } from '@/types/database.types'
 interface Props {
   goal: SavingsGoal
   userId: string
-  onRefresh: () => void
 }
 
-export function SavingsGoalCard({ goal, userId, onRefresh }: Props) {
+export function SavingsGoalCard({ goal, userId }: Props) {
+  const router = useRouter()
   const [isAddFundsOpen, setIsAddFundsOpen] = useState(false)
   const [fundsAmount, setFundsAmount] = useState('')
   const [loading, setLoading] = useState(false)
@@ -60,7 +61,7 @@ export function SavingsGoalCard({ goal, userId, onRefresh }: Props) {
       toaster.create({ title: 'Fondos añadidos', type: 'success', duration: 3000 })
       setFundsAmount('')
       setIsAddFundsOpen(false)
-      onRefresh()
+      router.refresh()
     } else {
       toaster.create({ title: result.error || 'Error', type: 'error', duration: 3000 })
     }
@@ -77,7 +78,7 @@ export function SavingsGoalCard({ goal, userId, onRefresh }: Props) {
     setShowDeleteConfirm(false)
     if (result.success) {
       toaster.create({ title: 'Meta eliminada', type: 'success', duration: 3000 })
-      onRefresh()
+      router.refresh()
     } else {
       toaster.create({ title: result.error || 'Error', type: 'error', duration: 3000 })
     }

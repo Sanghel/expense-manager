@@ -2,17 +2,20 @@
 
 import { VStack, Heading, Button, HStack } from '@chakra-ui/react'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { FiPlus } from 'react-icons/fi'
 import { SavingsGoalForm } from '@/components/savings/SavingsGoalForm'
 import { SavingsGoalsGrid } from '@/components/savings/SavingsGoalsGrid'
+import type { SavingsGoal } from '@/types/database.types'
 
 interface Props {
   userId: string
+  initialGoals: SavingsGoal[]
 }
 
-export function SavingsGoalsPageContent({ userId }: Props) {
+export function SavingsGoalsPageContent({ userId, initialGoals }: Props) {
   const [isFormOpen, setIsFormOpen] = useState(false)
-  const [refresh, setRefresh] = useState(0)
+  const router = useRouter()
 
   return (
     <VStack alignItems="flex-start" gap={6}>
@@ -29,12 +32,12 @@ export function SavingsGoalsPageContent({ userId }: Props) {
         onClose={() => setIsFormOpen(false)}
         userId={userId}
         onSuccess={() => {
-          setRefresh(prev => prev + 1)
+          router.refresh()
           setIsFormOpen(false)
         }}
       />
 
-      <SavingsGoalsGrid userId={userId} refresh={refresh} />
+      <SavingsGoalsGrid userId={userId} goals={initialGoals} />
     </VStack>
   )
 }

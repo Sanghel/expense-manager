@@ -1,36 +1,30 @@
-'use client'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { redirect } from 'next/navigation'
+import { insforgeAdmin } from '@/lib/insforge-admin'
+import { SavingsGoalsPageContent } from '@/components/savings/SavingsGoalsPageContent'
+import { getSavingsGoals } from '@/lib/actions/savings.actions'
 
-import { VStack, Heading, Button, HStack } from '@chakra-ui/react'
-import { useState } from 'react'
-import { useSession } from 'next-auth/react'
-import { SavingsGoalForm } from '@/components/savings/SavingsGoalForm'
-import { SavingsGoalsGrid } from '@/components/savings/SavingsGoalsGrid'
+export default async function SavingsGoalsPage() {
+  const session = await getServerSession(authOptions)
 
-export default function SavingsGoalsPage() {
-  const { data: session } = useSession()
-  const [isFormOpen, setIsFormOpen] = useState(false)
-  const [refresh, setRefresh] = useState(0)
+  if (!session?.user?.email) {
+    redirect('/login')
+  }
 
-  if (!session?.user?.id) return null
+  const { data: user, error: userError } = await insforgeAdmin.database
+    .from('users')
+    .select('id')
+    .eq('email', session.user.email)
+    .single()
 
-  return (
-    <VStack alignItems="flex-start" gap={6}>
-      <HStack justifyContent="space-between" width="100%">
-        <Heading size="lg">Metas de Ahorro</Heading>
-        <Button onClick={() => setIsFormOpen(true)}>+ Nueva Meta</Button>
-      </HStack>
+  if (!user?.id || userError) {
+    console.error('User not found or error:', userError)
+    redirect('/login')
+  }
 
-      <SavingsGoalForm
-        isOpen={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
-        userId={session.user.id}
-        onSuccess={() => {
-          setRefresh(prev => prev + 1)
-          setIsFormOpen(false)
-        }}
-      />
+  const goalsResult = await getSavingsGoals(user.id)
+  const goals = goalsResult.success ? (goalsResult.data ?? []) : []
 
-      <SavingsGoalsGrid userId={session.user.id} refresh={refresh} />
-    </VStack>
-  )
+  return <SavingsGoalsPageContent userId={user.id} initialGoals={goals} />
 }

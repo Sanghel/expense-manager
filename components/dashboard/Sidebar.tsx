@@ -45,6 +45,8 @@ export function Sidebar() {
       h="full"
       p={4}
       flexShrink={0}
+      display={{ base: 'none', md: 'block' }}
+      overflowY="auto"
     >
       <VStack gap={2} align="stretch">
         {navItems.map((item) => {

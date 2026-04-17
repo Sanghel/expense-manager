@@ -46,7 +46,7 @@ export function ConfirmDialog({
     >
       <DialogBackdrop />
       <DialogPositioner>
-        <DialogContent tabIndex={-1}>
+        <DialogContent tabIndex={-1} mx={{ base: 3, md: 0 }}>
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
           </DialogHeader>

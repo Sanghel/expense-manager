@@ -1,6 +1,6 @@
 'use client'
 
-import { HStack, Input, NativeSelectRoot, NativeSelectField } from '@chakra-ui/react'
+import { Flex, Input, NativeSelectRoot, NativeSelectField } from '@chakra-ui/react'
 import type { Category } from '@/types/database.types'
 
 export interface FilterState {
@@ -29,15 +29,15 @@ export function TransactionsFilter({ filters, onChange, categories }: Props) {
   })
 
   return (
-    <HStack gap={3} mb={4} flexWrap="wrap">
+    <Flex gap={2} mb={4} flexWrap="wrap" direction={{ base: 'column', sm: 'row' }}>
       <Input
         placeholder="Buscar descripción..."
-        maxW="220px"
+        w={{ base: '100%', sm: '220px' }}
         value={filters.search}
         onChange={(e) => update({ search: e.target.value })}
       />
 
-      <NativeSelectRoot maxW="160px">
+      <NativeSelectRoot w={{ base: '100%', sm: '160px' }}>
         <NativeSelectField
           value={filters.type}
           onChange={(e) => update({ type: e.target.value as FilterState['type'] })}
@@ -48,7 +48,7 @@ export function TransactionsFilter({ filters, onChange, categories }: Props) {
         </NativeSelectField>
       </NativeSelectRoot>
 
-      <NativeSelectRoot maxW="200px">
+      <NativeSelectRoot w={{ base: '100%', sm: '200px' }}>
         <NativeSelectField
           value={filters.category_id}
           onChange={(e) => update({ category_id: e.target.value })}
@@ -62,7 +62,7 @@ export function TransactionsFilter({ filters, onChange, categories }: Props) {
         </NativeSelectField>
       </NativeSelectRoot>
 
-      <NativeSelectRoot maxW="200px">
+      <NativeSelectRoot w={{ base: '100%', sm: '200px' }}>
         <NativeSelectField
           value={filters.month}
           onChange={(e) => update({ month: e.target.value })}
@@ -75,6 +75,6 @@ export function TransactionsFilter({ filters, onChange, categories }: Props) {
           ))}
         </NativeSelectField>
       </NativeSelectRoot>
-    </HStack>
+    </Flex>
   )
 }

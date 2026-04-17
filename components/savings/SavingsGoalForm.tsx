@@ -1,0 +1,125 @@
+'use client'
+
+import { VStack } from '@chakra-ui/react'
+import { useState, useEffect } from 'react'
+import { createSavingsGoal, updateSavingsGoal } from '@/lib/actions/savings.actions'
+import { toaster } from '@/lib/toaster'
+import { FormDialog } from '@/components/ui/FormDialog'
+import { FormInput } from '@/components/ui/FormInput'
+import { CurrencySelect } from '@/components/ui/CurrencySelect'
+import { PrimaryButton } from '@/components/ui/PrimaryButton'
+import type { Currency, SavingsGoal } from '@/types/database.types'
+
+interface Props {
+  isOpen: boolean
+  onClose: () => void
+  userId: string
+  onSuccess: () => void
+  initialData?: SavingsGoal
+  goalId?: string
+}
+
+const defaultForm = {
+  name: '',
+  target_amount: '',
+  currency: 'COP' as Currency,
+  deadline: '',
+}
+
+export function SavingsGoalForm({ isOpen, onClose, userId, onSuccess, initialData, goalId }: Props) {
+  const [form, setForm] = useState(defaultForm)
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (initialData) {
+      setForm({
+        name: initialData.name,
+        target_amount: String(initialData.target_amount),
+        currency: initialData.currency,
+        deadline: initialData.deadline ?? '',
+      })
+    } else {
+      setForm(defaultForm)
+    }
+  }, [initialData])
+
+  const handleSubmit = async () => {
+    if (!form.name || !form.target_amount) {
+      toaster.create({ title: 'Por favor completa los campos requeridos', type: 'error', duration: 3000 })
+      return
+    }
+
+    setLoading(true)
+    const payload = {
+      name: form.name,
+      target_amount: parseFloat(form.target_amount),
+      currency: form.currency,
+      deadline: form.deadline || undefined,
+    }
+
+    const result = goalId
+      ? await updateSavingsGoal(goalId, userId, payload)
+      : await createSavingsGoal(userId, payload)
+
+    setLoading(false)
+
+    if (result.success) {
+      toaster.create({
+        title: goalId ? 'Meta actualizada' : 'Meta de ahorro creada',
+        type: 'success',
+        duration: 3000,
+      })
+      if (!goalId) setForm(defaultForm)
+      onClose()
+      onSuccess()
+    } else {
+      toaster.create({ title: 'Error al guardar', description: result.error, type: 'error', duration: 4000 })
+    }
+  }
+
+  return (
+    <FormDialog
+      isOpen={isOpen}
+      onClose={onClose}
+      title={goalId ? 'Editar Meta' : 'Nueva Meta de Ahorro'}
+    >
+      <form onSubmit={(e) => { e.preventDefault(); handleSubmit() }}>
+        <VStack gap="4">
+          <FormInput
+            label="Nombre de la Meta"
+            value={form.name}
+            onChange={(v) => setForm({ ...form, name: v })}
+            placeholder="Ej: Vacaciones"
+            required
+          />
+
+          <FormInput
+            label="Monto Objetivo"
+            value={form.target_amount}
+            onChange={(v) => setForm({ ...form, target_amount: v })}
+            type="number"
+            placeholder="0.00"
+            step="0.01"
+            required
+          />
+
+          <CurrencySelect
+            value={form.currency}
+            onChange={(v) => setForm({ ...form, currency: v })}
+          />
+
+          <FormInput
+            label="Fecha Límite (Opcional)"
+            value={form.deadline}
+            onChange={(v) => setForm({ ...form, deadline: v })}
+            type="date"
+          />
+
+          <PrimaryButton type="submit" width="full" loading={loading}>
+            {goalId ? 'Guardar Cambios' : 'Crear Meta'}
+          </PrimaryButton>
+        </VStack>
+      </form>
+    </FormDialog>
+  )
+}

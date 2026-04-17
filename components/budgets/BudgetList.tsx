@@ -1,8 +1,9 @@
 'use client'
 
-import { VStack, HStack, Box, Text, Button, Heading, useDisclosure, DialogRoot, DialogBackdrop, DialogContent, DialogHeader, DialogTitle, DialogBody, DialogFooter, DialogCloseTrigger } from '@chakra-ui/react'
-import { useEffect, useState } from 'react'
-import { getBudgets, deleteBudget } from '@/lib/actions/budgets.actions'
+import { VStack, HStack, Box, Text, Button, Heading, useDisclosure, DialogRoot, DialogBackdrop, DialogPositioner, DialogContent, DialogHeader, DialogTitle, DialogBody, DialogFooter, DialogCloseTrigger } from '@chakra-ui/react'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { deleteBudget } from '@/lib/actions/budgets.actions'
 import { toaster } from '@/lib/toaster'
 import { BudgetProgress } from './BudgetProgress'
 import type { Budget } from '@/types/database.types'
@@ -14,29 +15,16 @@ interface BudgetWithSpent extends Budget {
 
 interface Props {
   userId: string
+  initialBudgets: BudgetWithSpent[]
   onEdit?: (budget: BudgetWithSpent) => void
-  onRefresh?: () => void
 }
 
-export function BudgetList({ userId, onEdit, onRefresh }: Props) {
-  const [budgets, setBudgets] = useState<BudgetWithSpent[]>([])
-  const [loading, setLoading] = useState(true)
+export function BudgetList({ userId, initialBudgets, onEdit }: Props) {
+  const router = useRouter()
+  const [budgets] = useState<BudgetWithSpent[]>(initialBudgets)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const { open, onOpen, onClose } = useDisclosure()
   const [isDeleting, setIsDeleting] = useState(false)
-
-  useEffect(() => {
-    loadBudgets()
-  }, [])
-
-  const loadBudgets = async () => {
-    setLoading(true)
-    const result = await getBudgets(userId)
-    if (result.success && result.data) {
-      setBudgets(result.data as BudgetWithSpent[])
-    }
-    setLoading(false)
-  }
 
   const handleDeleteClick = (budgetId: string) => {
     setSelectedId(budgetId)
@@ -53,15 +41,10 @@ export function BudgetList({ userId, onEdit, onRefresh }: Props) {
     if (result.success) {
       toaster.create({ title: 'Presupuesto eliminado', type: 'success', duration: 3000 })
       onClose()
-      await loadBudgets()
-      if (onRefresh) onRefresh()
+      router.refresh()
     } else {
       toaster.create({ title: 'Error', description: result.error, type: 'error', duration: 3000 })
     }
-  }
-
-  if (loading) {
-    return <Text color="#B0B0B0">Cargando presupuestos...</Text>
   }
 
   if (budgets.length === 0) {
@@ -123,9 +106,13 @@ export function BudgetList({ userId, onEdit, onRefresh }: Props) {
       <DialogRoot
         open={open}
         onOpenChange={({ open: isOpen }) => !isOpen && onClose()}
+        placement="center"
+        lazyMount
+        unmountOnExit
       >
         <DialogBackdrop />
-        <DialogContent>
+        <DialogPositioner>
+          <DialogContent tabIndex={-1}>
           <DialogHeader>
             <DialogTitle>Eliminar Presupuesto</DialogTitle>
           </DialogHeader>
@@ -141,7 +128,8 @@ export function BudgetList({ userId, onEdit, onRefresh }: Props) {
               Eliminar
             </Button>
           </DialogFooter>
-        </DialogContent>
+          </DialogContent>
+        </DialogPositioner>
       </DialogRoot>
     </>
   )

@@ -24,7 +24,9 @@ export async function createTransaction(
 
     if (error) throw error
 
+    revalidatePath('/transactions')
     revalidatePath('/dashboard')
+    revalidatePath('/calendar')
     return { success: true, data: transaction }
   } catch (error) {
     console.error('Create transaction error:', error)
@@ -33,6 +35,10 @@ export async function createTransaction(
 }
 
 export async function getTransactions(userId: string, limit = 50) {
+  if (!userId) {
+    console.error('getTransactions: userId is missing')
+    return { success: false, error: 'User ID is required' }
+  }
   try {
     const { data, error } = await insforgeAdmin.database
       .from('transactions')
@@ -43,7 +49,8 @@ export async function getTransactions(userId: string, limit = 50) {
 
     if (error) throw error
     return { success: true, data }
-  } catch (_error) {
+  } catch (error) {
+    console.error('Get transactions error:', error)
     return { success: false, error: 'Failed to fetch transactions' }
   }
 }
@@ -66,7 +73,9 @@ export async function updateTransaction(
 
     if (error) throw error
 
+    revalidatePath('/transactions')
     revalidatePath('/dashboard')
+    revalidatePath('/calendar')
     return { success: true, data: transaction }
   } catch (error) {
     console.error('Update transaction error:', error)
@@ -84,7 +93,9 @@ export async function deleteTransaction(id: string, userId: string) {
 
     if (error) throw error
 
+    revalidatePath('/transactions')
     revalidatePath('/dashboard')
+    revalidatePath('/calendar')
     return { success: true }
   } catch (_error) {
     return { success: false, error: 'Failed to delete transaction' }

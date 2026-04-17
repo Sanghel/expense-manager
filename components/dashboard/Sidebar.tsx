@@ -10,15 +10,24 @@ import {
   FiTrendingUp,
   FiBarChart2,
   FiSettings,
+  FiRepeat,
+  FiTarget,
+  FiCalendar,
+  FiDownload,
 } from 'react-icons/fi'
 import { IconType } from 'react-icons'
 
 const navItems: { href: string; label: string; icon: IconType }[] = [
   { href: '/dashboard', label: 'Dashboard', icon: FiHome },
   { href: '/transactions', label: 'Transacciones', icon: FiDollarSign },
+  { href: '/recurring-transactions', label: 'Recurrentes', icon: FiRepeat },
+  { href: '/savings-goals', label: 'Metas de Ahorro', icon: FiTarget },
+  { href: '/tags', label: 'Etiquetas', icon: FiTag },
+  { href: '/calendar', label: 'Calendario', icon: FiCalendar },
   { href: '/categories', label: 'Categorías', icon: FiTag },
   { href: '/reports', label: 'Reportes', icon: FiBarChart2 },
   { href: '/budgets', label: 'Presupuestos', icon: FiTrendingUp },
+  { href: '/export-data', label: 'Exportar', icon: FiDownload },
   { href: '/settings', label: 'Configuración', icon: FiSettings },
 ]
 

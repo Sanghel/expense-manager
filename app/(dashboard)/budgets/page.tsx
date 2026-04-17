@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { insforgeAdmin } from '@/lib/insforge-admin'
 import { BudgetsPageClient } from './BudgetsPageClient'
 import { getCategories } from '@/lib/actions/categories.actions'
+import { getBudgets } from '@/lib/actions/budgets.actions'
 
 export default async function BudgetsPage() {
   const session = await getServerSession(authOptions)
@@ -22,8 +23,12 @@ export default async function BudgetsPage() {
     redirect('/login')
   }
 
-  const categoriesResult = await getCategories(user.id)
-  const categories = categoriesResult.success ? categoriesResult.data : []
+  const [categoriesResult, budgetsResult] = await Promise.all([
+    getCategories(user.id),
+    getBudgets(user.id),
+  ])
+  const categories = categoriesResult.success ? (categoriesResult.data ?? []) : []
+  const budgets = budgetsResult.success ? (budgetsResult.data ?? []) : []
 
-  return <BudgetsPageClient userId={user.id} categories={categories ?? []} />
+  return <BudgetsPageClient userId={user.id} categories={categories ?? []} initialBudgets={budgets as any[]} />
 }

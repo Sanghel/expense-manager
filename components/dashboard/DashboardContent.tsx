@@ -1,31 +1,30 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Box, Heading, VStack, HStack } from '@chakra-ui/react'
 import { FinancialCards } from './FinancialCards'
 import { MonthlyTrendChart } from './MonthlyTrendChart'
 import { RecentTransactions } from './RecentTransactions'
 import { BudgetWidget } from '@/components/budgets/BudgetWidget'
 import { MonthSelector } from './MonthSelector'
-import { getUserProfile } from '@/lib/actions/users.actions'
-import type { Currency } from '@/types/database.types'
+import type { TransactionWithCategory, Currency } from '@/types/database.types'
 
 interface Props {
   userId: string
+  initialTransactions: TransactionWithCategory[]
+  initialBudgets: any[]
+  initialPreferredCurrency: Currency
+  initialExchangeRates: any[]
 }
 
-export function DashboardContent({ userId }: Props) {
+export function DashboardContent({
+  initialTransactions,
+  initialBudgets,
+  initialPreferredCurrency,
+  initialExchangeRates,
+}: Props) {
   const currentMonth = new Date().toISOString().slice(0, 7)
   const [selectedMonth, setSelectedMonth] = useState(currentMonth)
-  const [preferredCurrency, setPreferredCurrency] = useState<Currency>('COP')
-
-  useEffect(() => {
-    getUserProfile(userId).then((result) => {
-      if (result.success && result.data) {
-        setPreferredCurrency(result.data.preferred_currency)
-      }
-    })
-  }, [userId])
 
   return (
     <Box>
@@ -36,16 +35,17 @@ export function DashboardContent({ userId }: Props) {
 
       <VStack gap={8} align="stretch">
         <FinancialCards
-          userId={userId}
+          transactions={initialTransactions}
           month={selectedMonth}
-          preferredCurrency={preferredCurrency}
+          preferredCurrency={initialPreferredCurrency}
+          exchangeRates={initialExchangeRates}
         />
 
-        <MonthlyTrendChart userId={userId} />
+        <MonthlyTrendChart transactions={initialTransactions} />
 
-        <RecentTransactions userId={userId} limit={10} />
+        <RecentTransactions transactions={initialTransactions} limit={10} />
 
-        <BudgetWidget userId={userId} />
+        <BudgetWidget budgets={initialBudgets} />
       </VStack>
     </Box>
   )

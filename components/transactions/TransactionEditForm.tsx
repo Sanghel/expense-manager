@@ -1,35 +1,23 @@
 'use client'
 
-import {
-  DialogRoot,
-  DialogBackdrop,
-  DialogPositioner,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogBody,
-  DialogCloseTrigger,
-  VStack,
-  FieldRoot,
-  FieldLabel,
-  Input,
-  NativeSelectRoot,
-  NativeSelectField,
-  Textarea,
-  Button,
-  RadioGroupRoot,
-  RadioGroupItem,
-  RadioGroupItemControl,
-  RadioGroupItemText,
-  RadioGroupItemHiddenInput,
-  HStack,
-  Box,
-} from '@chakra-ui/react'
+import { VStack, Box } from '@chakra-ui/react'
 import { useState, useEffect } from 'react'
 import { updateTransaction } from '@/lib/actions/transactions.actions'
 import { toaster } from '@/lib/toaster'
+import { FormDialog } from '@/components/ui/FormDialog'
+import { FormInput } from '@/components/ui/FormInput'
+import { FormTextarea } from '@/components/ui/FormTextarea'
+import { RadioSelect } from '@/components/ui/RadioSelect'
+import { CurrencySelect } from '@/components/ui/CurrencySelect'
+import { CategorySelect } from '@/components/ui/CategorySelect'
+import { PrimaryButton } from '@/components/ui/PrimaryButton'
 import { CurrencyPreview } from './CurrencyPreview'
-import type { Category, TransactionWithCategory } from '@/types/database.types'
+import type { Category, Currency, TransactionWithCategory } from '@/types/database.types'
+
+const TYPE_OPTIONS = [
+  { value: 'expense', label: 'Gasto' },
+  { value: 'income', label: 'Ingreso' },
+]
 
 interface Props {
   isOpen: boolean
@@ -40,20 +28,12 @@ interface Props {
   onSuccess: () => void
 }
 
-export function TransactionEditForm({
-  isOpen,
-  onClose,
-  userId,
-  categories,
-  transaction,
-  onSuccess,
-}: Props) {
+export function TransactionEditForm({ isOpen, onClose, userId, categories, transaction, onSuccess }: Props) {
   const [loading, setLoading] = useState(false)
-
   const [formData, setFormData] = useState({
     type: transaction.type,
     amount: String(transaction.amount),
-    currency: transaction.currency,
+    currency: transaction.currency as Currency,
     category_id: transaction.category_id,
     description: transaction.description,
     date: transaction.date,
@@ -64,7 +44,7 @@ export function TransactionEditForm({
     setFormData({
       type: transaction.type,
       amount: String(transaction.amount),
-      currency: transaction.currency,
+      currency: transaction.currency as Currency,
       category_id: transaction.category_id,
       description: transaction.description,
       date: transaction.date,
@@ -91,133 +71,76 @@ export function TransactionEditForm({
     setLoading(false)
   }
 
-  const filteredCategories = categories.filter((c) => c.type === formData.type)
-
   return (
-    <DialogRoot open={isOpen} onOpenChange={({ open }) => !open && onClose()} size="lg" placement="center" lazyMount unmountOnExit>
-      <DialogBackdrop />
-      <DialogPositioner>
-      <DialogContent tabIndex={-1}>
-        <DialogHeader>
-          <DialogTitle>Editar Transacción</DialogTitle>
-        </DialogHeader>
-        <DialogCloseTrigger />
-        <DialogBody pb={6}>
-          <form onSubmit={handleSubmit}>
-            <VStack gap={4}>
-              <FieldRoot required>
-                <FieldLabel>Tipo</FieldLabel>
-                <RadioGroupRoot
-                  value={formData.type}
-                  onValueChange={({ value }) =>
-                    setFormData({ ...formData, type: value as 'income' | 'expense', category_id: '' })
-                  }
-                  colorPalette="brand"
-                >
-                  <HStack gap={4}>
-                    <RadioGroupItem value="expense">
-                      <RadioGroupItemHiddenInput />
-                      <RadioGroupItemControl borderColor="#4F46E5" _checked={{ bg: '#4F46E5', borderColor: '#4F46E5' }} />
-                      <RadioGroupItemText>Gasto</RadioGroupItemText>
-                    </RadioGroupItem>
-                    <RadioGroupItem value="income">
-                      <RadioGroupItemHiddenInput />
-                      <RadioGroupItemControl borderColor="#4F46E5" _checked={{ bg: '#4F46E5', borderColor: '#4F46E5' }} />
-                      <RadioGroupItemText>Ingreso</RadioGroupItemText>
-                    </RadioGroupItem>
-                  </HStack>
-                </RadioGroupRoot>
-              </FieldRoot>
+    <FormDialog isOpen={isOpen} onClose={onClose} title="Editar Transacción" size="lg">
+      <form onSubmit={handleSubmit}>
+        <VStack gap={4}>
+          <RadioSelect
+            label="Tipo"
+            value={formData.type}
+            onChange={(v) => setFormData({ ...formData, type: v as 'income' | 'expense', category_id: '' })}
+            options={TYPE_OPTIONS}
+            required
+          />
 
-              <FieldRoot required>
-                <FieldLabel>Monto</FieldLabel>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  value={formData.amount}
-                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                />
-              </FieldRoot>
+          <FormInput
+            label="Monto"
+            value={formData.amount}
+            onChange={(v) => setFormData({ ...formData, amount: v })}
+            type="number"
+            step="0.01"
+            min="0.01"
+            required
+          />
 
-              <FieldRoot required>
-                <FieldLabel>Moneda</FieldLabel>
-                <NativeSelectRoot>
-                  <NativeSelectField
-                    value={formData.currency}
-                    onChange={(e) => setFormData({ ...formData, currency: e.target.value as 'COP' | 'USD' | 'VES' })}
-                  >
-                    <option value="COP">COP - Peso Colombiano</option>
-                    <option value="USD">USD - Dólar</option>
-                    <option value="VES">VES - Bolívar (Bs)</option>
-                  </NativeSelectField>
-                </NativeSelectRoot>
-              </FieldRoot>
+          <CurrencySelect
+            value={formData.currency}
+            onChange={(v) => setFormData({ ...formData, currency: v })}
+            showFullLabel
+            required
+          />
 
-              <FieldRoot required>
-                <FieldLabel>Categoría</FieldLabel>
-                <NativeSelectRoot>
-                  <NativeSelectField
-                    value={formData.category_id}
-                    onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-                  >
-                    <option value="">Seleccionar...</option>
-                    {filteredCategories.map((cat) => (
-                      <option key={cat.id} value={cat.id}>
-                        {cat.icon} {cat.name}
-                      </option>
-                    ))}
-                  </NativeSelectField>
-                </NativeSelectRoot>
-              </FieldRoot>
+          <CategorySelect
+            value={formData.category_id}
+            onChange={(v) => setFormData({ ...formData, category_id: v })}
+            categories={categories}
+            filterByType={formData.type}
+            required
+          />
 
-              <Box w="full" minH="10">
-                <CurrencyPreview
-                  amount={parseFloat(formData.amount) || 0}
-                  fromCurrency={formData.currency}
-                />
-              </Box>
+          <Box w="full" minH="10">
+            <CurrencyPreview
+              amount={parseFloat(formData.amount) || 0}
+              fromCurrency={formData.currency}
+            />
+          </Box>
 
-              <FieldRoot required>
-                <FieldLabel>Descripción</FieldLabel>
-                <Input
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                />
-              </FieldRoot>
+          <FormInput
+            label="Descripción"
+            value={formData.description}
+            onChange={(v) => setFormData({ ...formData, description: v })}
+            required
+          />
 
-              <FieldRoot required>
-                <FieldLabel>Fecha</FieldLabel>
-                <Input
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                />
-              </FieldRoot>
+          <FormInput
+            label="Fecha"
+            value={formData.date}
+            onChange={(v) => setFormData({ ...formData, date: v })}
+            type="date"
+            required
+          />
 
-              <FieldRoot>
-                <FieldLabel>Notas (opcional)</FieldLabel>
-                <Textarea
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                />
-              </FieldRoot>
+          <FormTextarea
+            label="Notas (opcional)"
+            value={formData.notes}
+            onChange={(v) => setFormData({ ...formData, notes: v })}
+          />
 
-              <Button
-                type="submit"
-                bg="#4F46E5"
-                color="white"
-                _hover={{ bg: '#4338CA' }}
-                width="full"
-                loading={loading}
-              >
-                Guardar Cambios
-              </Button>
-            </VStack>
-          </form>
-        </DialogBody>
-      </DialogContent>
-      </DialogPositioner>
-    </DialogRoot>
+          <PrimaryButton type="submit" width="full" loading={loading}>
+            Guardar Cambios
+          </PrimaryButton>
+        </VStack>
+      </form>
+    </FormDialog>
   )
 }

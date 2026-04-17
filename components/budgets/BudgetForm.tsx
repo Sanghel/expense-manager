@@ -1,38 +1,33 @@
 'use client'
 
-import {
-  DialogRoot,
-  DialogBackdrop,
-  DialogPositioner,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogBody,
-  DialogCloseTrigger,
-  VStack,
-  FieldRoot,
-  FieldLabel,
-  Input,
-  NativeSelectRoot,
-  NativeSelectField,
-  Button,
-  RadioGroupRoot,
-  RadioGroupItem,
-  RadioGroupItemControl,
-  RadioGroupItemText,
-  RadioGroupItemHiddenInput,
-  HStack,
-} from '@chakra-ui/react'
-import { useState, useCallback, useMemo } from 'react'
+import { VStack, HStack } from '@chakra-ui/react'
+import { useState, useEffect } from 'react'
 import { createBudget, updateBudget } from '@/lib/actions/budgets.actions'
 import { toaster } from '@/lib/toaster'
-import type { Category } from '@/types/database.types'
+import { FormDialog } from '@/components/ui/FormDialog'
+import { FormInput } from '@/components/ui/FormInput'
+import { RadioSelect } from '@/components/ui/RadioSelect'
+import { CurrencySelect } from '@/components/ui/CurrencySelect'
+import { CategorySelect } from '@/components/ui/CategorySelect'
+import { PrimaryButton } from '@/components/ui/PrimaryButton'
+import { CancelButton } from '@/components/ui/CancelButton'
+import type { Category, Currency } from '@/types/database.types'
+
+const TYPE_OPTIONS = [
+  { value: 'expense', label: 'Gasto' },
+  { value: 'income', label: 'Ingreso' },
+]
+
+const PERIOD_OPTIONS = [
+  { value: 'monthly', label: 'Mensual' },
+  { value: 'yearly', label: 'Anual' },
+]
 
 interface Budget {
   id: string
   category_id: string
   amount: number
-  currency: 'COP' | 'USD' | 'VES'
+  currency: Currency
   period: 'monthly' | 'yearly'
   start_date: string
 }
@@ -46,47 +41,36 @@ interface Props {
   editingBudget?: Budget | null
 }
 
-type BudgetType = 'income' | 'expense'
-
 const defaultForm = {
-  type: 'expense' as BudgetType,
+  type: 'expense' as 'income' | 'expense',
   category_id: '',
   amount: '',
-  currency: 'COP' as 'COP' | 'USD' | 'VES',
+  currency: 'COP' as Currency,
   period: 'monthly' as 'monthly' | 'yearly',
   start_date: new Date().toISOString().split('T')[0],
 }
-
-type FormData = typeof defaultForm
 
 export function BudgetForm({ isOpen, onClose, userId, categories, onSuccess, editingBudget }: Props) {
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState(defaultForm)
 
-  const initialFormData = useMemo(() => {
-    if (!editingBudget) return defaultForm
-    
-    const category = categories.find((c) => c.id === editingBudget.category_id)
-    return {
-      type: (category?.type || 'expense') as BudgetType,
-      category_id: editingBudget.category_id,
-      amount: String(editingBudget.amount),
-      currency: editingBudget.currency,
-      period: editingBudget.period,
-      start_date: editingBudget.start_date,
-    }
-  }, [editingBudget, categories])
-
-  const handleOpenChange = useCallback(
-    ({ open }: { open: boolean }) => {
-      if (open) {
-        setFormData(initialFormData)
+  useEffect(() => {
+    if (isOpen) {
+      if (editingBudget) {
+        const category = categories.find((c) => c.id === editingBudget.category_id)
+        setFormData({
+          type: (category?.type || 'expense') as 'income' | 'expense',
+          category_id: editingBudget.category_id,
+          amount: String(editingBudget.amount),
+          currency: editingBudget.currency,
+          period: editingBudget.period,
+          start_date: editingBudget.start_date,
+        })
       } else {
-        onClose()
+        setFormData(defaultForm)
       }
-    },
-    [initialFormData, onClose]
-  )
+    }
+  }, [isOpen, editingBudget, categories])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -111,10 +95,10 @@ export function BudgetForm({ isOpen, onClose, userId, categories, onSuccess, edi
       : await createBudget(userId, budgetData)
 
     if (result.success) {
-      toaster.create({ 
-        title: editingBudget ? 'Presupuesto actualizado' : 'Presupuesto creado', 
-        type: 'success', 
-        duration: 3000 
+      toaster.create({
+        title: editingBudget ? 'Presupuesto actualizado' : 'Presupuesto creado',
+        type: 'success',
+        duration: 3000,
       })
       onSuccess()
       onClose()
@@ -125,139 +109,72 @@ export function BudgetForm({ isOpen, onClose, userId, categories, onSuccess, edi
     setLoading(false)
   }
 
-  const filteredCategories = categories.filter((c) => c.type === formData.type)
-
   return (
-    <DialogRoot open={isOpen} onOpenChange={handleOpenChange} size="lg" placement="center" lazyMount unmountOnExit>
-      <DialogBackdrop />
-      <DialogPositioner>
-        <DialogContent tabIndex={-1}>
-          <DialogHeader>
-            <DialogTitle>{editingBudget ? 'Editar Presupuesto' : 'Nuevo Presupuesto'}</DialogTitle>
-          </DialogHeader>
-          <DialogCloseTrigger />
-          <DialogBody pb={6}>
-            <form onSubmit={handleSubmit}>
-              <VStack gap={4}>
-                <FieldRoot required>
-                  <FieldLabel>Tipo</FieldLabel>
-                  <RadioGroupRoot
-                    value={formData.type}
-                    onValueChange={({ value }) =>
-                      setFormData({ ...formData, type: value as FormData['type'], category_id: '' })
-                    }
-                    colorPalette="brand"
-                  >
-                    <HStack gap={4}>
-                      <RadioGroupItem value="expense">
-                        <RadioGroupItemHiddenInput />
-                        <RadioGroupItemControl borderColor="#4F46E5" _checked={{ bg: '#4F46E5', borderColor: '#4F46E5' }} />
-                        <RadioGroupItemText>Gasto</RadioGroupItemText>
-                      </RadioGroupItem>
-                      <RadioGroupItem value="income">
-                        <RadioGroupItemHiddenInput />
-                        <RadioGroupItemControl borderColor="#4F46E5" _checked={{ bg: '#4F46E5', borderColor: '#4F46E5' }} />
-                        <RadioGroupItemText>Ingreso</RadioGroupItemText>
-                      </RadioGroupItem>
-                    </HStack>
-                  </RadioGroupRoot>
-                </FieldRoot>
+    <FormDialog
+      isOpen={isOpen}
+      onClose={onClose}
+      title={editingBudget ? 'Editar Presupuesto' : 'Nuevo Presupuesto'}
+      size="lg"
+    >
+      <form onSubmit={handleSubmit}>
+        <VStack gap={4}>
+          <RadioSelect
+            label="Tipo"
+            value={formData.type}
+            onChange={(v) => setFormData({ ...formData, type: v as 'income' | 'expense', category_id: '' })}
+            options={TYPE_OPTIONS}
+            required
+          />
 
-                <FieldRoot required>
-                  <FieldLabel>Categoría</FieldLabel>
-                  <NativeSelectRoot>
-                    <NativeSelectField
-                      value={formData.category_id}
-                      onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-                    >
-                      <option value="">Seleccionar...</option>
-                      {filteredCategories.map((cat) => (
-                        <option key={cat.id} value={cat.id}>
-                          {cat.icon} {cat.name}
-                        </option>
-                      ))}
-                    </NativeSelectField>
-                  </NativeSelectRoot>
-                </FieldRoot>
+          <CategorySelect
+            value={formData.category_id}
+            onChange={(v) => setFormData({ ...formData, category_id: v })}
+            categories={categories}
+            filterByType={formData.type}
+            required
+          />
 
-                <FieldRoot required>
-                  <FieldLabel>Monto del Presupuesto</FieldLabel>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    placeholder="0.00"
-                    value={formData.amount}
-                    onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                    required
-                  />
-                </FieldRoot>
+          <FormInput
+            label="Monto del Presupuesto"
+            value={formData.amount}
+            onChange={(v) => setFormData({ ...formData, amount: v })}
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="0.00"
+            required
+          />
 
-                <FieldRoot required>
-                  <FieldLabel>Moneda</FieldLabel>
-                  <NativeSelectRoot>
-                    <NativeSelectField
-                      value={formData.currency}
-                      onChange={(e) => setFormData({ ...formData, currency: e.target.value as FormData['currency'] })}
-                    >
-                      <option value="COP">COP</option>
-                      <option value="USD">USD</option>
-                      <option value="VES">VES</option>
-                    </NativeSelectField>
-                  </NativeSelectRoot>
-                </FieldRoot>
+          <CurrencySelect
+            value={formData.currency}
+            onChange={(v) => setFormData({ ...formData, currency: v })}
+            required
+          />
 
-                <FieldRoot required>
-                  <FieldLabel>Periodo</FieldLabel>
-                  <RadioGroupRoot
-                    value={formData.period}
-                    onValueChange={({ value }) => setFormData({ ...formData, period: value as FormData['period'] })}
-                    colorPalette="brand"
-                  >
-                    <HStack gap={4}>
-                      <RadioGroupItem value="monthly">
-                        <RadioGroupItemHiddenInput />
-                        <RadioGroupItemControl borderColor="#4F46E5" _checked={{ bg: '#4F46E5', borderColor: '#4F46E5' }} />
-                        <RadioGroupItemText>Mensual</RadioGroupItemText>
-                      </RadioGroupItem>
-                      <RadioGroupItem value="yearly">
-                        <RadioGroupItemHiddenInput />
-                        <RadioGroupItemControl borderColor="#4F46E5" _checked={{ bg: '#4F46E5', borderColor: '#4F46E5' }} />
-                        <RadioGroupItemText>Anual</RadioGroupItemText>
-                      </RadioGroupItem>
-                    </HStack>
-                  </RadioGroupRoot>
-                </FieldRoot>
+          <RadioSelect
+            label="Periodo"
+            value={formData.period}
+            onChange={(v) => setFormData({ ...formData, period: v as 'monthly' | 'yearly' })}
+            options={PERIOD_OPTIONS}
+            required
+          />
 
-                <FieldRoot required>
-                  <FieldLabel>Fecha de Inicio</FieldLabel>
-                  <Input
-                    type="date"
-                    value={formData.start_date}
-                    onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                    required
-                  />
-                </FieldRoot>
+          <FormInput
+            label="Fecha de Inicio"
+            value={formData.start_date}
+            onChange={(v) => setFormData({ ...formData, start_date: v })}
+            type="date"
+            required
+          />
 
-                <HStack gap={4} pt={4} w="full" justifyContent="flex-end">
-                  <Button onClick={onClose} variant="outline">
-                    Cancelar
-                  </Button>
-                  <Button
-                    bg="#4F46E5"
-                    color="white"
-                    _hover={{ bg: '#4338CA' }}
-                    type="submit"
-                    loading={loading}
-                  >
-                    {editingBudget ? 'Guardar Cambios' : 'Crear Presupuesto'}
-                  </Button>
-                </HStack>
-              </VStack>
-            </form>
-          </DialogBody>
-        </DialogContent>
-      </DialogPositioner>
-    </DialogRoot>
+          <HStack gap={4} pt={4} w="full" justifyContent="flex-end">
+            <CancelButton onClick={onClose} />
+            <PrimaryButton type="submit" loading={loading}>
+              {editingBudget ? 'Guardar Cambios' : 'Crear Presupuesto'}
+            </PrimaryButton>
+          </HStack>
+        </VStack>
+      </form>
+    </FormDialog>
   )
 }

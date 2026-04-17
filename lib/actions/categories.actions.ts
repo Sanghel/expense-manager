@@ -1,5 +1,6 @@
 'use server'
 
+import { revalidatePath } from 'next/cache'
 import { insforgeAdmin } from '@/lib/insforge-admin'
 import {
   createCategorySchema,
@@ -9,6 +10,10 @@ import {
 } from '@/lib/validations/category'
 
 export async function getCategories(userId: string) {
+  if (!userId) {
+    console.error('getCategories: userId is missing')
+    return { success: false, error: 'User ID is required' }
+  }
   try {
     // Obtener predefinidas (user_id null) + del usuario en dos queries
     const [{ data: predefined, error: e1 }, { data: userCats, error: e2 }] =
@@ -21,7 +26,8 @@ export async function getCategories(userId: string) {
     if (e2) throw e2
 
     return { success: true, data: [...(predefined ?? []), ...(userCats ?? [])] }
-  } catch (_error) {
+  } catch (error) {
+    console.error('Get categories error:', error)
     return { success: false, error: 'Failed to fetch categories' }
   }
 }
@@ -40,6 +46,7 @@ export async function createCategory(
       .single()
 
     if (error) throw error
+    revalidatePath('/categories')
     return { success: true, data: category }
   } catch (error) {
     console.error('Create category error:', error)
@@ -64,6 +71,7 @@ export async function updateCategory(
       .single()
 
     if (error) throw error
+    revalidatePath('/categories')
     return { success: true, data: category }
   } catch (error) {
     console.error('Update category error:', error)
@@ -92,8 +100,10 @@ export async function deleteCategory(id: string, userId: string) {
       .eq('user_id', userId)
 
     if (error) throw error
+    revalidatePath('/categories')
     return { success: true }
-  } catch (_error) {
+  } catch (error) {
+    console.error('Delete category error:', error)
     return { success: false, error: 'Failed to delete category' }
   }
 }

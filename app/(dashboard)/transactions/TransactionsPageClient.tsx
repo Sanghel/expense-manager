@@ -6,18 +6,16 @@ import {
   Button,
   HStack,
   useDisclosure,
-  Spinner,
-  Center,
   Text,
 } from '@chakra-ui/react'
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { FiPlus } from 'react-icons/fi'
 import { Card } from '@/components/ui/Card'
 import { TransactionForm } from '@/components/transactions/TransactionForm'
 import { TransactionEditForm } from '@/components/transactions/TransactionEditForm'
 import { TransactionsTable } from '@/components/transactions/TransactionsTable'
 import { TransactionsFilter, type FilterState } from '@/components/transactions/TransactionsFilter'
-import { getTransactions } from '@/lib/actions/transactions.actions'
 import type { Category, TransactionWithCategory } from '@/types/database.types'
 
 const PAGE_SIZE = 20
@@ -25,6 +23,7 @@ const PAGE_SIZE = 20
 interface Props {
   userId: string
   categories: Category[]
+  initialTransactions: TransactionWithCategory[]
 }
 
 const defaultFilters: FilterState = {
@@ -34,28 +33,15 @@ const defaultFilters: FilterState = {
   month: '',
 }
 
-export function TransactionsPageClient({ userId, categories }: Props) {
+export function TransactionsPageClient({ userId, categories, initialTransactions }: Props) {
+  const router = useRouter()
   const { open: isCreateOpen, onOpen: onCreateOpen, onClose: onCreateClose } = useDisclosure()
   const { open: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } = useDisclosure()
 
-  const [transactions, setTransactions] = useState<TransactionWithCategory[]>([])
-  const [loading, setLoading] = useState(true)
+  const [transactions] = useState<TransactionWithCategory[]>(initialTransactions)
   const [editingTransaction, setEditingTransaction] = useState<TransactionWithCategory | null>(null)
   const [filters, setFilters] = useState<FilterState>(defaultFilters)
   const [page, setPage] = useState(1)
-
-  const fetchTransactions = useCallback(async () => {
-    setLoading(true)
-    const result = await getTransactions(userId, 500)
-    if (result.success && result.data) {
-      setTransactions(result.data as TransactionWithCategory[])
-    }
-    setLoading(false)
-  }, [userId])
-
-  useEffect(() => {
-    fetchTransactions()
-  }, [fetchTransactions])
 
   useEffect(() => {
     setPage(1)
@@ -110,43 +96,35 @@ export function TransactionsPageClient({ userId, categories }: Props) {
       />
 
       <Card overflowX="auto">
-        {loading ? (
-          <Center py={10}>
-            <Spinner size="lg" />
-          </Center>
-        ) : (
-          <>
-            <TransactionsTable
-              transactions={paginated}
-              userId={userId}
-              onUpdate={fetchTransactions}
-              onEdit={handleEdit}
-            />
+        <TransactionsTable
+          transactions={paginated}
+          userId={userId}
+          onUpdate={() => router.refresh()}
+          onEdit={handleEdit}
+        />
 
-            {totalPages > 1 && (
-              <HStack justify="center" mt={4} gap={2}>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  disabled={page === 1}
-                  onClick={() => setPage((p) => p - 1)}
-                >
-                  Anterior
-                </Button>
-                <Text fontSize="sm" color="#B0B0B0">
-                  Página {page} de {totalPages}
-                </Text>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  disabled={page === totalPages}
-                  onClick={() => setPage((p) => p + 1)}
-                >
-                  Siguiente
-                </Button>
-              </HStack>
-            )}
-          </>
+        {totalPages > 1 && (
+          <HStack justify="center" mt={4} gap={2}>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={page === 1}
+              onClick={() => setPage((p) => p - 1)}
+            >
+              Anterior
+            </Button>
+            <Text fontSize="sm" color="#B0B0B0">
+              Página {page} de {totalPages}
+            </Text>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={page === totalPages}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Siguiente
+            </Button>
+          </HStack>
         )}
       </Card>
 
@@ -155,7 +133,7 @@ export function TransactionsPageClient({ userId, categories }: Props) {
         onClose={onCreateClose}
         userId={userId}
         categories={categories}
-        onSuccess={fetchTransactions}
+        onSuccess={() => router.refresh()}
       />
 
       {editingTransaction && (
@@ -165,7 +143,7 @@ export function TransactionsPageClient({ userId, categories }: Props) {
           userId={userId}
           categories={categories}
           transaction={editingTransaction}
-          onSuccess={fetchTransactions}
+          onSuccess={() => { router.refresh(); handleEditClose() }}
         />
       )}
     </Box>

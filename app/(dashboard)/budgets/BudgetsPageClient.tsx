@@ -2,6 +2,7 @@
 
 import { VStack, Heading, Button, HStack, Box } from '@chakra-ui/react'
 import { useState, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { BudgetForm } from '@/components/budgets/BudgetForm'
 import { BudgetList } from '@/components/budgets/BudgetList'
 import type { Category } from '@/types/database.types'
@@ -18,17 +19,18 @@ interface Budget {
 interface Props {
   userId: string
   categories: Category[]
+  initialBudgets: any[]
 }
 
-export function BudgetsPageClient({ userId, categories }: Props) {
+export function BudgetsPageClient({ userId, categories, initialBudgets }: Props) {
+  const router = useRouter()
   const [isFormOpen, setIsFormOpen] = useState(false)
-  const [refreshKey, setRefreshKey] = useState(0)
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null)
 
   const handleFormSuccess = useCallback(() => {
-    setRefreshKey((k) => k + 1)
+    router.refresh()
     setEditingBudget(null)
-  }, [])
+  }, [router])
 
   const handleEdit = (budget: any) => {
     setEditingBudget(budget)
@@ -59,7 +61,7 @@ export function BudgetsPageClient({ userId, categories }: Props) {
 
       <Box borderBottomWidth="1px" />
 
-      <BudgetList key={refreshKey} userId={userId} onRefresh={handleFormSuccess} onEdit={handleEdit} />
+      <BudgetList initialBudgets={initialBudgets} userId={userId} onEdit={handleEdit} />
 
       <BudgetForm
         isOpen={isFormOpen}

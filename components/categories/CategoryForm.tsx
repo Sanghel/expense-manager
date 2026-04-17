@@ -1,31 +1,20 @@
 'use client'
 
-import {
-  DialogRoot,
-  DialogBackdrop,
-  DialogPositioner,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogBody,
-  DialogCloseTrigger,
-  VStack,
-  HStack,
-  FieldRoot,
-  FieldLabel,
-  Input,
-  RadioGroupRoot,
-  RadioGroupItem,
-  RadioGroupItemControl,
-  RadioGroupItemText,
-  RadioGroupItemHiddenInput,
-  Button,
-} from '@chakra-ui/react'
+import { VStack, HStack, FieldRoot, FieldLabel } from '@chakra-ui/react'
 import { useState } from 'react'
 import { createCategory } from '@/lib/actions/categories.actions'
 import { toaster } from '@/lib/toaster'
+import { FormDialog } from '@/components/ui/FormDialog'
+import { FormInput } from '@/components/ui/FormInput'
+import { RadioSelect } from '@/components/ui/RadioSelect'
+import { PrimaryButton } from '@/components/ui/PrimaryButton'
 import { IconPicker } from './IconPicker'
 import { ColorPicker } from './ColorPicker'
+
+const TYPE_OPTIONS = [
+  { value: 'expense', label: 'Gasto' },
+  { value: 'income', label: 'Ingreso' },
+]
 
 interface Props {
   isOpen: boolean
@@ -63,76 +52,48 @@ export function CategoryForm({ isOpen, onClose, userId, onSuccess }: Props) {
   }
 
   return (
-    <DialogRoot open={isOpen} onOpenChange={({ open }) => !open && onClose()} size="md" placement="center" lazyMount unmountOnExit>
-      <DialogBackdrop />
-      <DialogPositioner>
-      <DialogContent tabIndex={-1}>
-        <DialogHeader>
-          <DialogTitle>Nueva Categoría</DialogTitle>
-        </DialogHeader>
-        <DialogCloseTrigger />
-        <DialogBody pb={6}>
-          <form onSubmit={handleSubmit}>
-            <VStack gap={4}>
-              <FieldRoot required>
-                <FieldLabel>Tipo</FieldLabel>
-                <RadioGroupRoot
-                  value={formData.type}
-                  onValueChange={({ value }) =>
-                    setFormData({ ...formData, type: value as 'income' | 'expense' })
-                  }
-                  colorPalette="brand"
-                >
-                  <HStack gap={4}>
-                    <RadioGroupItem value="expense">
-                      <RadioGroupItemHiddenInput />
-                      <RadioGroupItemControl borderColor="#4F46E5" _checked={{ bg: '#4F46E5', borderColor: '#4F46E5' }} />
-                      <RadioGroupItemText>Gasto</RadioGroupItemText>
-                    </RadioGroupItem>
-                    <RadioGroupItem value="income">
-                      <RadioGroupItemHiddenInput />
-                      <RadioGroupItemControl borderColor="#4F46E5" _checked={{ bg: '#4F46E5', borderColor: '#4F46E5' }} />
-                      <RadioGroupItemText>Ingreso</RadioGroupItemText>
-                    </RadioGroupItem>
-                  </HStack>
-                </RadioGroupRoot>
-              </FieldRoot>
+    <FormDialog isOpen={isOpen} onClose={onClose} title="Nueva Categoría">
+      <form onSubmit={handleSubmit}>
+        <VStack gap={4}>
+          <RadioSelect
+            label="Tipo"
+            value={formData.type}
+            onChange={(v) => setFormData({ ...formData, type: v as 'income' | 'expense' })}
+            options={TYPE_OPTIONS}
+            required
+          />
 
-              <FieldRoot required>
-                <FieldLabel>Nombre</FieldLabel>
-                <Input
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Ej: Transporte"
-                />
-              </FieldRoot>
+          <FormInput
+            label="Nombre"
+            value={formData.name}
+            onChange={(v) => setFormData({ ...formData, name: v })}
+            placeholder="Ej: Transporte"
+            required
+          />
 
-              <HStack gap={4} w="full">
-                <FieldRoot>
-                  <FieldLabel>Icono</FieldLabel>
-                  <IconPicker
-                    value={formData.icon}
-                    onChange={(icon) => setFormData({ ...formData, icon })}
-                  />
-                </FieldRoot>
+          <HStack gap={4} w="full">
+            <FieldRoot>
+              <FieldLabel>Icono</FieldLabel>
+              <IconPicker
+                value={formData.icon}
+                onChange={(icon) => setFormData({ ...formData, icon })}
+              />
+            </FieldRoot>
 
-                <FieldRoot>
-                  <FieldLabel>Color</FieldLabel>
-                  <ColorPicker
-                    value={formData.color}
-                    onChange={(color) => setFormData({ ...formData, color })}
-                  />
-                </FieldRoot>
-              </HStack>
+            <FieldRoot>
+              <FieldLabel>Color</FieldLabel>
+              <ColorPicker
+                value={formData.color}
+                onChange={(color) => setFormData({ ...formData, color })}
+              />
+            </FieldRoot>
+          </HStack>
 
-              <Button type="submit" bg="#4F46E5" color="white" _hover={{ bg: '#4338CA' }} width="full" loading={loading}>
-                Crear Categoría
-              </Button>
-            </VStack>
-          </form>
-        </DialogBody>
-      </DialogContent>
-      </DialogPositioner>
-    </DialogRoot>
+          <PrimaryButton type="submit" width="full" loading={loading}>
+            Crear Categoría
+          </PrimaryButton>
+        </VStack>
+      </form>
+    </FormDialog>
   )
 }

@@ -116,56 +116,6 @@ CREATE INDEX idx_transactions_category ON transactions(category_id);
 
 ---
 
-### 14.5: Caché con React Query (opcional)
-
-**Issue:** "Implementar caching de datos"
-
-**Si decides usar React Query:**
-
-```bash
-pnpm add @tanstack/react-query
-```
-
-```typescript
-// hooks/useTransactions.ts
-import { useQuery } from '@tanstack/react-query'
-
-export function useTransactions(userId: string) {
-  return useQuery({
-    queryKey: ['transactions', userId],
-    queryFn: () => getTransactions(userId),
-    staleTime: 5 * 60 * 1000, // 5 minutos
-  })
-}
-```
-
----
-
-### 14.6: Optimización de Imágenes
-
-**Issue:** "Optimizar carga de imágenes"
-
-**Implementar:**
-
-- Usar Next.js Image component
-- Lazy loading de imágenes
-- Formatos modernos (WebP)
-
-```typescript
-import Image from 'next/image'
-
-<Image
-  src={receiptUrl}
-  alt="Recibo"
-  width={300}
-  height={400}
-  loading="lazy"
-  placeholder="blur"
-/>
-```
-
----
-
 ### 14.7: Code Splitting y Bundle Analysis
 
 **Issue:** "Analizar y reducir bundle size"
@@ -333,9 +283,7 @@ pnpm build && pnpm start
 - [ ] ✅ React.memo implementado
 - [ ] ✅ useMemo/useCallback optimizado
 - [ ] ✅ Lazy loading implementado
-- [ ] ✅ Queries optimizadas
 - [ ] ✅ Bundle size reducido
-- [ ] ✅ Imágenes optimizadas
 - [ ] ✅ Listas virtualizadas (si aplica)
 - [ ] ✅ Debouncing implementado
 - [ ] ✅ Lighthouse score > 90

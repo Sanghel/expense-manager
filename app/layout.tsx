@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Expense Manager',
-  description: 'Sistema de gestión de finanzas personales',
+  title: 'GitPush Money',
+  description: 'Gestiona tus finanzas personales con IA: transacciones, presupuestos, metas de ahorro y más.',
 }
 
 export default function RootLayout({

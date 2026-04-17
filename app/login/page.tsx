@@ -43,15 +43,6 @@ function LoginContent() {
         .login-logo-mark {
           width: 36px;
           height: 36px;
-          border-radius: 10px;
-          background: linear-gradient(135deg, #4F46E5 0%, #6366F1 100%);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: white;
-          font-weight: 700;
-          font-size: 13px;
-          letter-spacing: -0.3px;
           flex-shrink: 0;
         }
 
@@ -146,8 +137,8 @@ function LoginContent() {
 
       <div className="login-card">
         <div className="login-logo">
-          <div className="login-logo-mark">EM</div>
-          <span className="login-logo-name">Expense Manager</span>
+          <img src="/brand/money-manager.svg" alt="GitPush Money" className="login-logo-mark" />
+          <span className="login-logo-name">GitPush Money</span>
         </div>
 
         <h1 className="login-heading">Bienvenido de vuelta</h1>

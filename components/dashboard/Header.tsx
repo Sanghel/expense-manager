@@ -12,11 +12,11 @@ import {
   AvatarRoot,
   AvatarImage,
   AvatarFallback,
+  Heading,
 } from '@chakra-ui/react'
 import { signOut, useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { FiLogOut, FiSettings } from 'react-icons/fi'
-import Image from 'next/image'
 
 export function Header() {
   const { data: session } = useSession()
@@ -39,7 +39,6 @@ export function Header() {
             GitPush Money
           </Heading>
         </Flex>
-
 
         {session?.user && (
           <MenuRoot>

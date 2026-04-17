@@ -9,8 +9,9 @@ import {
   Button,
   Table,
 } from '@chakra-ui/react'
-import { useState } from 'react'
-import { updateRate, getAllRatePairs } from '@/lib/actions/exchangeRates.actions'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { updateRate } from '@/lib/actions/exchangeRates.actions'
 import { toaster } from '@/lib/toaster'
 import type { ExchangeRate, Currency } from '@/types/database.types'
 
@@ -30,6 +31,7 @@ function getRateValue(rates: ExchangeRate[], from: Currency, to: Currency): numb
 }
 
 export function ExchangeRatesForm({ initialRates }: Props) {
+  const router = useRouter()
   const [rates, setRates] = useState<ExchangeRate[]>(initialRates)
   const [inputs, setInputs] = useState({
     USD_COP: String(getRateValue(initialRates, 'USD', 'COP')),
@@ -37,6 +39,10 @@ export function ExchangeRatesForm({ initialRates }: Props) {
     USD_VES: String(getRateValue(initialRates, 'USD', 'VES')),
   })
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    setRates(initialRates)
+  }, [initialRates])
 
   const handleSave = async () => {
     setLoading(true)
@@ -65,11 +71,7 @@ export function ExchangeRatesForm({ initialRates }: Props) {
 
     if (failed.length === 0) {
       toaster.create({ title: 'Tasas actualizadas', type: 'success', duration: 3000 })
-      // Refresh displayed rates
-      const refreshed = await getAllRatePairs()
-      if (refreshed.success && refreshed.data) {
-        setRates(refreshed.data as ExchangeRate[])
-      }
+      router.refresh()
     } else {
       toaster.create({ title: 'Error al actualizar', description: 'Algunas tasas no se guardaron', type: 'error', duration: 4000 })
     }

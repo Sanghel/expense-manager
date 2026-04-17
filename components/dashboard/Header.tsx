@@ -10,20 +10,15 @@ import {
   MenuContent,
   MenuItem,
   Button,
-  IconButton,
   AvatarRoot,
   AvatarImage,
   AvatarFallback,
 } from '@chakra-ui/react'
 import { signOut, useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { FiLogOut, FiSettings, FiMenu } from 'react-icons/fi'
+import { FiLogOut, FiSettings } from 'react-icons/fi'
 
-interface Props {
-  onMenuOpen?: () => void
-}
-
-export function Header({ onMenuOpen }: Props) {
+export function Header() {
   const { data: session } = useSession()
   const router = useRouter()
 
@@ -38,21 +33,9 @@ export function Header({ onMenuOpen }: Props) {
       flexShrink={0}
     >
       <Flex justify="space-between" align="center">
-        <Flex align="center" gap={3}>
-          <IconButton
-            aria-label="Abrir menú"
-            variant="ghost"
-            color="#B0B0B0"
-            display={{ base: 'flex', md: 'none' }}
-            onClick={onMenuOpen}
-            size="sm"
-          >
-            <FiMenu />
-          </IconButton>
-          <Heading size="md" color="brand.500" letterSpacing="tight">
-            Expense Manager
-          </Heading>
-        </Flex>
+        <Heading size="sm" color="brand.500" letterSpacing="tight">
+          Expense Manager
+        </Heading>
 
         {session?.user && (
           <MenuRoot>

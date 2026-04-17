@@ -77,7 +77,7 @@ export function RecurringTransactionsList({ userId, transactions, onEdit }: Prop
       key: 'status',
       header: 'Estado',
       render: (t) => (
-        <Badge variant={t.is_active ? 'solid' : 'outline'}>
+        <Badge colorPalette={t.is_active ? 'green' : 'yellow'} variant="solid">
           {t.is_active ? 'Activo' : 'Pausado'}
         </Badge>
       ),

@@ -1,13 +1,18 @@
 'use client'
 
 import { useState } from 'react'
-import { Box, Heading, VStack, HStack } from '@chakra-ui/react'
+import dynamic from 'next/dynamic'
+import { Box, Heading, VStack, HStack, Spinner } from '@chakra-ui/react'
 import { FinancialCards } from './FinancialCards'
-import { MonthlyTrendChart } from './MonthlyTrendChart'
 import { RecentTransactions } from './RecentTransactions'
 import { BudgetWidget } from '@/components/budgets/BudgetWidget'
 import { MonthSelector } from './MonthSelector'
 import type { TransactionWithCategory, Currency } from '@/types/database.types'
+
+const MonthlyTrendChart = dynamic(
+  () => import('./MonthlyTrendChart').then((m) => m.MonthlyTrendChart),
+  { loading: () => <Spinner />, ssr: false }
+)
 
 interface Props {
   userId: string

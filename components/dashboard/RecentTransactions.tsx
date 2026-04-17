@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import { Heading, Badge, Text } from '@chakra-ui/react'
 import { formatCurrency } from '@/lib/utils/currency'
 import { Card } from '@/components/ui/Card'
@@ -43,7 +44,7 @@ const columns: ColumnDef<TransactionWithCategory>[] = [
   },
 ]
 
-export function RecentTransactions({ transactions, limit = 10 }: Props) {
+export const RecentTransactions = memo(function RecentTransactions({ transactions, limit = 10 }: Props) {
   const displayed = transactions.slice(0, limit)
 
   return (
@@ -57,4 +58,4 @@ export function RecentTransactions({ transactions, limit = 10 }: Props) {
       />
     </Card>
   )
-}
+})

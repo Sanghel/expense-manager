@@ -1,7 +1,7 @@
 'use client'
 
 import { Box, VStack, Button, Icon } from '@chakra-ui/react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   FiHome,
@@ -33,6 +33,7 @@ const navItems: { href: string; label: string; icon: IconType }[] = [
 
 export function Sidebar() {
   const pathname = usePathname()
+  const router = useRouter()
 
   return (
     <Box
@@ -61,7 +62,7 @@ export function Sidebar() {
               }}
               transition="background-color 0.2s ease"
             >
-              <Link href={item.href}>
+              <Link href={item.href} onMouseEnter={() => router.prefetch(item.href)}>
                 <Icon as={item.icon} />
                 {item.label}
               </Link>

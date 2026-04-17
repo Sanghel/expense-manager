@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation'
 import { insforgeAdmin } from '@/lib/insforge-admin'
 import { TransactionsPageClient } from './TransactionsPageClient'
 import { getCategories } from '@/lib/actions/categories.actions'
+import { getTransactions } from '@/lib/actions/transactions.actions'
+import type { TransactionWithCategory } from '@/types/database.types'
 
 export default async function TransactionsPage() {
   const session = await getServerSession(authOptions)
@@ -22,8 +24,12 @@ export default async function TransactionsPage() {
     redirect('/login')
   }
 
-  const categoriesResult = await getCategories(user.id)
-  const categories = categoriesResult.success ? categoriesResult.data : []
+  const [categoriesResult, transactionsResult] = await Promise.all([
+    getCategories(user.id),
+    getTransactions(user.id, 500),
+  ])
+  const categories = categoriesResult.success ? (categoriesResult.data ?? []) : []
+  const transactions = transactionsResult.success ? ((transactionsResult.data ?? []) as TransactionWithCategory[]) : []
 
-  return <TransactionsPageClient userId={user.id} categories={categories ?? []} />
+  return <TransactionsPageClient userId={user.id} categories={categories ?? []} initialTransactions={transactions} />
 }

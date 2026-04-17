@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, memo } from 'react'
 import { Box, Heading, Text } from '@chakra-ui/react'
 import {
   LineChart,
@@ -25,7 +25,7 @@ interface Props {
   transactions: TransactionWithCategory[]
 }
 
-export function MonthlyTrendChart({ transactions }: Props) {
+export const MonthlyTrendChart = memo(function MonthlyTrendChart({ transactions }: Props) {
   const chartData = useMemo<ChartDataPoint[]>(() => {
     const grouped = transactions.reduce<Record<string, ChartDataPoint>>(
       (acc, t) => {
@@ -87,4 +87,4 @@ export function MonthlyTrendChart({ transactions }: Props) {
       </Box>
     </Card>
   )
-}
+})

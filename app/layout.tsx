@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { SessionProvider } from '@/components/providers/SessionProvider'
 import { ChakraProvider } from '@/components/providers/ChakraProvider'
+import { Analytics } from '@vercel/analytics/react'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -33,6 +34,7 @@ export default function RootLayout({
         <SessionProvider>
           <ChakraProvider>{children}</ChakraProvider>
         </SessionProvider>
+        <Analytics />
       </body>
     </html>
   )

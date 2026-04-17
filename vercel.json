@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/generate-recurring",
+      "schedule": "0 5 * * *"
+    }
+  ]
+}

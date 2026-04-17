@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import { SimpleGrid, Box } from '@chakra-ui/react'
 import { StatCard } from '@/components/ui/StatCard'
 import { MultiCurrencyBalance } from './MultiCurrencyBalance'
@@ -14,7 +15,7 @@ interface Props {
   exchangeRates?: any[]
 }
 
-export function FinancialCards({
+export const FinancialCards = memo(function FinancialCards({
   transactions,
   month,
   preferredCurrency = 'COP',
@@ -45,4 +46,4 @@ export function FinancialCards({
       />
     </SimpleGrid>
   )
-}
+})

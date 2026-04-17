@@ -8,7 +8,7 @@ import {
   useDisclosure,
   Text,
 } from '@chakra-ui/react'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { FiPlus } from 'react-icons/fi'
 import { Card } from '@/components/ui/Card'
@@ -16,6 +16,7 @@ import { TransactionForm } from '@/components/transactions/TransactionForm'
 import { TransactionEditForm } from '@/components/transactions/TransactionEditForm'
 import { TransactionsTable } from '@/components/transactions/TransactionsTable'
 import { TransactionsFilter, type FilterState } from '@/components/transactions/TransactionsFilter'
+import { useDebounce } from '@/hooks/useDebounce'
 import type { Category, TransactionWithCategory } from '@/types/database.types'
 
 const PAGE_SIZE = 20
@@ -43,13 +44,15 @@ export function TransactionsPageClient({ userId, categories, initialTransactions
   const [filters, setFilters] = useState<FilterState>(defaultFilters)
   const [page, setPage] = useState(1)
 
+  const debouncedSearch = useDebounce(filters.search, 300)
+
   useEffect(() => {
     setPage(1)
   }, [filters])
 
   const filtered = useMemo(() => {
     return transactions.filter((t) => {
-      if (filters.search && !t.description.toLowerCase().includes(filters.search.toLowerCase())) {
+      if (debouncedSearch && !t.description.toLowerCase().includes(debouncedSearch.toLowerCase())) {
         return false
       }
       if (filters.type && t.type !== filters.type) return false
@@ -60,24 +63,24 @@ export function TransactionsPageClient({ userId, categories, initialTransactions
       }
       return true
     })
-  }, [transactions, filters])
+  }, [transactions, debouncedSearch, filters.type, filters.category_id, filters.month])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
-  const handleEdit = (transaction: TransactionWithCategory) => {
+  const handleEdit = useCallback((transaction: TransactionWithCategory) => {
     setEditingTransaction(transaction)
     onEditOpen()
-  }
+  }, [onEditOpen])
 
-  const handleEditClose = () => {
+  const handleEditClose = useCallback(() => {
     // Do NOT clear editingTransaction here. Doing so unmounts TransactionEditForm
     // in the same React commit as isOpen→false, which tears down the dialog DOM
     // before Zag can call layerStack.remove(node) — the node is already gone,
     // remove() short-circuits, and body.style.pointerEvents="none" gets stuck.
     // editingTransaction is updated on the next open, so leaving it set is safe.
     onEditClose()
-  }
+  }, [onEditClose])
 
   return (
     <Box>

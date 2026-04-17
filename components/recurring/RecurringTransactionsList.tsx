@@ -16,6 +16,7 @@ import {
 import { useCallback, useEffect, useState } from 'react'
 import { getRecurringTransactions, deleteRecurringTransaction, toggleRecurringTransaction } from '@/lib/actions/recurring.actions'
 import { toaster } from '@/lib/toaster'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import type { RecurringTransactionWithCategory } from '@/types/database.types'
 
 interface Props {
@@ -26,6 +27,8 @@ interface Props {
 export function RecurringTransactionsList({ userId, refresh }: Props) {
   const [transactions, setTransactions] = useState<RecurringTransactionWithCategory[]>([])
   const [loading, setLoading] = useState(true)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
 
   const loadTransactions = useCallback(async () => {
     setLoading(true)
@@ -46,11 +49,18 @@ export function RecurringTransactionsList({ userId, refresh }: Props) {
     loadTransactions()
   }, [loadTransactions, refresh])
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure?')) return
-    const result = await deleteRecurringTransaction(id, userId)
+  const handleDelete = (id: string) => {
+    setDeletingId(id)
+  }
+
+  const confirmDelete = async () => {
+    if (!deletingId) return
+    setDeleteLoading(true)
+    const result = await deleteRecurringTransaction(deletingId, userId)
+    setDeleteLoading(false)
+    setDeletingId(null)
     if (result.success) {
-      toaster.create({ title: 'Deleted', type: 'success', duration: 3000 })
+      toaster.create({ title: 'Eliminada', type: 'success', duration: 3000 })
       loadTransactions()
     } else {
       toaster.create({ title: result.error || 'Error', type: 'error', duration: 3000 })
@@ -60,30 +70,31 @@ export function RecurringTransactionsList({ userId, refresh }: Props) {
   const handleToggle = async (id: string, isActive: boolean) => {
     const result = await toggleRecurringTransaction(id, userId, !isActive)
     if (result.success) {
-      toaster.create({ title: isActive ? 'Paused' : 'Activated', type: 'success', duration: 3000 })
+      toaster.create({ title: isActive ? 'Pausada' : 'Activada', type: 'success', duration: 3000 })
       loadTransactions()
     } else {
       toaster.create({ title: result.error || 'Error', type: 'error', duration: 3000 })
     }
   }
 
-  if (loading) return <Text>Loading...</Text>
+  if (loading) return <Text>Cargando...</Text>
 
   if (transactions.length === 0) {
-    return <Text color="fg.muted">No recurring transactions</Text>
+    return <Text color="fg.muted">Sin transacciones recurrentes</Text>
   }
 
   return (
+    <>
     <Box overflowX="auto">
       <Table.Root>
         <Table.Header>
           <Table.Row>
-            <Table.ColumnHeader>Description</Table.ColumnHeader>
-            <Table.ColumnHeader>Category</Table.ColumnHeader>
-            <Table.ColumnHeader>Amount</Table.ColumnHeader>
-            <Table.ColumnHeader>Frequency</Table.ColumnHeader>
-            <Table.ColumnHeader>Status</Table.ColumnHeader>
-            <Table.ColumnHeader>Actions</Table.ColumnHeader>
+            <Table.ColumnHeader>Descripción</Table.ColumnHeader>
+            <Table.ColumnHeader>Categoría</Table.ColumnHeader>
+            <Table.ColumnHeader>Monto</Table.ColumnHeader>
+            <Table.ColumnHeader>Frecuencia</Table.ColumnHeader>
+            <Table.ColumnHeader>Estado</Table.ColumnHeader>
+            <Table.ColumnHeader>Acciones</Table.ColumnHeader>
           </Table.Row>
         </Table.Header>
         <Table.Body>
@@ -97,7 +108,7 @@ export function RecurringTransactionsList({ userId, refresh }: Props) {
               <Table.Cell>{txn.frequency}</Table.Cell>
               <Table.Cell>
                 <Badge variant={txn.is_active ? 'solid' : 'outline'}>
-                  {txn.is_active ? 'Active' : 'Paused'}
+                  {txn.is_active ? 'Activo' : 'Pausado'}
                 </Badge>
               </Table.Cell>
               <Table.Cell>
@@ -106,7 +117,7 @@ export function RecurringTransactionsList({ userId, refresh }: Props) {
                     size="sm"
                     onClick={() => handleToggle(txn.id, txn.is_active)}
                   >
-                    {txn.is_active ? 'Pause' : 'Activate'}
+                    {txn.is_active ? 'Pausar' : 'Activar'}
                   </Button>
                   <MenuRoot>
                     <MenuTrigger asChild>
@@ -114,7 +125,7 @@ export function RecurringTransactionsList({ userId, refresh }: Props) {
                     </MenuTrigger>
                     <MenuContent>
                       <MenuItem value="delete" onClick={() => handleDelete(txn.id)}>
-                        Delete
+                        Eliminar
                       </MenuItem>
                     </MenuContent>
                   </MenuRoot>
@@ -125,5 +136,15 @@ export function RecurringTransactionsList({ userId, refresh }: Props) {
         </Table.Body>
       </Table.Root>
     </Box>
+
+    <ConfirmDialog
+      isOpen={deletingId !== null}
+      onClose={() => setDeletingId(null)}
+      onConfirm={confirmDelete}
+      title="Eliminar recurrente"
+      description="¿Estás seguro? Esta acción no se puede deshacer."
+      isLoading={deleteLoading}
+    />
+    </>
   )
 }

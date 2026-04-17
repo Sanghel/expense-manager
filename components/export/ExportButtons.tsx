@@ -19,9 +19,9 @@ export function ExportButtons({ userId }: Props) {
 
     if (result.success && result.data && result.filename) {
       downloadFile(result.data, result.filename, format === 'json' ? 'application/json' : 'text/csv')
-      toaster.create({ title: `Exported as ${format.toUpperCase()}`, type: 'success', duration: 3000 })
+      toaster.create({ title: `Datos exportados como ${format.toUpperCase()}`, type: 'success', duration: 3000 })
     } else {
-      toaster.create({ title: result.error || 'Export failed', type: 'error', duration: 3000 })
+      toaster.create({ title: result.error || 'Error al exportar', type: 'error', duration: 3000 })
     }
   }
 
@@ -29,14 +29,14 @@ export function ExportButtons({ userId }: Props) {
     <HStack gap="4">
       <div>
         <Text fontWeight="bold" mb="2">
-          Export Your Data
+          Exportar datos
         </Text>
         <HStack gap="2">
           <Button onClick={() => handleExport('csv')} loading={loading === 'csv'}>
-            Export as CSV
+            Exportar como CSV
           </Button>
           <Button onClick={() => handleExport('json')} loading={loading === 'json'}>
-            Export as JSON
+            Exportar como JSON
           </Button>
         </HStack>
       </div>

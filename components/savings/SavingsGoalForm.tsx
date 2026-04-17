@@ -44,7 +44,7 @@ export function SavingsGoalForm({ isOpen, onClose, userId, onSuccess }: Props) {
 
   const handleSubmit = async () => {
     if (!form.name || !form.target_amount) {
-      toaster.error({ title: 'Please fill in required fields' })
+      toaster.create({ title: 'Por favor completa los campos requeridos', type: 'error', duration: 3000 })
       return
     }
 
@@ -59,78 +59,75 @@ export function SavingsGoalForm({ isOpen, onClose, userId, onSuccess }: Props) {
     setLoading(false)
 
     if (result.success) {
-      toaster.success({ title: 'Savings goal created' })
+      toaster.create({ title: 'Meta de ahorro creada', type: 'success', duration: 3000 })
       setForm({ name: '', target_amount: '', currency: 'COP', deadline: '' })
       onClose()
       onSuccess()
     } else {
-      toaster.error({ title: result.error || 'Error' })
+      toaster.create({ title: 'Error al crear', description: result.error, type: 'error', duration: 4000 })
     }
   }
 
   return (
-    <DialogRoot open={isOpen} onOpenChange={details => !details.open && onClose()}>
+    <DialogRoot open={isOpen} onOpenChange={details => !details.open && onClose()} size="md" placement="center" lazyMount unmountOnExit>
       <DialogBackdrop />
       <DialogPositioner>
-        <DialogContent>
+        <DialogContent tabIndex={-1}>
           <DialogHeader>
-            <DialogTitle>Create Savings Goal</DialogTitle>
-            <DialogCloseTrigger />
+            <DialogTitle>Nueva Meta de Ahorro</DialogTitle>
           </DialogHeader>
-          <DialogBody>
-            <VStack gap="4">
-              <FieldRoot>
-                <FieldLabel>Goal Name</FieldLabel>
-                <Input
-                  placeholder="e.g., Vacation Fund"
-                  value={form.name}
-                  onChange={e => handleChange('name', e.target.value)}
-                />
-              </FieldRoot>
+          <DialogCloseTrigger />
+          <DialogBody pb={6}>
+            <form onSubmit={(e) => { e.preventDefault(); handleSubmit() }}>
+              <VStack gap="4">
+                <FieldRoot required>
+                  <FieldLabel>Nombre de la Meta</FieldLabel>
+                  <Input
+                    placeholder="Ej: Vacaciones"
+                    value={form.name}
+                    onChange={e => handleChange('name', e.target.value)}
+                  />
+                </FieldRoot>
 
-              <FieldRoot>
-                <FieldLabel>Target Amount</FieldLabel>
-                <Input
-                  type="number"
-                  placeholder="0.00"
-                  value={form.target_amount}
-                  onChange={e => handleChange('target_amount', e.target.value)}
-                  step="0.01"
-                />
-              </FieldRoot>
+                <FieldRoot required>
+                  <FieldLabel>Monto Objetivo</FieldLabel>
+                  <Input
+                    type="number"
+                    placeholder="0.00"
+                    value={form.target_amount}
+                    onChange={e => handleChange('target_amount', e.target.value)}
+                    step="0.01"
+                  />
+                </FieldRoot>
 
-              <FieldRoot>
-                <FieldLabel>Currency</FieldLabel>
-                <NativeSelectRoot>
-                  <NativeSelectField
-                    value={form.currency}
-                    onChange={e => handleChange('currency', e.target.value)}
-                  >
-                    <option value="COP">COP</option>
-                    <option value="USD">USD</option>
-                    <option value="VES">VES</option>
-                  </NativeSelectField>
-                </NativeSelectRoot>
-              </FieldRoot>
+                <FieldRoot>
+                  <FieldLabel>Moneda</FieldLabel>
+                  <NativeSelectRoot>
+                    <NativeSelectField
+                      value={form.currency}
+                      onChange={e => handleChange('currency', e.target.value)}
+                    >
+                      <option value="COP">COP</option>
+                      <option value="USD">USD</option>
+                      <option value="VES">VES</option>
+                    </NativeSelectField>
+                  </NativeSelectRoot>
+                </FieldRoot>
 
-              <FieldRoot>
-                <FieldLabel>Deadline (Optional)</FieldLabel>
-                <Input
-                  type="date"
-                  value={form.deadline}
-                  onChange={e => handleChange('deadline', e.target.value)}
-                />
-              </FieldRoot>
+                <FieldRoot>
+                  <FieldLabel>Fecha Límite (Opcional)</FieldLabel>
+                  <Input
+                    type="date"
+                    value={form.deadline}
+                    onChange={e => handleChange('deadline', e.target.value)}
+                  />
+                </FieldRoot>
 
-              <HStack width="100%" justifyContent="flex-end" gap="2">
-                <Button onClick={onClose} variant="outline">
-                  Cancel
+                <Button type="submit" bg="#4F46E5" color="white" _hover={{ bg: '#4338CA' }} width="full" loading={loading}>
+                  Crear Meta
                 </Button>
-                <Button onClick={handleSubmit} loading={loading}>
-                  Create
-                </Button>
-              </HStack>
-            </VStack>
+              </VStack>
+            </form>
           </DialogBody>
         </DialogContent>
       </DialogPositioner>

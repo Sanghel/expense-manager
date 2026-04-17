@@ -35,10 +35,10 @@ export function SavingsGoalsGrid({ userId, refresh }: Props) {
     loadGoals()
   }, [loadGoals, refresh])
 
-  if (loading) return <Text>Loading...</Text>
+  if (loading) return <Text>Cargando...</Text>
 
   if (goals.length === 0) {
-    return <Text color="fg.muted">No savings goals yet. Create one to get started!</Text>
+    return <Text color="fg.muted">Sin metas de ahorro. ¡Crea una para comenzar!</Text>
   }
 
   return (

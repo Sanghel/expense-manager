@@ -26,8 +26,8 @@ interface Props {
   userId: string
 }
 
-const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+const WEEKDAYS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
+const MONTHS = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
 
 export function TransactionCalendar({ userId }: Props) {
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -97,7 +97,7 @@ export function TransactionCalendar({ userId }: Props) {
     days.push(i)
   }
 
-  if (loading) return <Text>Loading...</Text>
+  if (loading) return <Text>Cargando...</Text>
 
   return (
     <>
@@ -106,13 +106,13 @@ export function TransactionCalendar({ userId }: Props) {
           {/* Header */}
           <HStack justifyContent="space-between" alignItems="center">
             <Button onClick={handlePrevMonth} variant="ghost">
-              ← Prev
+              ← Anterior
             </Button>
             <Text fontSize="lg" fontWeight="bold">
               {MONTHS[currentDate.getMonth()]} {currentDate.getFullYear()}
             </Text>
             <Button onClick={handleNextMonth} variant="ghost">
-              Next →
+              Siguiente →
             </Button>
           </HStack>
 
@@ -167,7 +167,7 @@ export function TransactionCalendar({ userId }: Props) {
                         ))}
                         {dayTransactions.length > 2 && (
                           <Text fontSize="xs" color="fg.muted">
-                            +{dayTransactions.length - 2} more
+                            +{dayTransactions.length - 2} más
                           </Text>
                         )}
                       </VStack>
@@ -181,12 +181,12 @@ export function TransactionCalendar({ userId }: Props) {
       </Box>
 
       {/* Day details dialog */}
-      <DialogRoot open={selectedDay !== null} onOpenChange={details => !details.open && setSelectedDay(null)}>
+      <DialogRoot open={selectedDay !== null} onOpenChange={details => !details.open && setSelectedDay(null)} size="md" placement="center" lazyMount unmountOnExit>
         <DialogBackdrop />
         <DialogPositioner>
-          <DialogContent maxW="md">
+          <DialogContent tabIndex={-1}>
             <DialogHeader>
-              <DialogTitle>Transactions for {selectedDay?.length ? new Date(selectedDay[0].date).toLocaleDateString() : ''}</DialogTitle>
+              <DialogTitle>Transacciones del {selectedDay?.[0] && new Date(selectedDay[0].date).toLocaleDateString('es-ES')}</DialogTitle>
               <DialogCloseTrigger />
             </DialogHeader>
             <DialogBody>
@@ -219,7 +219,7 @@ export function TransactionCalendar({ userId }: Props) {
                     </Box>
                   ))
                 ) : (
-                  <Text color="fg.muted">No transactions</Text>
+                  <Text color="fg.muted">Sin transacciones</Text>
                 )}
               </VStack>
             </DialogBody>

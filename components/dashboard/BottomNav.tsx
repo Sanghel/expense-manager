@@ -8,16 +8,16 @@ import {
   FiDollarSign,
   FiRepeat,
   FiTarget,
-  FiGrid,
+  FiTrendingUp,
 } from 'react-icons/fi'
 import { IconType } from 'react-icons'
 
 const primaryItems: { href: string; label: string; icon: IconType }[] = [
-  { href: '/dashboard', label: 'Inicio', icon: FiHome },
-  { href: '/transactions', label: 'Gastos', icon: FiDollarSign },
-  { href: '/recurring-transactions', label: 'Recurrentes', icon: FiRepeat },
+  { href: '/dashboard', label: 'Dashboard', icon: FiHome },
+  { href: '/transactions', label: 'Transacciones', icon: FiDollarSign },
   { href: '/savings-goals', label: 'Metas', icon: FiTarget },
-  { href: '/budgets', label: 'Más', icon: FiGrid },
+  { href: '/recurring-transactions', label: 'Recurrentes', icon: FiRepeat },
+  { href: '/budgets', label: 'Presupuestos', icon: FiTrendingUp },
 ]
 
 export function BottomNav() {

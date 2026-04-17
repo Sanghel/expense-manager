@@ -1,15 +1,7 @@
 'use client'
 
-import {
-  HStack,
-  Button,
-  Badge,
-  MenuRoot,
-  MenuContent,
-  MenuItem,
-  MenuTrigger,
-  IconButton,
-} from '@chakra-ui/react'
+import { HStack, Badge, IconButton } from '@chakra-ui/react'
+import { FiEdit2, FiTrash2, FiPlay, FiPause } from 'react-icons/fi'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { deleteRecurringTransaction, toggleRecurringTransaction } from '@/lib/actions/recurring.actions'
@@ -94,23 +86,33 @@ export function RecurringTransactionsList({ userId, transactions, onEdit }: Prop
       key: 'actions',
       header: 'Acciones',
       render: (t) => (
-        <HStack gap="2">
-          <Button size="sm" onClick={() => handleToggle(t.id, t.is_active)}>
-            {t.is_active ? 'Pausar' : 'Activar'}
-          </Button>
-          <MenuRoot>
-            <MenuTrigger asChild>
-              <IconButton aria-label="Opciones" variant="ghost" size="sm" />
-            </MenuTrigger>
-            <MenuContent>
-              <MenuItem value="edit" onClick={() => onEdit(t)}>
-                Editar
-              </MenuItem>
-              <MenuItem value="delete" onClick={() => setDeletingId(t.id)}>
-                Eliminar
-              </MenuItem>
-            </MenuContent>
-          </MenuRoot>
+        <HStack gap={1}>
+          <IconButton
+            aria-label={t.is_active ? 'Pausar' : 'Activar'}
+            size="sm"
+            variant="ghost"
+            title={t.is_active ? 'Pausar' : 'Activar'}
+            onClick={() => handleToggle(t.id, t.is_active)}
+          >
+            {t.is_active ? <FiPause /> : <FiPlay />}
+          </IconButton>
+          <IconButton
+            aria-label="Editar"
+            size="sm"
+            variant="ghost"
+            onClick={() => onEdit(t)}
+          >
+            <FiEdit2 />
+          </IconButton>
+          <IconButton
+            aria-label="Eliminar"
+            size="sm"
+            variant="ghost"
+            colorPalette="red"
+            onClick={() => setDeletingId(t.id)}
+          >
+            <FiTrash2 />
+          </IconButton>
         </HStack>
       ),
     },

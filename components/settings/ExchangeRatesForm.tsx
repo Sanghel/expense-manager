@@ -1,25 +1,26 @@
 'use client'
 
-import {
-  Box,
-  VStack,
-  HStack,
-  Text,
-  Input,
-  Button,
-  Table,
-} from '@chakra-ui/react'
+import { Box, VStack, HStack, Text, Input } from '@chakra-ui/react'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { updateRate } from '@/lib/actions/exchangeRates.actions'
 import { toaster } from '@/lib/toaster'
+import { DataTable, type ColumnDef } from '@/components/ui/DataTable'
+import { PrimaryButton } from '@/components/ui/PrimaryButton'
 import type { ExchangeRate, Currency } from '@/types/database.types'
 
-const PAIRS: Array<{ from: Currency; to: Currency; label: string }> = [
-  { from: 'USD', to: 'COP', label: '1 USD → COP' },
-  { from: 'VES', to: 'COP', label: '1 Bs (VES) → COP' },
-  { from: 'USD', to: 'VES', label: '1 USD → Bs (VES)' },
+const PAIRS: Array<{ id: string; from: Currency; to: Currency; label: string }> = [
+  { id: 'USD_COP', from: 'USD', to: 'COP', label: '1 USD → COP' },
+  { id: 'VES_COP', from: 'VES', to: 'COP', label: '1 Bs (VES) → COP' },
+  { id: 'USD_VES', from: 'USD', to: 'VES', label: '1 USD → Bs (VES)' },
 ]
+
+interface RateRow {
+  id: string
+  label: string
+  rate: string
+  date: string
+}
 
 interface Props {
   initialRates: ExchangeRate[]
@@ -29,6 +30,12 @@ function getRateValue(rates: ExchangeRate[], from: Currency, to: Currency): numb
   const r = rates.find((x) => x.from_currency === from && x.to_currency === to)
   return r ? r.rate : 0
 }
+
+const rateColumns: ColumnDef<RateRow>[] = [
+  { key: 'label', header: 'Par', render: (r) => <Text fontWeight="medium">{r.label}</Text> },
+  { key: 'rate', header: 'Tasa actual', render: (r) => r.rate },
+  { key: 'date', header: 'Fecha', render: (r) => <Text color="#B0B0B0" fontSize="xs">{r.date}</Text> },
+]
 
 export function ExchangeRatesForm({ initialRates }: Props) {
   const router = useRouter()
@@ -48,10 +55,10 @@ export function ExchangeRatesForm({ initialRates }: Props) {
     setLoading(true)
 
     const usdCop = parseFloat(inputs.USD_COP)
-    const bobCop = parseFloat(inputs.VES_COP)
-    const usdBob = parseFloat(inputs.USD_VES)
+    const vesCop = parseFloat(inputs.VES_COP)
+    const usdVes = parseFloat(inputs.USD_VES)
 
-    if (isNaN(usdCop) || isNaN(bobCop) || isNaN(usdBob) || usdCop <= 0 || bobCop <= 0 || usdBob <= 0) {
+    if (isNaN(usdCop) || isNaN(vesCop) || isNaN(usdVes) || usdCop <= 0 || vesCop <= 0 || usdVes <= 0) {
       toaster.create({ title: 'Valores inválidos', description: 'Todos los valores deben ser números positivos', type: 'error', duration: 4000 })
       setLoading(false)
       return
@@ -60,10 +67,10 @@ export function ExchangeRatesForm({ initialRates }: Props) {
     const updates = [
       updateRate('USD', 'COP', usdCop),
       updateRate('COP', 'USD', 1 / usdCop),
-      updateRate('VES', 'COP', bobCop),
-      updateRate('COP', 'VES', 1 / bobCop),
-      updateRate('USD', 'VES', usdBob),
-      updateRate('VES', 'USD', 1 / usdBob),
+      updateRate('VES', 'COP', vesCop),
+      updateRate('COP', 'VES', 1 / vesCop),
+      updateRate('USD', 'VES', usdVes),
+      updateRate('VES', 'USD', 1 / usdVes),
     ]
 
     const results = await Promise.all(updates)
@@ -78,39 +85,27 @@ export function ExchangeRatesForm({ initialRates }: Props) {
     setLoading(false)
   }
 
+  const rateRows: RateRow[] = PAIRS.map(({ id, from, to, label }) => {
+    const r = rates.find((x) => x.from_currency === from && x.to_currency === to)
+    return {
+      id,
+      label,
+      rate: r ? r.rate.toLocaleString('es-CO') : '—',
+      date: r?.date ?? '—',
+    }
+  })
+
   return (
     <VStack gap={6} align="stretch">
-      {/* Tabla de tasas actuales */}
       <Box borderWidth="1px" borderRadius="lg" overflow="hidden">
-        <Table.Root size="sm">
-          <Table.Header>
-            <Table.Row>
-              <Table.ColumnHeader>Par</Table.ColumnHeader>
-              <Table.ColumnHeader>Tasa actual</Table.ColumnHeader>
-              <Table.ColumnHeader>Fecha</Table.ColumnHeader>
-            </Table.Row>
-          </Table.Header>
-          <Table.Body>
-            {PAIRS.map(({ from, to, label }) => {
-              const r = rates.find((x) => x.from_currency === from && x.to_currency === to)
-              return (
-                <Table.Row key={`${from}_${to}`}>
-                  <Table.Cell fontWeight="medium">{label}</Table.Cell>
-                  <Table.Cell>{r ? r.rate.toLocaleString('es-CO') : '—'}</Table.Cell>
-                  <Table.Cell color="#B0B0B0" fontSize="xs">{r?.date ?? '—'}</Table.Cell>
-                </Table.Row>
-              )
-            })}
-          </Table.Body>
-        </Table.Root>
+        <DataTable data={rateRows} columns={rateColumns} size="sm" />
       </Box>
 
-      {/* Formulario de actualización */}
       <VStack gap={4} align="stretch">
         <Text fontWeight="semibold" fontSize="sm" color="white">Actualizar tasas</Text>
 
-        {PAIRS.map(({ from, to, label }) => {
-          const key = `${from}_${to}` as keyof typeof inputs
+        {PAIRS.map(({ id, label }) => {
+          const key = id as keyof typeof inputs
           return (
             <HStack key={key} gap={4}>
               <Text fontSize="sm" color="#B0B0B0" minW="28">{label}</Text>
@@ -127,16 +122,9 @@ export function ExchangeRatesForm({ initialRates }: Props) {
           )
         })}
 
-        <Button
-          bg="#4F46E5"
-          color="white"
-          _hover={{ bg: '#4338CA' }}
-          alignSelf="flex-start"
-          loading={loading}
-          onClick={handleSave}
-        >
+        <PrimaryButton onClick={handleSave} loading={loading}>
           Guardar Tasas
-        </Button>
+        </PrimaryButton>
       </VStack>
     </VStack>
   )

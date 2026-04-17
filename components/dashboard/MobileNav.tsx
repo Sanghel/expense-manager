@@ -58,11 +58,8 @@ export function MobileNav({ isOpen, onClose }: Props) {
       <DrawerPositioner>
         <DrawerContent bg="#18181d" borderRightWidth="1px" borderColor="#2d2d35" maxW="72">
           <DrawerHeader borderBottomWidth="1px" borderColor="#2d2d35" py={4} px={4}>
-            <DrawerTitle color="white" fontSize="md" fontWeight="bold">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Image src="/brand/money-manager.svg" alt="GitPush Money" width={24} height={24} />
-                GitPush Money
-              </div>
+            <DrawerTitle>
+              <Image src="/brand/money-manager.png" alt="GitPush Money" width={110} height={60} style={{ objectFit: 'contain' }} />
             </DrawerTitle>
           </DrawerHeader>
           <DrawerCloseTrigger color="white" top={3} right={3} />

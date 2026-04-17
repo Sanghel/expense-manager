@@ -3,7 +3,6 @@
 import {
   Box,
   Flex,
-  Heading,
   MenuRoot,
   MenuTrigger,
   MenuPositioner,
@@ -34,12 +33,14 @@ export function Header() {
       flexShrink={0}
     >
       <Flex justify="space-between" align="center">
-        <Flex align="center" gap={2}>
-          <Image src="/brand/money-manager.svg" alt="GitPush Money" width={28} height={28} />
-          <Heading size="sm" color="white" letterSpacing="tight">
-            GitPush Money
-          </Heading>
-        </Flex>
+        <Image
+          src="/brand/money-manager.png"
+          alt="GitPush Money"
+          width={110}
+          height={60}
+          style={{ objectFit: 'contain' }}
+          priority
+        />
 
         {session?.user && (
           <MenuRoot>

@@ -1,63 +1,60 @@
 # Expense Manager
 
-Sistema de gestión de finanzas personales con IA integrada.
+Sistema de gestión de finanzas personales con IA integrada, soporte multi-moneda y análisis de gastos.
 
 ## Características
 
-- Registro de gastos e ingresos
-- Categorización automática con IA
-- Conversión de monedas (BOB, COP, USD)
-- Visualización de datos con gráficos
-- Chat para registro conversacional
-- Diseño responsive
+- **Transacciones** — CRUD completo de ingresos y gastos con categorización
+- **IA Conversacional** — Chat con Claude para registrar gastos en lenguaje natural
+- **Multi-moneda** — Soporte COP, USD, VES con conversión en tiempo real
+- **Dashboard** — Resumen financiero con gráficos de tendencia mensual
+- **Presupuestos** — Seguimiento de límites de gasto por categoría
+- **Metas de Ahorro** — Objetivos con barra de progreso y depósitos
+- **Gastos Recurrentes** — Suscripciones y pagos periódicos con generación automática vía cron
+- **Etiquetas** — Sistema de tags para clasificación adicional
+- **Exportación** — CSV y JSON con filtros personalizados
+- **Calendario** — Vista mensual de transacciones
+- **Mobile-first** — Bottom navigation, card views y experiencia nativa en móvil
+- **Autenticación** — Google OAuth con NextAuth.js
 
 ## Stack Tecnológico
 
-### Frontend
-
-- **Framework**: Next.js 16+ (App Router)
-- **Lenguaje**: TypeScript
-- **UI**: Chakra UI
-- **Autenticación**: NextAuth.js
-- **Gráficos**: Recharts
-- **Validación**: Zod
-
-### Backend
-
-- **Platform**: InsForge
-- **Database**: PostgreSQL
-- **Auth**: JWT
-- **Storage**: S3-compatible
-- **Functions**: Edge Functions
-
-### IA
-
-- **Provider**: Anthropic Claude
-- **Modelo**: Claude Sonnet 4.5
+| Capa | Tecnología |
+|---|---|
+| Framework | Next.js 16 (App Router, Server Components) |
+| Lenguaje | TypeScript |
+| UI | Chakra UI v3 |
+| Autenticación | NextAuth.js v4 |
+| Base de datos | InsForge (PostgreSQL) |
+| IA | Anthropic Claude (claude-sonnet-4-5) |
+| Gráficos | Recharts |
+| Validación | Zod |
+| Deploy | Vercel |
+| Animaciones | Framer Motion |
 
 ## Prerequisitos
 
-- Node.js 18.17 o superior
-- pnpm 8.x o superior
-- Cuenta de InsForge
-- Cuenta de Google Cloud (OAuth)
-- API Key de Anthropic
+- Node.js 20+
+- pnpm 8+
+- Cuenta en [InsForge](https://insforge.dev)
+- Proyecto OAuth en [Google Cloud Console](https://console.cloud.google.com)
+- API Key de [Anthropic](https://console.anthropic.com)
 
 ## Instalación
 
 ```bash
-# Clonar repositorio
+# 1. Clonar repositorio
 git clone https://github.com/Sanghel/expense-manager.git
 cd expense-manager
 
-# Instalar dependencias
+# 2. Instalar dependencias
 pnpm install
 
-# Configurar variables de entorno
-cp .env.local.example .env.local
+# 3. Variables de entorno
+cp .env.example .env.local
 # Editar .env.local con tus credenciales
 
-# Ejecutar en desarrollo
+# 4. Iniciar en desarrollo
 pnpm dev
 ```
 
@@ -65,41 +62,95 @@ Abrir [http://localhost:3000](http://localhost:3000)
 
 ## Variables de Entorno
 
-Crea un archivo `.env.local` con las siguientes variables:
-
 ```env
-# NextAuth Configuration
+# NextAuth
 NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=<generar-con-openssl-rand-base64-32>
+NEXTAUTH_SECRET=                    # openssl rand -base64 32
 
 # Google OAuth
-GOOGLE_CLIENT_ID=<tu-client-id>.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=GOCSPX-<tu-secret>
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
 
-# InsForge Backend
-NEXT_PUBLIC_INSFORGE_URL=https://<tu-proyecto>.us-east.insforge.app
-INSFORGE_API_KEY=if_live_<tu-api-key>
+# InsForge
+NEXT_PUBLIC_INSFORGE_URL=           # https://<proyecto>.us-east.insforge.app
+NEXT_PUBLIC_INSFORGE_ANON_KEY=      # clave pública (cliente)
+INSFORGE_API_KEY=                   # clave privada (servidor, bypassa RLS)
 
-# Claude API (para funcionalidad de IA)
-ANTHROPIC_API_KEY=sk-ant-<tu-key>
+# Anthropic (chat IA)
+ANTHROPIC_API_KEY=
+
+# Cron job (generación de recurrentes)
+CRON_SECRET=                        # openssl rand -hex 32
 ```
 
-Ver `.env.local.example` para referencia completa.
+Ver [`.env.example`](./.env.example) para referencia completa.
+
+## Scripts
+
+```bash
+pnpm dev          # Servidor de desarrollo
+pnpm build        # Build de producción
+pnpm start        # Servidor de producción
+pnpm lint         # ESLint
+ANALYZE=true pnpm build   # Análisis de bundle
+```
+
+## Arquitectura
+
+```
+app/
+  (dashboard)/      # Rutas protegidas del dashboard
+  api/
+    auth/           # NextAuth handlers
+    cron/           # Cron jobs (generación de recurrentes)
+  login/            # Página de autenticación
+components/
+  dashboard/        # Layout, Header, Sidebar, BottomNav
+  transactions/     # CRUD + card mobile view
+  budgets/          # Presupuestos
+  savings/          # Metas de ahorro
+  recurring/        # Transacciones recurrentes
+  charts/           # Gráficos Recharts
+  chat/             # Interfaz de chat IA
+  ui/               # Componentes globales reutilizables
+hooks/              # useFinancialSummary, useDebounce
+lib/
+  actions/          # Server Actions (una por módulo)
+  validations/      # Schemas Zod
+types/              # Tipos TypeScript compartidos
+```
+
+## Cron Jobs
+
+El proyecto incluye un cron job que se ejecuta diariamente a las **00:00 COT** (05:00 UTC):
+
+```
+GET /api/cron/generate-recurring
+Authorization: Bearer <CRON_SECRET>
+```
+
+Genera automáticamente las transacciones recurrentes cuya fecha de ejecución haya llegado.
+
+Configurado en `vercel.json`:
+```json
+{ "crons": [{ "path": "/api/cron/generate-recurring", "schedule": "0 5 * * *" }] }
+```
 
 ## Deploy
 
-El proyecto está configurado para deploy automático en Vercel.
+Push a `main` dispara deploy automático en Vercel.
 
-## Documentación
+Variables requeridas en Vercel → Settings → Environment Variables: ver sección anterior.
 
-- [Plan de Trabajo](./plan-v1/)
-- [Flujo Git/GitHub](./rules/github-flow.md)
-- [Guía de Deploy](./rules/deploy-guide.md)
+## Contribuir
+
+Ver [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## Licencia
 
-MIT
+MIT — ver [LICENSE](./LICENSE).
 
----
+## Autor
 
-**Nota**: Proyecto en desarrollo activo.
+**Sanghel González**
+- GitHub: [@Sanghel](https://github.com/Sanghel)

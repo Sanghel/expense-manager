@@ -1,6 +1,6 @@
 'use client'
 
-import { HStack, Input, NativeSelectRoot, NativeSelectField } from '@chakra-ui/react'
+import { Box, Flex, Input, NativeSelectRoot, NativeSelectField } from '@chakra-ui/react'
 import type { Category } from '@/types/database.types'
 
 export interface FilterState {
@@ -24,57 +24,62 @@ export function TransactionsFilter({ filters, onChange, categories }: Props) {
     const d = new Date()
     d.setMonth(d.getMonth() - i)
     const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-    const label = d.toLocaleDateString('es-CO', { month: 'long', year: 'numeric' })
+    const label = d.toLocaleDateString('es-CO', { month: 'short', year: '2-digit' })
     return { value, label }
   })
 
   return (
-    <HStack gap={3} mb={4} flexWrap="wrap">
+    <Box mb={3}>
+      {/* Search: full width */}
       <Input
         placeholder="Buscar descripción..."
-        maxW="220px"
+        mb={2}
         value={filters.search}
         onChange={(e) => update({ search: e.target.value })}
+        size="sm"
       />
 
-      <NativeSelectRoot maxW="160px">
-        <NativeSelectField
-          value={filters.type}
-          onChange={(e) => update({ type: e.target.value as FilterState['type'] })}
-        >
-          <option value="">Todos los tipos</option>
-          <option value="income">Ingresos</option>
-          <option value="expense">Gastos</option>
-        </NativeSelectField>
-      </NativeSelectRoot>
+      {/* Filters: horizontal scroll on mobile */}
+      <Flex gap={2} overflowX="auto" pb={1} css={{ '&::-webkit-scrollbar': { display: 'none' } }}>
+        <NativeSelectRoot flexShrink={0} w={{ base: '120px', md: '140px' }} size="sm">
+          <NativeSelectField
+            value={filters.type}
+            onChange={(e) => update({ type: e.target.value as FilterState['type'] })}
+          >
+            <option value="">Tipo</option>
+            <option value="income">Ingresos</option>
+            <option value="expense">Gastos</option>
+          </NativeSelectField>
+        </NativeSelectRoot>
 
-      <NativeSelectRoot maxW="200px">
-        <NativeSelectField
-          value={filters.category_id}
-          onChange={(e) => update({ category_id: e.target.value })}
-        >
-          <option value="">Todas las categorías</option>
-          {categories.map((cat) => (
-            <option key={cat.id} value={cat.id}>
-              {cat.icon} {cat.name}
-            </option>
-          ))}
-        </NativeSelectField>
-      </NativeSelectRoot>
+        <NativeSelectRoot flexShrink={0} w={{ base: '150px', md: '190px' }} size="sm">
+          <NativeSelectField
+            value={filters.category_id}
+            onChange={(e) => update({ category_id: e.target.value })}
+          >
+            <option value="">Categoría</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.icon} {cat.name}
+              </option>
+            ))}
+          </NativeSelectField>
+        </NativeSelectRoot>
 
-      <NativeSelectRoot maxW="200px">
-        <NativeSelectField
-          value={filters.month}
-          onChange={(e) => update({ month: e.target.value })}
-        >
-          <option value="">Todos los meses</option>
-          {months.map((m) => (
-            <option key={m.value} value={m.value}>
-              {m.label}
-            </option>
-          ))}
-        </NativeSelectField>
-      </NativeSelectRoot>
-    </HStack>
+        <NativeSelectRoot flexShrink={0} w={{ base: '130px', md: '180px' }} size="sm">
+          <NativeSelectField
+            value={filters.month}
+            onChange={(e) => update({ month: e.target.value })}
+          >
+            <option value="">Mes</option>
+            {months.map((m) => (
+              <option key={m.value} value={m.value}>
+                {m.label}
+              </option>
+            ))}
+          </NativeSelectField>
+        </NativeSelectRoot>
+      </Flex>
+    </Box>
   )
 }

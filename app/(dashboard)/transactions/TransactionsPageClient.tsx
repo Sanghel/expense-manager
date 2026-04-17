@@ -84,11 +84,12 @@ export function TransactionsPageClient({ userId, categories, initialTransactions
 
   return (
     <Box>
-      <HStack justify="space-between" mb={6}>
-        <Heading size="lg" color="white">Transacciones</Heading>
-        <Button bg="#4F46E5" color="white" _hover={{ bg: '#4338CA' }} onClick={onCreateOpen}>
+      <HStack justify="space-between" mb={{ base: 4, md: 6 }}>
+        <Heading size={{ base: 'md', md: 'lg' }} color="white">Transacciones</Heading>
+        <Button bg="#4F46E5" color="white" _hover={{ bg: '#4338CA' }} onClick={onCreateOpen} size={{ base: 'sm', md: 'md' }}>
           <FiPlus />
-          Nueva Transacción
+          <Text display={{ base: 'none', sm: 'inline' }}>Nueva Transacción</Text>
+          <Text display={{ base: 'inline', sm: 'none' }}>Nueva</Text>
         </Button>
       </HStack>
 

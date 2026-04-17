@@ -28,11 +28,12 @@ export function Header() {
       bg="#18181d"
       borderBottomWidth="1px"
       borderColor="#2d2d35"
-      px={8}
+      px={{ base: 4, md: 6 }}
       py={3}
+      flexShrink={0}
     >
       <Flex justify="space-between" align="center">
-        <Heading size="md" color="brand.500" letterSpacing="tight">
+        <Heading size="sm" color="brand.500" letterSpacing="tight">
           Expense Manager
         </Heading>
 

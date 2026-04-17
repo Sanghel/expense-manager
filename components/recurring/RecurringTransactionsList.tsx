@@ -1,6 +1,6 @@
 'use client'
 
-import { HStack, Badge, IconButton } from '@chakra-ui/react'
+import { Box, VStack, HStack, Badge, Text, IconButton, Flex } from '@chakra-ui/react'
 import { FiEdit2, FiTrash2, FiPlay, FiPause } from 'react-icons/fi'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -53,26 +53,10 @@ export function RecurringTransactionsList({ userId, transactions, onEdit }: Prop
   }
 
   const columns: ColumnDef<RecurringTransactionWithCategory>[] = [
-    {
-      key: 'description',
-      header: 'Descripción',
-      render: (t) => t.description,
-    },
-    {
-      key: 'category',
-      header: 'Categoría',
-      render: (t) => t.category.name,
-    },
-    {
-      key: 'amount',
-      header: 'Monto',
-      render: (t) => `${t.amount.toLocaleString()} ${t.currency}`,
-    },
-    {
-      key: 'frequency',
-      header: 'Frecuencia',
-      render: (t) => FREQUENCY_LABELS[t.frequency] ?? t.frequency,
-    },
+    { key: 'description', header: 'Descripción', render: (t) => t.description },
+    { key: 'category', header: 'Categoría', render: (t) => t.category.name },
+    { key: 'amount', header: 'Monto', render: (t) => `${t.amount.toLocaleString()} ${t.currency}` },
+    { key: 'frequency', header: 'Frecuencia', render: (t) => FREQUENCY_LABELS[t.frequency] ?? t.frequency },
     {
       key: 'status',
       header: 'Estado',
@@ -87,30 +71,13 @@ export function RecurringTransactionsList({ userId, transactions, onEdit }: Prop
       header: 'Acciones',
       render: (t) => (
         <HStack gap={1}>
-          <IconButton
-            aria-label={t.is_active ? 'Pausar' : 'Activar'}
-            size="sm"
-            variant="ghost"
-            title={t.is_active ? 'Pausar' : 'Activar'}
-            onClick={() => handleToggle(t.id, t.is_active)}
-          >
+          <IconButton aria-label={t.is_active ? 'Pausar' : 'Activar'} size="sm" variant="ghost" title={t.is_active ? 'Pausar' : 'Activar'} onClick={() => handleToggle(t.id, t.is_active)}>
             {t.is_active ? <FiPause /> : <FiPlay />}
           </IconButton>
-          <IconButton
-            aria-label="Editar"
-            size="sm"
-            variant="ghost"
-            onClick={() => onEdit(t)}
-          >
+          <IconButton aria-label="Editar" size="sm" variant="ghost" onClick={() => onEdit(t)}>
             <FiEdit2 />
           </IconButton>
-          <IconButton
-            aria-label="Eliminar"
-            size="sm"
-            variant="ghost"
-            colorPalette="red"
-            onClick={() => setDeletingId(t.id)}
-          >
+          <IconButton aria-label="Eliminar" size="sm" variant="ghost" colorPalette="red" onClick={() => setDeletingId(t.id)}>
             <FiTrash2 />
           </IconButton>
         </HStack>
@@ -120,11 +87,55 @@ export function RecurringTransactionsList({ userId, transactions, onEdit }: Prop
 
   return (
     <>
-      <DataTable
-        data={transactions}
-        columns={columns}
-        emptyMessage="Sin transacciones recurrentes"
-      />
+      {/* Mobile: card list */}
+      <Box display={{ base: 'block', md: 'none' }} w="full">
+        {transactions.length === 0 ? (
+          <Text color="#6b7280" textAlign="center" py={8} fontSize="sm">Sin transacciones recurrentes</Text>
+        ) : (
+          <VStack gap={2} align="stretch">
+            {transactions.map((t) => (
+              <Box key={t.id} borderWidth="1px" borderColor="#2d2d35" borderRadius="xl" p={3} bg="#18181d">
+                <Flex justify="space-between" align="flex-start" gap={2}>
+                  <Flex flex={1} direction="column" gap={1} minW={0}>
+                    <Text fontWeight="600" fontSize="sm" color="white" lineClamp={1}>{t.description}</Text>
+                    <HStack gap={2} flexWrap="wrap">
+                      <Text fontSize="xs" color="#6b7280">{t.category.name}</Text>
+                      <Text fontSize="xs" color="#4b5563">·</Text>
+                      <Text fontSize="xs" color="#6b7280">{FREQUENCY_LABELS[t.frequency] ?? t.frequency}</Text>
+                    </HStack>
+                    <HStack gap={2} mt={1}>
+                      <Badge colorPalette={t.is_active ? 'green' : 'yellow'} variant="solid" fontSize="10px">
+                        {t.is_active ? 'Activo' : 'Pausado'}
+                      </Badge>
+                    </HStack>
+                  </Flex>
+                  <Flex direction="column" align="flex-end" gap={1} flexShrink={0}>
+                    <Text fontWeight="700" fontSize="sm" color={t.type === 'income' ? '#4ade80' : '#f87171'}>
+                      {t.amount.toLocaleString()} {t.currency}
+                    </Text>
+                    <HStack gap={0}>
+                      <IconButton aria-label={t.is_active ? 'Pausar' : 'Activar'} size="xs" variant="ghost" color="#6b7280" onClick={() => handleToggle(t.id, t.is_active)}>
+                        {t.is_active ? <FiPause /> : <FiPlay />}
+                      </IconButton>
+                      <IconButton aria-label="Editar" size="xs" variant="ghost" color="#6b7280" onClick={() => onEdit(t)}>
+                        <FiEdit2 />
+                      </IconButton>
+                      <IconButton aria-label="Eliminar" size="xs" variant="ghost" color="#ef4444" onClick={() => setDeletingId(t.id)}>
+                        <FiTrash2 />
+                      </IconButton>
+                    </HStack>
+                  </Flex>
+                </Flex>
+              </Box>
+            ))}
+          </VStack>
+        )}
+      </Box>
+
+      {/* Desktop: data table */}
+      <Box display={{ base: 'none', md: 'block' }} w="full">
+        <DataTable data={transactions} columns={columns} emptyMessage="Sin transacciones recurrentes" />
+      </Box>
 
       <ConfirmDialog
         isOpen={deletingId !== null}

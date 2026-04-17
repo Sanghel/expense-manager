@@ -3,7 +3,6 @@
 import {
   Box,
   Flex,
-  Heading,
   MenuRoot,
   MenuTrigger,
   MenuPositioner,
@@ -40,6 +39,7 @@ export function Header() {
             GitPush Money
           </Heading>
         </Flex>
+
 
         {session?.user && (
           <MenuRoot>

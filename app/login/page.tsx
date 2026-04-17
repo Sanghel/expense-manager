@@ -42,8 +42,8 @@ function LoginContent() {
         }
 
         .login-logo-mark {
-          width: 36px;
-          height: 36px;
+          width: 140px;
+          height: auto;
           flex-shrink: 0;
         }
 
@@ -139,6 +139,7 @@ function LoginContent() {
       <div className="login-card">
         <div className="login-logo">
           <span className="login-logo-name">GitPush Money</span>
+
         </div>
 
         <h1 className="login-heading">Bienvenido de vuelta</h1>

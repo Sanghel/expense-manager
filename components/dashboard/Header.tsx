@@ -33,14 +33,13 @@ export function Header() {
       flexShrink={0}
     >
       <Flex justify="space-between" align="center">
-        <Image
-          src="/brand/money-manager.png"
-          alt="GitPush Money"
-          width={110}
-          height={60}
-          style={{ objectFit: 'contain' }}
-          priority
-        />
+        <Flex align="center" gap={2}>
+          {/* <Image src="/brand/money-manager.svg" alt="GitPush Money" width={28} height={28} /> */}
+          <Heading size="sm" color="white" letterSpacing="tight">
+            GitPush Money
+          </Heading>
+        </Flex>
+
 
         {session?.user && (
           <MenuRoot>
@@ -48,17 +47,26 @@ export function Header() {
               <Button variant="ghost" rounded="full" p={0} minW="auto" h="auto">
                 <AvatarRoot size="sm">
                   <AvatarImage src={session.user.image ?? ''} />
-                  <AvatarFallback>{session.user.name?.charAt(0) ?? '?'}</AvatarFallback>
+                  <AvatarFallback>
+                    {session.user.name?.charAt(0) ?? '?'}
+                  </AvatarFallback>
                 </AvatarRoot>
               </Button>
             </MenuTrigger>
             <MenuPositioner>
               <MenuContent minW="44">
-                <MenuItem value="settings" onClick={() => router.push('/settings')}>
+                <MenuItem
+                  value="settings"
+                  onClick={() => router.push('/settings')}
+                >
                   <FiSettings />
                   Configuración
                 </MenuItem>
-                <MenuItem value="logout" color="red.600" onClick={() => signOut()}>
+                <MenuItem
+                  value="logout"
+                  color="red.600"
+                  onClick={() => signOut()}
+                >
                   <FiLogOut />
                   Cerrar Sesión
                 </MenuItem>

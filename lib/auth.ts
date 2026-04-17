@@ -88,9 +88,17 @@ export const authOptions: NextAuthOptions = {
         return false
       }
     },
-    async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.sub as string
+    async session({ session }) {
+      if (session.user?.email) {
+        const { data: user } = await insforge.database
+          .from('users')
+          .select('id')
+          .eq('email', session.user.email)
+          .maybeSingle()
+
+        if (user) {
+          session.user.id = user.id
+        }
       }
       return session
     },

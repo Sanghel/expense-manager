@@ -112,7 +112,7 @@ export function BudgetList({ userId, initialBudgets, onEdit }: Props) {
       >
         <DialogBackdrop />
         <DialogPositioner>
-        <DialogContent>
+          <DialogContent tabIndex={-1}>
           <DialogHeader>
             <DialogTitle>Eliminar Presupuesto</DialogTitle>
           </DialogHeader>
@@ -128,7 +128,7 @@ export function BudgetList({ userId, initialBudgets, onEdit }: Props) {
               Eliminar
             </Button>
           </DialogFooter>
-        </DialogContent>
+          </DialogContent>
         </DialogPositioner>
       </DialogRoot>
     </>

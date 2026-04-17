@@ -19,10 +19,11 @@ import {
   DialogBody,
   DialogCloseTrigger,
 } from '@chakra-ui/react'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi'
 import { useDisclosure } from '@chakra-ui/react'
-import { getCategories, deleteCategory } from '@/lib/actions/categories.actions'
+import { deleteCategory } from '@/lib/actions/categories.actions'
+import { useRouter } from 'next/navigation'
 import { toaster } from '@/lib/toaster'
 import { CategoryForm } from '@/components/categories/CategoryForm'
 import { CategoryEditForm } from '@/components/categories/CategoryEditForm'
@@ -39,16 +40,19 @@ export function CategoriesPageClient({ userId, initialCategories }: Props) {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
 
+  const router = useRouter()
+
   const createDisclosure = useDisclosure()
   const editDisclosure = useDisclosure()
   const deleteDisclosure = useDisclosure()
 
-  const refresh = useCallback(async () => {
-    const result = await getCategories(userId)
-    if (result.success && result.data) {
-      setCategories(result.data as Category[])
-    }
-  }, [userId])
+  const refresh = useCallback(() => {
+    router.refresh()
+  }, [router])
+
+  useEffect(() => {
+    setCategories(initialCategories)
+  }, [initialCategories])
 
   const handleEditOpen = (cat: Category) => {
     setSelectedCategory(cat)

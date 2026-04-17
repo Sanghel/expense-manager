@@ -22,12 +22,16 @@ export function SavingsGoalsGrid({ userId, refresh }: Props) {
     if (result.success) {
       setGoals(result.data || [])
     } else {
-      toaster.error({ title: result.error || 'Error' })
+      toaster.create({ title: result.error || 'Error', type: 'error', duration: 3000 })
     }
     setLoading(false)
   }, [userId])
 
   useEffect(() => {
+    if (!userId) {
+      setLoading(false)
+      return
+    }
     loadGoals()
   }, [loadGoals, refresh])
 

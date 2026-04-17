@@ -33,12 +33,16 @@ export function RecurringTransactionsList({ userId, refresh }: Props) {
     if (result.success) {
       setTransactions(result.data || [])
     } else {
-      toaster.error({ title: result.error || 'Error' })
+      toaster.create({ title: result.error || 'Error', type: 'error', duration: 3000 })
     }
     setLoading(false)
   }, [userId])
 
   useEffect(() => {
+    if (!userId) {
+      setLoading(false)
+      return
+    }
     loadTransactions()
   }, [loadTransactions, refresh])
 
@@ -46,20 +50,20 @@ export function RecurringTransactionsList({ userId, refresh }: Props) {
     if (!confirm('Are you sure?')) return
     const result = await deleteRecurringTransaction(id, userId)
     if (result.success) {
-      toaster.success({ title: 'Deleted' })
+      toaster.create({ title: 'Deleted', type: 'success', duration: 3000 })
       loadTransactions()
     } else {
-      toaster.error({ title: result.error || 'Error' })
+      toaster.create({ title: result.error || 'Error', type: 'error', duration: 3000 })
     }
   }
 
   const handleToggle = async (id: string, isActive: boolean) => {
     const result = await toggleRecurringTransaction(id, userId, !isActive)
     if (result.success) {
-      toaster.success({ title: isActive ? 'Paused' : 'Activated' })
+      toaster.create({ title: isActive ? 'Paused' : 'Activated', type: 'success', duration: 3000 })
       loadTransactions()
     } else {
-      toaster.error({ title: result.error || 'Error' })
+      toaster.create({ title: result.error || 'Error', type: 'error', duration: 3000 })
     }
   }
 

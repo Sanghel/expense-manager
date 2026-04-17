@@ -13,8 +13,24 @@ import {
 import type { SavingsGoal } from '@/types/database.types'
 
 export async function createSavingsGoal(userId: string, data: CreateSavingsGoalInput) {
+  if (!userId) {
+    console.error('createSavingsGoal: userId is missing')
+    return { success: false, error: 'User ID is required' }
+  }
   try {
     const validated = createSavingsGoalSchema.parse(data)
+
+    // Verify user exists
+    const { data: user, error: userError } = await insforgeAdmin.database
+      .from('users')
+      .select('id')
+      .eq('id', userId)
+      .single()
+
+    if (userError || !user) {
+      console.error('User not found:', userId, userError)
+      return { success: false, error: 'Usuario no encontrado' }
+    }
 
     const { data: goal, error } = await insforgeAdmin.database
       .from('savings_goals')
@@ -24,7 +40,7 @@ export async function createSavingsGoal(userId: string, data: CreateSavingsGoalI
 
     if (error) throw error
 
-    revalidatePath('/dashboard')
+    revalidatePath('/savings-goals')
     return { success: true, data: goal as SavingsGoal }
   } catch (error) {
     console.error('Create savings goal error:', error)
@@ -33,6 +49,10 @@ export async function createSavingsGoal(userId: string, data: CreateSavingsGoalI
 }
 
 export async function getSavingsGoals(userId: string) {
+  if (!userId) {
+    console.error('getSavingsGoals: userId is missing')
+    return { success: false, error: 'User ID is required' }
+  }
   try {
     const { data, error } = await insforgeAdmin.database
       .from('savings_goals')
@@ -42,7 +62,8 @@ export async function getSavingsGoals(userId: string) {
 
     if (error) throw error
     return { success: true, data: data as SavingsGoal[] }
-  } catch (_error) {
+  } catch (error) {
+    console.error('Get savings goals error:', error)
     return { success: false, error: 'Failed to fetch savings goals' }
   }
 }
@@ -61,7 +82,7 @@ export async function updateSavingsGoal(id: string, userId: string, data: Update
 
     if (error) throw error
 
-    revalidatePath('/dashboard')
+    revalidatePath('/savings-goals')
     return { success: true, data: goal as SavingsGoal }
   } catch (error) {
     console.error('Update savings goal error:', error)
@@ -79,7 +100,7 @@ export async function deleteSavingsGoal(id: string, userId: string) {
 
     if (error) throw error
 
-    revalidatePath('/dashboard')
+    revalidatePath('/savings-goals')
     return { success: true }
   } catch (error) {
     console.error('Delete savings goal error:', error)
@@ -107,12 +128,13 @@ export async function addFundsToGoal(id: string, userId: string, data: AddFundsI
       .from('savings_goals')
       .update({ current_amount: newAmount, is_completed: isCompleted })
       .eq('id', id)
+      .eq('user_id', userId)
       .select()
       .single()
 
     if (updateError) throw updateError
 
-    revalidatePath('/dashboard')
+    revalidatePath('/savings-goals')
     return { success: true, data: updated as SavingsGoal }
   } catch (error) {
     console.error('Add funds to goal error:', error)
@@ -132,7 +154,7 @@ export async function markGoalAsCompleted(id: string, userId: string) {
 
     if (error) throw error
 
-    revalidatePath('/dashboard')
+    revalidatePath('/savings-goals')
     return { success: true, data: goal as SavingsGoal }
   } catch (error) {
     console.error('Mark goal as completed error:', error)

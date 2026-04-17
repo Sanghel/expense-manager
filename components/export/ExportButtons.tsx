@@ -19,9 +19,9 @@ export function ExportButtons({ userId }: Props) {
 
     if (result.success && result.data && result.filename) {
       downloadFile(result.data, result.filename, format === 'json' ? 'application/json' : 'text/csv')
-      toaster.success({ title: `Exported as ${format.toUpperCase()}` })
+      toaster.create({ title: `Exported as ${format.toUpperCase()}`, type: 'success', duration: 3000 })
     } else {
-      toaster.error({ title: result.error || 'Export failed' })
+      toaster.create({ title: result.error || 'Export failed', type: 'error', duration: 3000 })
     }
   }
 

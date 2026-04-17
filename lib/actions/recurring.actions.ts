@@ -14,18 +14,31 @@ export async function createRecurringTransaction(
   userId: string,
   data: CreateRecurringTransactionInput
 ) {
+  if (!userId) {
+    return { success: false, error: 'User ID is required' }
+  }
   try {
     const validated = createRecurringTransactionSchema.parse(data)
 
     const { data: transaction, error } = await insforgeAdmin.database
       .from('recurring_transactions')
-      .insert([{ ...validated, user_id: userId }])
+      .insert([{
+        user_id: userId,
+        amount: validated.amount,
+        currency: validated.currency,
+        type: validated.type,
+        category_id: validated.category_id,
+        description: validated.description,
+        frequency: validated.frequency,
+        start_date: validated.start_date,
+        end_date: validated.end_date || null,
+      }])
       .select('*, category:categories(*)')
       .single()
 
     if (error) throw error
 
-    revalidatePath('/dashboard')
+    revalidatePath('/recurring-transactions')
     return { success: true, data: transaction as RecurringTransactionWithCategory }
   } catch (error) {
     console.error('Create recurring transaction error:', error)
@@ -34,6 +47,10 @@ export async function createRecurringTransaction(
 }
 
 export async function getRecurringTransactions(userId: string, limit = 50) {
+  if (!userId) {
+    console.error('getRecurringTransactions: userId is missing')
+    return { success: false, error: 'User ID is required' }
+  }
   try {
     const { data, error } = await insforgeAdmin.database
       .from('recurring_transactions')
@@ -44,7 +61,8 @@ export async function getRecurringTransactions(userId: string, limit = 50) {
 
     if (error) throw error
     return { success: true, data: data as RecurringTransactionWithCategory[] }
-  } catch (_error) {
+  } catch (error) {
+    console.error('Get recurring transactions error:', error)
     return { success: false, error: 'Failed to fetch recurring transactions' }
   }
 }
@@ -67,7 +85,7 @@ export async function updateRecurringTransaction(
 
     if (error) throw error
 
-    revalidatePath('/dashboard')
+    revalidatePath('/recurring-transactions')
     return { success: true, data: transaction as RecurringTransactionWithCategory }
   } catch (error) {
     console.error('Update recurring transaction error:', error)
@@ -85,7 +103,7 @@ export async function deleteRecurringTransaction(id: string, userId: string) {
 
     if (error) throw error
 
-    revalidatePath('/dashboard')
+    revalidatePath('/recurring-transactions')
     return { success: true }
   } catch (error) {
     console.error('Delete recurring transaction error:', error)
@@ -105,7 +123,7 @@ export async function toggleRecurringTransaction(id: string, userId: string, isA
 
     if (error) throw error
 
-    revalidatePath('/dashboard')
+    revalidatePath('/recurring-transactions')
     return { success: true, data: data as RecurringTransactionWithCategory }
   } catch (error) {
     console.error('Toggle recurring transaction error:', error)
@@ -117,14 +135,23 @@ export async function generateRecurringTransactions(userId: string) {
   try {
     const today = new Date().toISOString().split('T')[0]
 
-    const { data: recurringTransactions, error: fetchError } = await insforgeAdmin.database
+    const { data: active, error: fetchError1 } = await insforgeAdmin.database
       .from('recurring_transactions')
       .select()
       .eq('user_id', userId)
       .eq('is_active', true)
-      .or(`end_date.is.null,end_date.gte.${today}`)
+      .is('end_date', null)
 
-    if (fetchError) throw fetchError
+    const { data: withEndDate, error: fetchError2 } = await insforgeAdmin.database
+      .from('recurring_transactions')
+      .select()
+      .eq('user_id', userId)
+      .eq('is_active', true)
+      .gte('end_date', today)
+
+    if (fetchError1) throw fetchError1
+    if (fetchError2) throw fetchError2
+    const recurringTransactions = [...(active || []), ...(withEndDate || [])]
 
     const transactions = []
 
@@ -157,7 +184,7 @@ export async function generateRecurringTransactions(userId: string) {
       }
     }
 
-    revalidatePath('/dashboard')
+    revalidatePath('/recurring-transactions')
     return { success: true, data: { generated: transactions.length } }
   } catch (error) {
     console.error('Generate recurring transactions error:', error)

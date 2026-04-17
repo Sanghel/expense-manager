@@ -8,6 +8,10 @@ import {
 } from '@/lib/validations/budget'
 
 export async function getBudgets(userId: string) {
+  if (!userId) {
+    console.error('getBudgets: userId is missing')
+    return { success: false, error: 'User ID is required' }
+  }
   try {
     const { data: budgets, error: budgetError } = await insforgeAdmin.database
       .from('budgets')
@@ -33,7 +37,7 @@ export async function getBudgets(userId: string) {
       const now = new Date()
 
       let periodStart: Date, periodEnd: Date
-      
+
       if (budget.period === 'monthly') {
         periodStart = new Date(now.getFullYear(), now.getMonth(), 1)
         periodEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59)
@@ -41,7 +45,7 @@ export async function getBudgets(userId: string) {
         periodStart = new Date(now.getFullYear(), 0, 1)
         periodEnd = new Date(now.getFullYear(), 11, 31, 23, 59, 59)
       }
-      
+
       const spent = (transactions || [])
         .filter((t) => {
           const transDate = new Date(t.date)
@@ -60,7 +64,8 @@ export async function getBudgets(userId: string) {
     })
 
     return { success: true, data: budgetsWithSpent }
-  } catch (_error) {
+  } catch (error) {
+    console.error('Get budgets error:', error)
     return { success: false, error: 'Failed to fetch budgets' }
   }
 }
@@ -77,6 +82,7 @@ export async function createBudget(userId: string, data: CreateBudgetInput) {
 
     if (error) throw error
 
+    revalidatePath('/budgets')
     revalidatePath('/dashboard')
     return { success: true, data: budget }
   } catch (error) {
@@ -103,6 +109,7 @@ export async function updateBudget(
 
     if (error) throw error
 
+    revalidatePath('/budgets')
     revalidatePath('/dashboard')
     return { success: true, data: budget }
   } catch (error) {
@@ -121,9 +128,11 @@ export async function deleteBudget(id: string, userId: string) {
 
     if (error) throw error
 
+    revalidatePath('/budgets')
     revalidatePath('/dashboard')
     return { success: true }
-  } catch (_error) {
+  } catch (error) {
+    console.error('Delete budget error:', error)
     return { success: false, error: 'Failed to delete budget' }
   }
 }

@@ -14,7 +14,7 @@ export async function createTag(userId: string, data: CreateTagInput) {
       .select()
       .single()
     if (error) throw error
-    revalidatePath('/dashboard')
+    revalidatePath('/tags')
     return { success: true, data: tag as Tag }
   } catch (error) {
     console.error('Create tag error:', error)
@@ -23,6 +23,10 @@ export async function createTag(userId: string, data: CreateTagInput) {
 }
 
 export async function getTags(userId: string) {
+  if (!userId) {
+    console.error('getTags: userId is missing')
+    return { success: false, error: 'User ID is required' }
+  }
   try {
     const { data, error } = await insforgeAdmin.database
       .from('tags')
@@ -31,7 +35,8 @@ export async function getTags(userId: string) {
       .order('name')
     if (error) throw error
     return { success: true, data: data as Tag[] }
-  } catch (_error) {
+  } catch (error) {
+    console.error('Get tags error:', error)
     return { success: false, error: 'Failed to fetch tags' }
   }
 }
@@ -44,7 +49,7 @@ export async function deleteTag(id: string, userId: string) {
       .eq('id', id)
       .eq('user_id', userId)
     if (error) throw error
-    revalidatePath('/dashboard')
+    revalidatePath('/tags')
     return { success: true }
   } catch (error) {
     console.error('Delete tag error:', error)
@@ -58,7 +63,7 @@ export async function addTagToTransaction(transactionId: string, tagId: string) 
       .from('transaction_tags')
       .insert([{ transaction_id: transactionId, tag_id: tagId }])
     if (error) throw error
-    revalidatePath('/dashboard')
+    revalidatePath('/tags')
     return { success: true }
   } catch (error) {
     console.error('Add tag to transaction error:', error)
@@ -74,7 +79,7 @@ export async function removeTagFromTransaction(transactionId: string, tagId: str
       .eq('transaction_id', transactionId)
       .eq('tag_id', tagId)
     if (error) throw error
-    revalidatePath('/dashboard')
+    revalidatePath('/tags')
     return { success: true }
   } catch (error) {
     console.error('Remove tag from transaction error:', error)

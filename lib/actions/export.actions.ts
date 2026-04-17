@@ -4,6 +4,10 @@ import { insforgeAdmin } from '@/lib/insforge-admin'
 import type { TransactionWithCategory } from '@/types/database.types'
 
 export async function exportTransactions(userId: string, format: 'csv' | 'json') {
+  if (!userId) {
+    console.error('exportTransactions: userId is missing')
+    return { success: false, error: 'User ID is required' }
+  }
   try {
     const { data, error } = await insforgeAdmin.database
       .from('transactions')
@@ -31,7 +35,7 @@ function convertToCSV(transactions: TransactionWithCategory[]): string {
   const rows = transactions.map(t => [
     t.date,
     t.description,
-    t.category.name,
+    t.category?.name ?? '',
     t.type,
     t.amount,
     t.currency,

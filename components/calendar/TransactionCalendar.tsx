@@ -42,13 +42,17 @@ export function TransactionCalendar({ userId }: Props) {
       setTransactions(result.data || [])
     } else {
       if (result.error) {
-        toaster.error({ title: result.error })
+        toaster.create({ title: result.error, type: 'error', duration: 3000 })
       }
     }
     setLoading(false)
   }, [userId])
 
   useEffect(() => {
+    if (!userId) {
+      setLoading(false)
+      return
+    }
     loadTransactions()
   }, [loadTransactions])
 
@@ -97,7 +101,7 @@ export function TransactionCalendar({ userId }: Props) {
 
   return (
     <>
-      <Box borderWidth="1px" borderRadius="lg" p="6" bg="bg.surface">
+      <Box borderWidth="1px" borderRadius="lg" p="6" bg="bg.surface" width="100%">
         <VStack gap="4" alignItems="stretch">
           {/* Header */}
           <HStack justifyContent="space-between" alignItems="center">

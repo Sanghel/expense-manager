@@ -1,17 +1,12 @@
 'use client'
 
-import {
-  Table,
-  Badge,
-  IconButton,
-  HStack,
-  Text,
-} from '@chakra-ui/react'
+import { Badge, IconButton, HStack } from '@chakra-ui/react'
 import { FiEdit2, FiTrash2 } from 'react-icons/fi'
 import { useState } from 'react'
 import { deleteTransaction } from '@/lib/actions/transactions.actions'
 import { formatCurrency } from '@/lib/utils/currency'
 import { toaster } from '@/lib/toaster'
+import { DataTable, type ColumnDef } from '@/components/ui/DataTable'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import type { TransactionWithCategory } from '@/types/database.types'
 
@@ -25,10 +20,6 @@ interface Props {
 export function TransactionsTable({ transactions, userId, onUpdate, onEdit }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
-
-  const handleDeleteClick = (id: string) => {
-    setSelectedId(id)
-  }
 
   const handleDelete = async () => {
     if (!selectedId) return
@@ -45,75 +36,71 @@ export function TransactionsTable({ transactions, userId, onUpdate, onEdit }: Pr
     setSelectedId(null)
   }
 
-  if (transactions.length === 0) {
-    return (
-      <Text color="#B0B0B0" textAlign="center" py={8}>
-        No hay transacciones. ¡Crea una nueva!
-      </Text>
-    )
-  }
+  const columns: ColumnDef<TransactionWithCategory>[] = [
+    {
+      key: 'date',
+      header: 'Fecha',
+      whiteSpace: 'nowrap',
+      render: (t) => new Date(t.date + 'T00:00:00').toLocaleDateString('es-CO'),
+    },
+    {
+      key: 'description',
+      header: 'Descripción',
+      render: (t) => t.description,
+    },
+    {
+      key: 'category',
+      header: 'Categoría',
+      render: (t) => <>{t.category.icon} {t.category.name}</>,
+    },
+    {
+      key: 'type',
+      header: 'Tipo',
+      render: (t) => (
+        <Badge colorPalette={t.type === 'income' ? 'green' : 'red'}>
+          {t.type === 'income' ? 'Ingreso' : 'Gasto'}
+        </Badge>
+      ),
+    },
+    {
+      key: 'amount',
+      header: 'Monto',
+      textAlign: 'right',
+      render: (t) => (
+        <span style={{ fontWeight: 600, color: t.type === 'income' ? 'var(--chakra-colors-green-600)' : 'var(--chakra-colors-red-600)' }}>
+          {t.type === 'income' ? '+' : '-'}{formatCurrency(Number(t.amount), t.currency)}
+        </span>
+      ),
+    },
+    {
+      key: 'actions',
+      header: 'Acciones',
+      render: (t) => (
+        <HStack gap={1}>
+          <IconButton aria-label="Editar" size="sm" variant="ghost" onClick={() => onEdit(t)}>
+            <FiEdit2 />
+          </IconButton>
+          <IconButton
+            aria-label="Eliminar"
+            size="sm"
+            variant="ghost"
+            colorPalette="red"
+            onClick={() => setSelectedId(t.id)}
+          >
+            <FiTrash2 />
+          </IconButton>
+        </HStack>
+      ),
+    },
+  ]
 
   return (
     <>
-      <Table.Root variant="line">
-        <Table.Header>
-          <Table.Row>
-            <Table.ColumnHeader>Fecha</Table.ColumnHeader>
-            <Table.ColumnHeader>Descripción</Table.ColumnHeader>
-            <Table.ColumnHeader>Categoría</Table.ColumnHeader>
-            <Table.ColumnHeader>Tipo</Table.ColumnHeader>
-            <Table.ColumnHeader textAlign="right">Monto</Table.ColumnHeader>
-            <Table.ColumnHeader>Acciones</Table.ColumnHeader>
-          </Table.Row>
-        </Table.Header>
-        <Table.Body>
-          {transactions.map((transaction) => (
-            <Table.Row key={transaction.id}>
-              <Table.Cell whiteSpace="nowrap">
-                {new Date(transaction.date + 'T00:00:00').toLocaleDateString('es-CO')}
-              </Table.Cell>
-              <Table.Cell>{transaction.description}</Table.Cell>
-              <Table.Cell>
-                {transaction.category.icon} {transaction.category.name}
-              </Table.Cell>
-              <Table.Cell>
-                <Badge colorPalette={transaction.type === 'income' ? 'green' : 'red'}>
-                  {transaction.type === 'income' ? 'Ingreso' : 'Gasto'}
-                </Badge>
-              </Table.Cell>
-              <Table.Cell
-                textAlign="right"
-                fontWeight="semibold"
-                color={transaction.type === 'income' ? 'green.600' : 'red.600'}
-              >
-                {transaction.type === 'income' ? '+' : '-'}
-                {formatCurrency(Number(transaction.amount), transaction.currency)}
-              </Table.Cell>
-              <Table.Cell>
-                <HStack gap={1}>
-                  <IconButton
-                    aria-label="Editar"
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => onEdit(transaction)}
-                  >
-                    <FiEdit2 />
-                  </IconButton>
-                  <IconButton
-                    aria-label="Eliminar"
-                    size="sm"
-                    variant="ghost"
-                    colorPalette="red"
-                    onClick={() => handleDeleteClick(transaction.id)}
-                  >
-                    <FiTrash2 />
-                  </IconButton>
-                </HStack>
-              </Table.Cell>
-            </Table.Row>
-          ))}
-        </Table.Body>
-      </Table.Root>
+      <DataTable
+        data={transactions}
+        columns={columns}
+        emptyMessage="No hay transacciones. ¡Crea una nueva!"
+      />
 
       <ConfirmDialog
         isOpen={selectedId !== null}

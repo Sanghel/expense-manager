@@ -1,9 +1,6 @@
 'use client'
 
 import {
-  Box,
-  Table,
-  Text,
   HStack,
   Button,
   Badge,
@@ -17,8 +14,16 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { deleteRecurringTransaction, toggleRecurringTransaction } from '@/lib/actions/recurring.actions'
 import { toaster } from '@/lib/toaster'
+import { DataTable, type ColumnDef } from '@/components/ui/DataTable'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import type { RecurringTransactionWithCategory } from '@/types/database.types'
+
+const FREQUENCY_LABELS: Record<string, string> = {
+  daily: 'Diario',
+  weekly: 'Semanal',
+  monthly: 'Mensual',
+  yearly: 'Anual',
+}
 
 interface Props {
   userId: string
@@ -30,10 +35,6 @@ export function RecurringTransactionsList({ userId, transactions, onEdit }: Prop
   const router = useRouter()
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
-
-  const handleDelete = (id: string) => {
-    setDeletingId(id)
-  }
 
   const confirmDelete = async () => {
     if (!deletingId) return
@@ -59,75 +60,78 @@ export function RecurringTransactionsList({ userId, transactions, onEdit }: Prop
     }
   }
 
-  if (transactions.length === 0) {
-    return <Text color="fg.muted">Sin transacciones recurrentes</Text>
-  }
+  const columns: ColumnDef<RecurringTransactionWithCategory>[] = [
+    {
+      key: 'description',
+      header: 'Descripción',
+      render: (t) => t.description,
+    },
+    {
+      key: 'category',
+      header: 'Categoría',
+      render: (t) => t.category.name,
+    },
+    {
+      key: 'amount',
+      header: 'Monto',
+      render: (t) => `${t.amount.toLocaleString()} ${t.currency}`,
+    },
+    {
+      key: 'frequency',
+      header: 'Frecuencia',
+      render: (t) => FREQUENCY_LABELS[t.frequency] ?? t.frequency,
+    },
+    {
+      key: 'status',
+      header: 'Estado',
+      render: (t) => (
+        <Badge variant={t.is_active ? 'solid' : 'outline'}>
+          {t.is_active ? 'Activo' : 'Pausado'}
+        </Badge>
+      ),
+    },
+    {
+      key: 'actions',
+      header: 'Acciones',
+      render: (t) => (
+        <HStack gap="2">
+          <Button size="sm" onClick={() => handleToggle(t.id, t.is_active)}>
+            {t.is_active ? 'Pausar' : 'Activar'}
+          </Button>
+          <MenuRoot>
+            <MenuTrigger asChild>
+              <IconButton aria-label="Opciones" variant="ghost" size="sm" />
+            </MenuTrigger>
+            <MenuContent>
+              <MenuItem value="edit" onClick={() => onEdit(t)}>
+                Editar
+              </MenuItem>
+              <MenuItem value="delete" onClick={() => setDeletingId(t.id)}>
+                Eliminar
+              </MenuItem>
+            </MenuContent>
+          </MenuRoot>
+        </HStack>
+      ),
+    },
+  ]
 
   return (
     <>
-    <Box overflowX="auto">
-      <Table.Root>
-        <Table.Header>
-          <Table.Row>
-            <Table.ColumnHeader>Descripción</Table.ColumnHeader>
-            <Table.ColumnHeader>Categoría</Table.ColumnHeader>
-            <Table.ColumnHeader>Monto</Table.ColumnHeader>
-            <Table.ColumnHeader>Frecuencia</Table.ColumnHeader>
-            <Table.ColumnHeader>Estado</Table.ColumnHeader>
-            <Table.ColumnHeader>Acciones</Table.ColumnHeader>
-          </Table.Row>
-        </Table.Header>
-        <Table.Body>
-          {transactions.map(txn => (
-            <Table.Row key={txn.id}>
-              <Table.Cell>{txn.description}</Table.Cell>
-              <Table.Cell>{txn.category.name}</Table.Cell>
-              <Table.Cell>
-                {txn.amount.toLocaleString()} {txn.currency}
-              </Table.Cell>
-              <Table.Cell>{txn.frequency}</Table.Cell>
-              <Table.Cell>
-                <Badge variant={txn.is_active ? 'solid' : 'outline'}>
-                  {txn.is_active ? 'Activo' : 'Pausado'}
-                </Badge>
-              </Table.Cell>
-              <Table.Cell>
-                <HStack gap="2">
-                  <Button
-                    size="sm"
-                    onClick={() => handleToggle(txn.id, txn.is_active)}
-                  >
-                    {txn.is_active ? 'Pausar' : 'Activar'}
-                  </Button>
-                  <MenuRoot>
-                    <MenuTrigger asChild>
-                      <IconButton aria-label="Options" variant="ghost" />
-                    </MenuTrigger>
-                    <MenuContent>
-                      <MenuItem value="edit" onClick={() => onEdit(txn)}>
-                        Editar
-                      </MenuItem>
-                      <MenuItem value="delete" onClick={() => handleDelete(txn.id)}>
-                        Eliminar
-                      </MenuItem>
-                    </MenuContent>
-                  </MenuRoot>
-                </HStack>
-              </Table.Cell>
-            </Table.Row>
-          ))}
-        </Table.Body>
-      </Table.Root>
-    </Box>
+      <DataTable
+        data={transactions}
+        columns={columns}
+        emptyMessage="Sin transacciones recurrentes"
+      />
 
-    <ConfirmDialog
-      isOpen={deletingId !== null}
-      onClose={() => setDeletingId(null)}
-      onConfirm={confirmDelete}
-      title="Eliminar recurrente"
-      description="¿Estás seguro? Esta acción no se puede deshacer."
-      isLoading={deleteLoading}
-    />
+      <ConfirmDialog
+        isOpen={deletingId !== null}
+        onClose={() => setDeletingId(null)}
+        onConfirm={confirmDelete}
+        title="Eliminar recurrente"
+        description="¿Estás seguro? Esta acción no se puede deshacer."
+        isLoading={deleteLoading}
+      />
     </>
   )
 }

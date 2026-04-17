@@ -17,6 +17,7 @@ import {
 import { signOut, useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { FiLogOut, FiSettings } from 'react-icons/fi'
+import Image from 'next/image'
 
 export function Header() {
   const { data: session } = useSession()
@@ -33,9 +34,12 @@ export function Header() {
       flexShrink={0}
     >
       <Flex justify="space-between" align="center">
-        <Heading size="sm" color="brand.500" letterSpacing="tight">
-          Expense Manager
-        </Heading>
+        <Flex align="center" gap={2}>
+          <Image src="/brand/money-manager.svg" alt="GitPush Money" width={28} height={28} />
+          <Heading size="sm" color="white" letterSpacing="tight">
+            GitPush Money
+          </Heading>
+        </Flex>
 
         {session?.user && (
           <MenuRoot>

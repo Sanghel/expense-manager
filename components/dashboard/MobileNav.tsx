@@ -15,6 +15,7 @@ import {
 } from '@chakra-ui/react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import {
   FiHome,
   FiDollarSign,
@@ -58,7 +59,10 @@ export function MobileNav({ isOpen, onClose }: Props) {
         <DrawerContent bg="#18181d" borderRightWidth="1px" borderColor="#2d2d35" maxW="72">
           <DrawerHeader borderBottomWidth="1px" borderColor="#2d2d35" py={4} px={4}>
             <DrawerTitle color="white" fontSize="md" fontWeight="bold">
-              Expense Manager
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Image src="/brand/money-manager.svg" alt="GitPush Money" width={24} height={24} />
+                GitPush Money
+              </div>
             </DrawerTitle>
           </DrawerHeader>
           <DrawerCloseTrigger color="white" top={3} right={3} />

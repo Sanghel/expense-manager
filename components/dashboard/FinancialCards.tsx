@@ -5,26 +5,22 @@ import { StatCard } from '@/components/ui/StatCard'
 import { MultiCurrencyBalance } from './MultiCurrencyBalance'
 import { useFinancialSummary } from '@/hooks/useFinancialSummary'
 import { formatCurrency } from '@/lib/utils/currency'
-import type { Currency } from '@/types/database.types'
+import type { TransactionWithCategory, Currency } from '@/types/database.types'
 
 interface Props {
-  userId: string
+  transactions: TransactionWithCategory[]
   month?: string
   preferredCurrency?: Currency
+  exchangeRates?: any[]
 }
 
-export function FinancialCards({ userId, month, preferredCurrency = 'COP' }: Props) {
-  const { summary, loading } = useFinancialSummary(userId, month, preferredCurrency)
-
-  if (loading) {
-    return (
-      <SimpleGrid columns={{ base: 1, md: 3 }} gap={6}>
-        <StatCard label="Cargando..." value="..." />
-        <StatCard label="Cargando..." value="..." />
-        <StatCard label="Cargando..." value="..." />
-      </SimpleGrid>
-    )
-  }
+export function FinancialCards({
+  transactions,
+  month,
+  preferredCurrency = 'COP',
+  exchangeRates = [],
+}: Props) {
+  const { summary } = useFinancialSummary(transactions, month, preferredCurrency, exchangeRates)
 
   return (
     <SimpleGrid columns={{ base: 1, md: 3 }} gap={6}>

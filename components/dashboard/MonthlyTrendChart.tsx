@@ -1,7 +1,7 @@
 'use client'
 
-import { Box, Heading, Spinner, Center, Text } from '@chakra-ui/react'
-import { useEffect, useState } from 'react'
+import { useMemo } from 'react'
+import { Box, Heading, Text } from '@chakra-ui/react'
 import {
   LineChart,
   Line,
@@ -12,7 +12,6 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts'
-import { getTransactions } from '@/lib/actions/transactions.actions'
 import { Card } from '@/components/ui/Card'
 import type { TransactionWithCategory } from '@/types/database.types'
 
@@ -23,58 +22,31 @@ interface ChartDataPoint {
 }
 
 interface Props {
-  userId: string
+  transactions: TransactionWithCategory[]
 }
 
-export function MonthlyTrendChart({ userId }: Props) {
-  const [chartData, setChartData] = useState<ChartDataPoint[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    async function fetchData() {
-      const result = await getTransactions(userId, 500)
-
-      if (result.success && result.data) {
-        const transactions = result.data as TransactionWithCategory[]
-
-        // Agrupar por mes
-        const grouped = transactions.reduce<Record<string, ChartDataPoint>>(
-          (acc, t) => {
-            const month = t.date.slice(0, 7) // YYYY-MM
-            if (!acc[month]) {
-              acc[month] = { month, income: 0, expense: 0 }
-            }
-            if (t.type === 'income') {
-              acc[month].income += Number(t.amount)
-            } else {
-              acc[month].expense += Number(t.amount)
-            }
-            return acc
-          },
-          {}
-        )
-
-        // Convertir a array, ordenar y tomar últimos 6 meses
-        const data = Object.values(grouped)
-          .sort((a, b) => a.month.localeCompare(b.month))
-          .slice(-6)
-
-        setChartData(data)
-      }
-      setLoading(false)
-    }
-    fetchData()
-  }, [userId])
-
-  if (loading) {
-    return (
-      <Card>
-        <Center py={10}>
-          <Spinner />
-        </Center>
-      </Card>
+export function MonthlyTrendChart({ transactions }: Props) {
+  const chartData = useMemo<ChartDataPoint[]>(() => {
+    const grouped = transactions.reduce<Record<string, ChartDataPoint>>(
+      (acc, t) => {
+        const month = t.date.slice(0, 7) // YYYY-MM
+        if (!acc[month]) {
+          acc[month] = { month, income: 0, expense: 0 }
+        }
+        if (t.type === 'income') {
+          acc[month].income += Number(t.amount)
+        } else {
+          acc[month].expense += Number(t.amount)
+        }
+        return acc
+      },
+      {}
     )
-  }
+
+    return Object.values(grouped)
+      .sort((a, b) => a.month.localeCompare(b.month))
+      .slice(-6)
+  }, [transactions])
 
   if (chartData.length === 0) {
     return (

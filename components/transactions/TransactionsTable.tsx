@@ -1,13 +1,15 @@
 'use client'
 
-import { Badge, IconButton, HStack } from '@chakra-ui/react'
-import { FiEdit2, FiTrash2 } from 'react-icons/fi'
+import { Box, VStack, Text } from '@chakra-ui/react'
 import { useState } from 'react'
 import { deleteTransaction } from '@/lib/actions/transactions.actions'
-import { formatCurrency } from '@/lib/utils/currency'
 import { toaster } from '@/lib/toaster'
 import { DataTable, type ColumnDef } from '@/components/ui/DataTable'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { TransactionCardMobile } from './TransactionCardMobile'
+import { formatCurrency } from '@/lib/utils/currency'
+import { Badge, IconButton, HStack } from '@chakra-ui/react'
+import { FiEdit2, FiTrash2 } from 'react-icons/fi'
 import type { TransactionWithCategory } from '@/types/database.types'
 
 interface Props {
@@ -67,7 +69,7 @@ export function TransactionsTable({ transactions, userId, onUpdate, onEdit }: Pr
       header: 'Monto',
       textAlign: 'right',
       render: (t) => (
-        <span style={{ fontWeight: 600, color: t.type === 'income' ? 'var(--chakra-colors-green-600)' : 'var(--chakra-colors-red-600)' }}>
+        <span style={{ fontWeight: 600, color: t.type === 'income' ? '#4ade80' : '#f87171' }}>
           {t.type === 'income' ? '+' : '-'}{formatCurrency(Number(t.amount), t.currency)}
         </span>
       ),
@@ -96,11 +98,34 @@ export function TransactionsTable({ transactions, userId, onUpdate, onEdit }: Pr
 
   return (
     <>
-      <DataTable
-        data={transactions}
-        columns={columns}
-        emptyMessage="No hay transacciones. ¡Crea una nueva!"
-      />
+      {/* Mobile: card list */}
+      <Box display={{ base: 'block', md: 'none' }} w="full">
+        {transactions.length === 0 ? (
+          <Text color="#6b7280" textAlign="center" py={8} fontSize="sm">
+            No hay transacciones. ¡Crea una nueva!
+          </Text>
+        ) : (
+          <VStack gap={2} align="stretch">
+            {transactions.map((t) => (
+              <TransactionCardMobile
+                key={t.id}
+                transaction={t}
+                onEdit={onEdit}
+                onDelete={setSelectedId}
+              />
+            ))}
+          </VStack>
+        )}
+      </Box>
+
+      {/* Desktop: data table */}
+      <Box display={{ base: 'none', md: 'block' }}>
+        <DataTable
+          data={transactions}
+          columns={columns}
+          emptyMessage="No hay transacciones. ¡Crea una nueva!"
+        />
+      </Box>
 
       <ConfirmDialog
         isOpen={selectedId !== null}

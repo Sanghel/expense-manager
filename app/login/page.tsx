@@ -15,7 +15,7 @@ function LoginContent() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: '#F5F5F7',
+        background: '#0f0f13',
         fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
         padding: '24px',
       }}
@@ -24,12 +24,13 @@ function LoginContent() {
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
 
         .login-card {
-          background: #fff;
+          background: #18181d;
+          border: 1px solid #2d2d35;
           border-radius: 24px;
           padding: 48px 44px 44px;
           width: 100%;
           max-width: 440px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.04), 0 16px 48px rgba(0,0,0,0.08);
+          box-shadow: 0 8px 32px rgba(0,0,0,0.4);
         }
 
         .login-logo {
@@ -57,14 +58,14 @@ function LoginContent() {
         .login-logo-name {
           font-size: 15px;
           font-weight: 600;
-          color: #1A1A2E;
+          color: #e5e7eb;
           letter-spacing: -0.2px;
         }
 
         .login-heading {
           font-size: 30px;
           font-weight: 700;
-          color: #111827;
+          color: #f9fafb;
           letter-spacing: -0.8px;
           line-height: 1.2;
           margin: 0 0 10px 0;
@@ -72,16 +73,16 @@ function LoginContent() {
 
         .login-subheading {
           font-size: 15px;
-          color: #6B7280;
+          color: #9ca3af;
           font-weight: 400;
           line-height: 1.5;
           margin: 0 0 32px 0;
         }
 
         .login-error {
-          background: #FFF1F2;
-          border: 1px solid #FECDD3;
-          color: #E11D48;
+          background: rgba(225, 29, 72, 0.1);
+          border: 1px solid rgba(225, 29, 72, 0.3);
+          color: #fb7185;
           border-radius: 12px;
           padding: 12px 14px;
           font-size: 13.5px;
@@ -92,27 +93,6 @@ function LoginContent() {
           line-height: 1.4;
         }
 
-        .login-divider {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          margin: 24px 0;
-        }
-
-        .login-divider-line {
-          flex: 1;
-          height: 1px;
-          background: #E5E7EB;
-        }
-
-        .login-divider-text {
-          font-size: 12.5px;
-          color: #9CA3AF;
-          font-weight: 500;
-          text-transform: uppercase;
-          letter-spacing: 0.6px;
-        }
-
         .login-google-btn {
           width: 100%;
           display: flex;
@@ -121,41 +101,41 @@ function LoginContent() {
           gap: 12px;
           padding: 13px 20px;
           border-radius: 14px;
-          border: 1.5px solid #E5E7EB;
-          background: #fff;
-          color: #374151;
+          border: 1.5px solid #2d2d35;
+          background: #1e1e24;
+          color: #e5e7eb;
           font-size: 15px;
           font-weight: 600;
           font-family: inherit;
           cursor: pointer;
           transition: all 0.15s ease;
           letter-spacing: -0.1px;
-          box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+          box-shadow: 0 1px 3px rgba(0,0,0,0.3);
         }
 
         .login-google-btn:hover {
-          border-color: #6366F1;
-          background: #FAFAFE;
-          box-shadow: 0 4px 16px rgba(99,102,241,0.12);
+          border-color: #4F46E5;
+          background: #23232d;
+          box-shadow: 0 4px 16px rgba(79,70,229,0.2);
           transform: translateY(-1px);
         }
 
         .login-google-btn:active {
           transform: translateY(0);
-          box-shadow: 0 1px 4px rgba(99,102,241,0.1);
+          box-shadow: 0 1px 4px rgba(79,70,229,0.1);
         }
 
         .login-footer {
           margin-top: 28px;
           text-align: center;
           font-size: 12.5px;
-          color: #9CA3AF;
+          color: #6b7280;
           line-height: 1.5;
         }
 
         @media (max-width: 480px) {
           .login-card {
-            padding: 36px 28px 32px;
+            padding: 36px 24px 28px;
             border-radius: 20px;
           }
           .login-heading {
@@ -165,19 +145,16 @@ function LoginContent() {
       `}</style>
 
       <div className="login-card">
-        {/* Logo */}
         <div className="login-logo">
           <div className="login-logo-mark">EM</div>
           <span className="login-logo-name">Expense Manager</span>
         </div>
 
-        {/* Heading */}
         <h1 className="login-heading">Bienvenido de vuelta</h1>
         <p className="login-subheading">
           Inicia sesión para acceder a tu panel financiero.
         </p>
 
-        {/* Error */}
         {error && (
           <div className="login-error">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}>
@@ -191,7 +168,6 @@ function LoginContent() {
           </div>
         )}
 
-        {/* Google Button */}
         <button
           className="login-google-btn"
           onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
@@ -205,7 +181,6 @@ function LoginContent() {
           Continuar con Google
         </button>
 
-        {/* Footer */}
         <p className="login-footer">
           Solo usuarios autorizados pueden acceder a esta aplicación.
         </p>

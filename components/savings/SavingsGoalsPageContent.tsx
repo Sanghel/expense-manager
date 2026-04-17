@@ -24,10 +24,10 @@ export function SavingsGoalsPageContent({ userId, initialGoals }: Props) {
   }
 
   return (
-    <VStack alignItems="flex-start" gap={6}>
+    <VStack alignItems="flex-start" gap={{ base: 4, md: 6 }}>
       <HStack justifyContent="space-between" width="100%">
-        <Heading size="lg">Metas de Ahorro</Heading>
-        <Button bg="#4F46E5" color="white" _hover={{ bg: '#4338CA' }} onClick={() => setIsFormOpen(true)}>
+        <Heading size={{ base: 'md', md: 'lg' }}>Metas de Ahorro</Heading>
+        <Button bg="#4F46E5" color="white" _hover={{ bg: '#4338CA' }} onClick={() => setIsFormOpen(true)} size={{ base: 'sm', md: 'md' }}>
           <FiPlus />
           Nueva Meta
         </Button>

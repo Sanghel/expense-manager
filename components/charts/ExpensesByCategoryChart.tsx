@@ -139,16 +139,16 @@ export function ExpensesByCategoryChart({ userId, type = 'expense', filters }: P
       <Heading size="md" mb={4}>
         {title}
       </Heading>
-      <Box h="400px">
+      <Box h={{ base: '280px', md: '400px' }}>
         <ResponsiveContainer width="100%" height="100%">
-          <PieChart margin={{ top: 20, right: 20, left: 20, bottom: 20 }}>
+          <PieChart margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
             <Pie
               data={chartData}
               dataKey="value"
               nameKey="name"
               cx="50%"
               cy="50%"
-              outerRadius={120}
+              outerRadius="40%"
               label={({ name, percent = 0 }) =>
                 `${name} ${(percent * 100).toFixed(0)}%`
               }

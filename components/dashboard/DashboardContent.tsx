@@ -33,12 +33,12 @@ export function DashboardContent({
 
   return (
     <Box>
-      <HStack justify="space-between" align="center" mb={8}>
-        <Heading>Dashboard</Heading>
+      <HStack justify="space-between" align="center" mb={{ base: 4, md: 8 }}>
+        <Heading size={{ base: 'lg', md: 'xl' }}>Dashboard</Heading>
         <MonthSelector value={selectedMonth} onChange={setSelectedMonth} />
       </HStack>
 
-      <VStack gap={8} align="stretch">
+      <VStack gap={{ base: 4, md: 8 }} align="stretch">
         <FinancialCards
           transactions={initialTransactions}
           month={selectedMonth}

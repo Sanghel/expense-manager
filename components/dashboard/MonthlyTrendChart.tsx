@@ -60,9 +60,9 @@ export const MonthlyTrendChart = memo(function MonthlyTrendChart({ transactions 
   return (
     <Card>
       <Heading size="md" mb={4}>Tendencia Mensual</Heading>
-      <Box h="300px">
+      <Box h={{ base: '220px', md: '300px' }}>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartData} margin={{ top: 20, right: 30, left: 60, bottom: 60 }}>
+          <LineChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
             <YAxis />

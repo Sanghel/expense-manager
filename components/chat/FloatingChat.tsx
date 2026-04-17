@@ -27,17 +27,20 @@ export function FloatingChat({ userId, categories }: Props) {
             exit={{ opacity: 0, scale: 0.95, y: 16 }}
             transition={{ duration: 0.18, ease: 'easeOut' }}
             position="fixed"
-            bottom="88px"
-            right="24px"
-            w="380px"
-            h="520px"
+            zIndex={1000}
             bg="#18181d"
-            borderRadius="2xl"
+            borderRadius={{ base: '2xl', md: '2xl' }}
             shadow="2xl"
             borderWidth="1px"
             borderColor="#2d2d35"
             overflow="hidden"
-            zIndex={1000}
+            /* Desktop */
+            bottom={{ base: '80px', md: '88px' }}
+            right={{ base: '12px', md: '24px' }}
+            left={{ base: '12px', md: 'auto' }}
+            w={{ base: 'auto', md: '380px' }}
+            h={{ base: 'calc(100vh - 160px)', md: '520px' }}
+            maxH={{ base: '600px', md: '520px' }}
           >
             <ChatInterface
               userId={userId}
@@ -48,13 +51,17 @@ export function FloatingChat({ userId, categories }: Props) {
         )}
       </AnimatePresence>
 
-      {/* Botón flotante */}
-      <Box position="fixed" bottom="24px" right="24px" zIndex={1001}>
+      <Box
+        position="fixed"
+        bottom={{ base: '72px', md: '24px' }}
+        right="16px"
+        zIndex={1001}
+      >
         <IconButton
           aria-label={isOpen ? 'Cerrar chat IA' : 'Abrir chat IA'}
           borderRadius="full"
-          w="56px"
-          h="56px"
+          w={{ base: '46px', md: '56px' }}
+          h={{ base: '46px', md: '56px' }}
           colorPalette="brand"
           shadow="lg"
           onClick={() => setIsOpen((prev) => !prev)}
@@ -69,7 +76,7 @@ export function FloatingChat({ userId, categories }: Props) {
             },
           }}
         >
-          <Icon as={BsStars} boxSize={5} color="white" />
+          <Icon as={BsStars} boxSize={{ base: 4, md: 5 }} color="white" />
         </IconButton>
       </Box>
     </>

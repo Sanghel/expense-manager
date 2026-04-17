@@ -31,7 +31,7 @@ export function FormDialog({ isOpen, onClose, title, children, size = 'md' }: Pr
     >
       <DialogBackdrop />
       <DialogPositioner>
-        <DialogContent tabIndex={-1}>
+        <DialogContent tabIndex={-1} mx={{ base: 3, md: 0 }} maxH="90vh" overflowY="auto">
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
           </DialogHeader>

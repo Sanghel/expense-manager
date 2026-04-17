@@ -1,45 +1,47 @@
 'use client'
 
-import {
-  DialogRoot,
-  DialogBackdrop,
-  DialogPositioner,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogBody,
-  DialogCloseTrigger,
-  VStack,
-  FieldRoot,
-  FieldLabel,
-  Input,
-  NativeSelectRoot,
-  NativeSelectField,
-  Button,
-} from '@chakra-ui/react'
-import { useState } from 'react'
-import { createSavingsGoal } from '@/lib/actions/savings.actions'
+import { VStack } from '@chakra-ui/react'
+import { useState, useEffect } from 'react'
+import { createSavingsGoal, updateSavingsGoal } from '@/lib/actions/savings.actions'
 import { toaster } from '@/lib/toaster'
+import { FormDialog } from '@/components/ui/FormDialog'
+import { FormInput } from '@/components/ui/FormInput'
+import { CurrencySelect } from '@/components/ui/CurrencySelect'
+import { PrimaryButton } from '@/components/ui/PrimaryButton'
+import type { Currency, SavingsGoal } from '@/types/database.types'
 
 interface Props {
   isOpen: boolean
   onClose: () => void
   userId: string
   onSuccess: () => void
+  initialData?: SavingsGoal
+  goalId?: string
 }
 
-export function SavingsGoalForm({ isOpen, onClose, userId, onSuccess }: Props) {
-  const [form, setForm] = useState({
-    name: '',
-    target_amount: '',
-    currency: 'COP' as 'COP' | 'USD' | 'VES',
-    deadline: '',
-  })
+const defaultForm = {
+  name: '',
+  target_amount: '',
+  currency: 'COP' as Currency,
+  deadline: '',
+}
+
+export function SavingsGoalForm({ isOpen, onClose, userId, onSuccess, initialData, goalId }: Props) {
+  const [form, setForm] = useState(defaultForm)
   const [loading, setLoading] = useState(false)
 
-  const handleChange = (field: string, value: string) => {
-    setForm(prev => ({ ...prev, [field]: value }))
-  }
+  useEffect(() => {
+    if (initialData) {
+      setForm({
+        name: initialData.name,
+        target_amount: String(initialData.target_amount),
+        currency: initialData.currency,
+        deadline: initialData.deadline ?? '',
+      })
+    } else {
+      setForm(defaultForm)
+    }
+  }, [initialData])
 
   const handleSubmit = async () => {
     if (!form.name || !form.target_amount) {
@@ -48,88 +50,76 @@ export function SavingsGoalForm({ isOpen, onClose, userId, onSuccess }: Props) {
     }
 
     setLoading(true)
-    const result = await createSavingsGoal(userId, {
+    const payload = {
       name: form.name,
       target_amount: parseFloat(form.target_amount),
       currency: form.currency,
       deadline: form.deadline || undefined,
-    })
+    }
+
+    const result = goalId
+      ? await updateSavingsGoal(goalId, userId, payload)
+      : await createSavingsGoal(userId, payload)
 
     setLoading(false)
 
     if (result.success) {
-      toaster.create({ title: 'Meta de ahorro creada', type: 'success', duration: 3000 })
-      setForm({ name: '', target_amount: '', currency: 'COP', deadline: '' })
+      toaster.create({
+        title: goalId ? 'Meta actualizada' : 'Meta de ahorro creada',
+        type: 'success',
+        duration: 3000,
+      })
+      if (!goalId) setForm(defaultForm)
       onClose()
       onSuccess()
     } else {
-      toaster.create({ title: 'Error al crear', description: result.error, type: 'error', duration: 4000 })
+      toaster.create({ title: 'Error al guardar', description: result.error, type: 'error', duration: 4000 })
     }
   }
 
   return (
-    <DialogRoot open={isOpen} onOpenChange={details => !details.open && onClose()} size="md" placement="center" lazyMount unmountOnExit>
-      <DialogBackdrop />
-      <DialogPositioner>
-        <DialogContent tabIndex={-1}>
-          <DialogHeader>
-            <DialogTitle>Nueva Meta de Ahorro</DialogTitle>
-          </DialogHeader>
-          <DialogCloseTrigger />
-          <DialogBody pb={6}>
-            <form onSubmit={(e) => { e.preventDefault(); handleSubmit() }}>
-              <VStack gap="4">
-                <FieldRoot required>
-                  <FieldLabel>Nombre de la Meta</FieldLabel>
-                  <Input
-                    placeholder="Ej: Vacaciones"
-                    value={form.name}
-                    onChange={e => handleChange('name', e.target.value)}
-                  />
-                </FieldRoot>
+    <FormDialog
+      isOpen={isOpen}
+      onClose={onClose}
+      title={goalId ? 'Editar Meta' : 'Nueva Meta de Ahorro'}
+    >
+      <form onSubmit={(e) => { e.preventDefault(); handleSubmit() }}>
+        <VStack gap="4">
+          <FormInput
+            label="Nombre de la Meta"
+            value={form.name}
+            onChange={(v) => setForm({ ...form, name: v })}
+            placeholder="Ej: Vacaciones"
+            required
+          />
 
-                <FieldRoot required>
-                  <FieldLabel>Monto Objetivo</FieldLabel>
-                  <Input
-                    type="number"
-                    placeholder="0.00"
-                    value={form.target_amount}
-                    onChange={e => handleChange('target_amount', e.target.value)}
-                    step="0.01"
-                  />
-                </FieldRoot>
+          <FormInput
+            label="Monto Objetivo"
+            value={form.target_amount}
+            onChange={(v) => setForm({ ...form, target_amount: v })}
+            type="number"
+            placeholder="0.00"
+            step="0.01"
+            required
+          />
 
-                <FieldRoot>
-                  <FieldLabel>Moneda</FieldLabel>
-                  <NativeSelectRoot>
-                    <NativeSelectField
-                      value={form.currency}
-                      onChange={e => handleChange('currency', e.target.value)}
-                    >
-                      <option value="COP">COP</option>
-                      <option value="USD">USD</option>
-                      <option value="VES">VES</option>
-                    </NativeSelectField>
-                  </NativeSelectRoot>
-                </FieldRoot>
+          <CurrencySelect
+            value={form.currency}
+            onChange={(v) => setForm({ ...form, currency: v })}
+          />
 
-                <FieldRoot>
-                  <FieldLabel>Fecha Límite (Opcional)</FieldLabel>
-                  <Input
-                    type="date"
-                    value={form.deadline}
-                    onChange={e => handleChange('deadline', e.target.value)}
-                  />
-                </FieldRoot>
+          <FormInput
+            label="Fecha Límite (Opcional)"
+            value={form.deadline}
+            onChange={(v) => setForm({ ...form, deadline: v })}
+            type="date"
+          />
 
-                <Button type="submit" bg="#4F46E5" color="white" _hover={{ bg: '#4338CA' }} width="full" loading={loading}>
-                  Crear Meta
-                </Button>
-              </VStack>
-            </form>
-          </DialogBody>
-        </DialogContent>
-      </DialogPositioner>
-    </DialogRoot>
+          <PrimaryButton type="submit" width="full" loading={loading}>
+            {goalId ? 'Guardar Cambios' : 'Crear Meta'}
+          </PrimaryButton>
+        </VStack>
+      </form>
+    </FormDialog>
   )
 }

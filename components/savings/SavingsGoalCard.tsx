@@ -32,9 +32,10 @@ import type { SavingsGoal } from '@/types/database.types'
 interface Props {
   goal: SavingsGoal
   userId: string
+  onEdit: (goal: SavingsGoal) => void
 }
 
-export function SavingsGoalCard({ goal, userId }: Props) {
+export function SavingsGoalCard({ goal, userId, onEdit }: Props) {
   const router = useRouter()
   const [isAddFundsOpen, setIsAddFundsOpen] = useState(false)
   const [fundsAmount, setFundsAmount] = useState('')
@@ -129,6 +130,9 @@ export function SavingsGoalCard({ goal, userId }: Props) {
                 <IconButton aria-label="Opciones" variant="ghost" size="sm" />
               </MenuTrigger>
               <MenuContent>
+                <MenuItem value="edit" onClick={() => onEdit(goal)}>
+                  Editar
+                </MenuItem>
                 <MenuItem value="delete" onClick={handleDelete}>
                   Eliminar
                 </MenuItem>

@@ -23,9 +23,10 @@ import type { RecurringTransactionWithCategory } from '@/types/database.types'
 interface Props {
   userId: string
   transactions: RecurringTransactionWithCategory[]
+  onEdit: (txn: RecurringTransactionWithCategory) => void
 }
 
-export function RecurringTransactionsList({ userId, transactions }: Props) {
+export function RecurringTransactionsList({ userId, transactions, onEdit }: Props) {
   const router = useRouter()
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
@@ -103,6 +104,9 @@ export function RecurringTransactionsList({ userId, transactions }: Props) {
                       <IconButton aria-label="Options" variant="ghost" />
                     </MenuTrigger>
                     <MenuContent>
+                      <MenuItem value="edit" onClick={() => onEdit(txn)}>
+                        Editar
+                      </MenuItem>
                       <MenuItem value="delete" onClick={() => handleDelete(txn.id)}>
                         Eliminar
                       </MenuItem>

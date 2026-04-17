@@ -1,32 +1,21 @@
 'use client'
 
-import {
-  DialogRoot,
-  DialogBackdrop,
-  DialogPositioner,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogBody,
-  DialogCloseTrigger,
-  VStack,
-  FieldRoot,
-  FieldLabel,
-  Input,
-  NativeSelectRoot,
-  NativeSelectField,
-  Button,
-  RadioGroupRoot,
-  RadioGroupItem,
-  RadioGroupItemControl,
-  RadioGroupItemText,
-  RadioGroupItemHiddenInput,
-  HStack,
-} from '@chakra-ui/react'
-import { useState } from 'react'
-import { createRecurringTransaction } from '@/lib/actions/recurring.actions'
+import { VStack, FieldRoot, FieldLabel, NativeSelectRoot, NativeSelectField } from '@chakra-ui/react'
+import { useState, useEffect } from 'react'
+import { createRecurringTransaction, updateRecurringTransaction } from '@/lib/actions/recurring.actions'
 import { toaster } from '@/lib/toaster'
-import type { Category } from '@/types/database.types'
+import { FormDialog } from '@/components/ui/FormDialog'
+import { FormInput } from '@/components/ui/FormInput'
+import { RadioSelect } from '@/components/ui/RadioSelect'
+import { CurrencySelect } from '@/components/ui/CurrencySelect'
+import { CategorySelect } from '@/components/ui/CategorySelect'
+import { PrimaryButton } from '@/components/ui/PrimaryButton'
+import type { Category, Currency, RecurringTransactionWithCategory } from '@/types/database.types'
+
+const TYPE_OPTIONS = [
+  { value: 'expense', label: 'Gasto' },
+  { value: 'income', label: 'Ingreso' },
+]
 
 interface Props {
   isOpen: boolean
@@ -34,12 +23,14 @@ interface Props {
   userId: string
   categories: Category[]
   onSuccess: () => void
+  initialData?: RecurringTransactionWithCategory
+  transactionId?: string
 }
 
 const defaultForm = {
   type: 'expense' as 'income' | 'expense',
   amount: '',
-  currency: 'COP' as 'COP' | 'USD' | 'VES',
+  currency: 'COP' as Currency,
   category_id: '',
   description: '',
   frequency: 'monthly' as 'daily' | 'weekly' | 'monthly' | 'yearly',
@@ -47,14 +38,34 @@ const defaultForm = {
   end_date: '',
 }
 
-export function RecurringTransactionForm({ isOpen, onClose, userId, categories, onSuccess }: Props) {
+export function RecurringTransactionForm({
+  isOpen,
+  onClose,
+  userId,
+  categories,
+  onSuccess,
+  initialData,
+  transactionId,
+}: Props) {
   const [form, setForm] = useState(defaultForm)
   const [loading, setLoading] = useState(false)
 
-  const handleChange = (field: string, value: any) => {
-    const actualValue = typeof value === 'object' && value?.value ? value.value : value
-    setForm(prev => ({ ...prev, [field]: actualValue }))
-  }
+  useEffect(() => {
+    if (initialData) {
+      setForm({
+        type: initialData.type,
+        amount: String(initialData.amount),
+        currency: initialData.currency as Currency,
+        category_id: initialData.category_id,
+        description: initialData.description,
+        frequency: initialData.frequency,
+        start_date: initialData.start_date,
+        end_date: initialData.end_date ?? '',
+      })
+    } else {
+      setForm(defaultForm)
+    }
+  }, [initialData])
 
   const handleSubmit = async () => {
     if (!form.amount || !form.category_id || !form.description) {
@@ -63,7 +74,7 @@ export function RecurringTransactionForm({ isOpen, onClose, userId, categories, 
     }
 
     setLoading(true)
-    const result = await createRecurringTransaction(userId, {
+    const payload = {
       amount: parseFloat(form.amount as string),
       currency: form.currency,
       type: form.type,
@@ -72,148 +83,110 @@ export function RecurringTransactionForm({ isOpen, onClose, userId, categories, 
       frequency: form.frequency,
       start_date: form.start_date,
       end_date: form.end_date || undefined,
-    })
+    }
+
+    const result = transactionId
+      ? await updateRecurringTransaction(transactionId, userId, payload)
+      : await createRecurringTransaction(userId, payload)
 
     setLoading(false)
 
     if (result.success) {
-      toaster.create({ title: 'Transacción recurrente creada', type: 'success', duration: 3000 })
-      setForm(defaultForm)
+      toaster.create({
+        title: transactionId ? 'Recurrente actualizada' : 'Transacción recurrente creada',
+        type: 'success',
+        duration: 3000,
+      })
+      if (!transactionId) setForm(defaultForm)
       onClose()
       onSuccess()
     } else {
-      toaster.create({ title: 'Error al crear', description: result.error, type: 'error', duration: 4000 })
+      toaster.create({ title: 'Error al guardar', description: result.error, type: 'error', duration: 4000 })
     }
   }
 
   return (
-    <DialogRoot open={isOpen} onOpenChange={details => !details.open && onClose()} size="md" placement="center" lazyMount unmountOnExit>
-      <DialogBackdrop />
-      <DialogPositioner>
-        <DialogContent tabIndex={-1}>
-          <DialogHeader>
-            <DialogTitle>Nueva Transacción Recurrente</DialogTitle>
-          </DialogHeader>
-          <DialogCloseTrigger />
-          <DialogBody pb={6}>
-            <form onSubmit={(e) => { e.preventDefault(); handleSubmit() }}>
-              <VStack gap="4">
-                <FieldRoot required>
-                  <FieldLabel>Tipo</FieldLabel>
-                  <RadioGroupRoot
-                    value={form.type}
-                    onValueChange={({ value }) =>
-                      setForm({ ...form, type: value as 'income' | 'expense' })
-                    }
-                    colorPalette="brand"
-                  >
-                    <HStack gap={4}>
-                      <RadioGroupItem value="expense">
-                        <RadioGroupItemHiddenInput />
-                        <RadioGroupItemControl borderColor="#4F46E5" _checked={{ bg: '#4F46E5', borderColor: '#4F46E5' }} />
-                        <RadioGroupItemText>Gasto</RadioGroupItemText>
-                      </RadioGroupItem>
-                      <RadioGroupItem value="income">
-                        <RadioGroupItemHiddenInput />
-                        <RadioGroupItemControl borderColor="#4F46E5" _checked={{ bg: '#4F46E5', borderColor: '#4F46E5' }} />
-                        <RadioGroupItemText>Ingreso</RadioGroupItemText>
-                      </RadioGroupItem>
-                    </HStack>
-                  </RadioGroupRoot>
-                </FieldRoot>
+    <FormDialog
+      isOpen={isOpen}
+      onClose={onClose}
+      title={transactionId ? 'Editar Recurrente' : 'Nueva Transacción Recurrente'}
+    >
+      <form onSubmit={(e) => { e.preventDefault(); handleSubmit() }}>
+        <VStack gap="4">
+          <RadioSelect
+            label="Tipo"
+            value={form.type}
+            onChange={(v) => setForm({ ...form, type: v as 'income' | 'expense', category_id: '' })}
+            options={TYPE_OPTIONS}
+            required
+          />
 
-                <FieldRoot required>
-                  <FieldLabel>Monto</FieldLabel>
-                  <Input
-                    type="number"
-                    placeholder="0.00"
-                    value={form.amount}
-                    onChange={e => handleChange('amount', e.target.value)}
-                    step="0.01"
-                  />
-                </FieldRoot>
+          <FormInput
+            label="Monto"
+            value={form.amount}
+            onChange={(v) => setForm({ ...form, amount: v })}
+            type="number"
+            placeholder="0.00"
+            step="0.01"
+            required
+          />
 
-                <FieldRoot>
-                  <FieldLabel>Moneda</FieldLabel>
-                  <NativeSelectRoot>
-                    <NativeSelectField
-                      value={form.currency}
-                      onChange={e => handleChange('currency', e.target.value)}
-                    >
-                      <option value="COP">COP</option>
-                      <option value="USD">USD</option>
-                      <option value="VES">VES</option>
-                    </NativeSelectField>
-                  </NativeSelectRoot>
-                </FieldRoot>
+          <CurrencySelect
+            value={form.currency}
+            onChange={(v) => setForm({ ...form, currency: v })}
+          />
 
-                <FieldRoot required>
-                  <FieldLabel>Categoría</FieldLabel>
-                  <NativeSelectRoot>
-                    <NativeSelectField
-                      value={form.category_id}
-                      onChange={e => handleChange('category_id', e.target.value)}
-                    >
-                      <option value="">Selecciona una categoría</option>
-                      {categories.map(cat => (
-                        <option key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </option>
-                      ))}
-                    </NativeSelectField>
-                  </NativeSelectRoot>
-                </FieldRoot>
+          <CategorySelect
+            value={form.category_id}
+            onChange={(v) => setForm({ ...form, category_id: v })}
+            categories={categories}
+            filterByType={form.type}
+            required
+          />
 
-                <FieldRoot required>
-                  <FieldLabel>Descripción</FieldLabel>
-                  <Input
-                    placeholder="Ej: Suscripción Netflix"
-                    value={form.description}
-                    onChange={e => handleChange('description', e.target.value)}
-                  />
-                </FieldRoot>
+          <FormInput
+            label="Descripción"
+            value={form.description}
+            onChange={(v) => setForm({ ...form, description: v })}
+            placeholder="Ej: Suscripción Netflix"
+            required
+          />
 
-                <FieldRoot required>
-                  <FieldLabel>Frecuencia</FieldLabel>
-                  <NativeSelectRoot>
-                    <NativeSelectField
-                      value={form.frequency}
-                      onChange={e => handleChange('frequency', e.target.value)}
-                    >
-                      <option value="daily">Diario</option>
-                      <option value="weekly">Semanal</option>
-                      <option value="monthly">Mensual</option>
-                      <option value="yearly">Anual</option>
-                    </NativeSelectField>
-                  </NativeSelectRoot>
-                </FieldRoot>
+          <FieldRoot required>
+            <FieldLabel>Frecuencia</FieldLabel>
+            <NativeSelectRoot>
+              <NativeSelectField
+                value={form.frequency}
+                onChange={(e) => setForm({ ...form, frequency: e.target.value as typeof form.frequency })}
+              >
+                <option value="daily">Diario</option>
+                <option value="weekly">Semanal</option>
+                <option value="monthly">Mensual</option>
+                <option value="yearly">Anual</option>
+              </NativeSelectField>
+            </NativeSelectRoot>
+          </FieldRoot>
 
-                <FieldRoot required>
-                  <FieldLabel>Fecha de Inicio</FieldLabel>
-                  <Input
-                    type="date"
-                    value={form.start_date}
-                    onChange={e => handleChange('start_date', e.target.value)}
-                  />
-                </FieldRoot>
+          <FormInput
+            label="Fecha de Inicio"
+            value={form.start_date}
+            onChange={(v) => setForm({ ...form, start_date: v })}
+            type="date"
+            required
+          />
 
-                <FieldRoot>
-                  <FieldLabel>Fecha de Fin (Opcional)</FieldLabel>
-                  <Input
-                    type="date"
-                    value={form.end_date}
-                    onChange={e => handleChange('end_date', e.target.value)}
-                  />
-                </FieldRoot>
+          <FormInput
+            label="Fecha de Fin (Opcional)"
+            value={form.end_date}
+            onChange={(v) => setForm({ ...form, end_date: v })}
+            type="date"
+          />
 
-                <Button type="submit" bg="#4F46E5" color="white" _hover={{ bg: '#4338CA' }} width="full" loading={loading}>
-                  Crear Recurrencia
-                </Button>
-              </VStack>
-            </form>
-          </DialogBody>
-        </DialogContent>
-      </DialogPositioner>
-    </DialogRoot>
+          <PrimaryButton type="submit" width="full" loading={loading}>
+            {transactionId ? 'Guardar Cambios' : 'Crear Recurrencia'}
+          </PrimaryButton>
+        </VStack>
+      </form>
+    </FormDialog>
   )
 }

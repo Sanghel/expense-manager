@@ -5,16 +5,6 @@ import {
   Badge,
   IconButton,
   HStack,
-  useDisclosure,
-  DialogRoot,
-  DialogBackdrop,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogBody,
-  DialogFooter,
-  DialogCloseTrigger,
-  Button,
   Text,
 } from '@chakra-ui/react'
 import { FiEdit2, FiTrash2 } from 'react-icons/fi'
@@ -22,6 +12,7 @@ import { useState } from 'react'
 import { deleteTransaction } from '@/lib/actions/transactions.actions'
 import { formatCurrency } from '@/lib/utils/currency'
 import { toaster } from '@/lib/toaster'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import type { TransactionWithCategory } from '@/types/database.types'
 
 interface Props {
@@ -32,18 +23,18 @@ interface Props {
 }
 
 export function TransactionsTable({ transactions, userId, onUpdate, onEdit }: Props) {
-  const { open, onOpen, onClose } = useDisclosure()
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const handleDeleteClick = (id: string) => {
     setSelectedId(id)
-    onOpen()
   }
 
   const handleDelete = async () => {
     if (!selectedId) return
-
+    setIsDeleting(true)
     const result = await deleteTransaction(selectedId, userId)
+    setIsDeleting(false)
 
     if (result.success) {
       toaster.create({ title: 'Transacción eliminada', type: 'success', duration: 3000 })
@@ -51,7 +42,6 @@ export function TransactionsTable({ transactions, userId, onUpdate, onEdit }: Pr
     } else {
       toaster.create({ title: 'Error al eliminar', description: result.error, type: 'error', duration: 4000 })
     }
-    onClose()
     setSelectedId(null)
   }
 
@@ -125,28 +115,14 @@ export function TransactionsTable({ transactions, userId, onUpdate, onEdit }: Pr
         </Table.Body>
       </Table.Root>
 
-      <DialogRoot
-        open={open}
-        onOpenChange={({ open: isOpen }) => !isOpen && onClose()}
-        role="alertdialog"
-      >
-        <DialogBackdrop />
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Eliminar Transacción</DialogTitle>
-          </DialogHeader>
-          <DialogCloseTrigger />
-          <DialogBody>
-            ¿Estás seguro? Esta acción no se puede deshacer.
-          </DialogBody>
-          <DialogFooter>
-            <Button variant="outline" onClick={onClose}>Cancelar</Button>
-            <Button colorPalette="red" onClick={handleDelete} ml={3}>
-              Eliminar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </DialogRoot>
+      <ConfirmDialog
+        isOpen={selectedId !== null}
+        onClose={() => setSelectedId(null)}
+        onConfirm={handleDelete}
+        title="Eliminar Transacción"
+        description="¿Estás seguro? Esta acción no se puede deshacer."
+        isLoading={isDeleting}
+      />
     </>
   )
 }

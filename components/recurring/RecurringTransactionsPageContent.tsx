@@ -16,7 +16,13 @@ interface Props {
 
 export function RecurringTransactionsPageContent({ userId, categories, initialTransactions }: Props) {
   const [isFormOpen, setIsFormOpen] = useState(false)
+  const [editingTransaction, setEditingTransaction] = useState<RecurringTransactionWithCategory | null>(null)
   const router = useRouter()
+
+  const handleClose = () => {
+    setIsFormOpen(false)
+    setEditingTransaction(null)
+  }
 
   return (
     <VStack alignItems="flex-start" gap={6}>
@@ -29,17 +35,23 @@ export function RecurringTransactionsPageContent({ userId, categories, initialTr
       </HStack>
 
       <RecurringTransactionForm
-        isOpen={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
+        isOpen={isFormOpen || !!editingTransaction}
+        onClose={handleClose}
         userId={userId}
         categories={categories}
+        initialData={editingTransaction ?? undefined}
+        transactionId={editingTransaction?.id}
         onSuccess={() => {
           router.refresh()
-          setIsFormOpen(false)
+          handleClose()
         }}
       />
 
-      <RecurringTransactionsList userId={userId} transactions={initialTransactions} />
+      <RecurringTransactionsList
+        userId={userId}
+        transactions={initialTransactions}
+        onEdit={setEditingTransaction}
+      />
     </VStack>
   )
 }

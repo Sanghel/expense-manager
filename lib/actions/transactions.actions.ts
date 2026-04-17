@@ -47,8 +47,6 @@ export async function getTransactions(userId: string, limit = 50) {
       .order('date', { ascending: false })
       .limit(limit)
 
-    console.log('data', data)
-
     if (error) throw error
     return { success: true, data }
   } catch (error) {

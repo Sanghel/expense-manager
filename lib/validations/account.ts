@@ -13,9 +13,11 @@ export const updateAccountSchema = createAccountSchema.partial()
 
 export const createAccountMovementSchema = z.object({
   from_account_id: z.string().uuid(),
+  from_amount: z.number().positive('El monto enviado debe ser mayor a 0'),
+  from_currency: z.enum(['COP', 'USD', 'VES']),
   to_account_id: z.string().uuid(),
-  amount: z.number().positive('El monto debe ser mayor a 0'),
-  currency: z.enum(['COP', 'USD', 'VES']),
+  to_amount: z.number().positive('El monto recibido debe ser mayor a 0'),
+  to_currency: z.enum(['COP', 'USD', 'VES']),
   description: z.string().nullable().optional(),
   date: z.string(),
 })

@@ -3,7 +3,7 @@ import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { insforgeAdmin } from '@/lib/insforge-admin'
 import { getUserProfile } from '@/lib/actions/users.actions'
-import { getAllRatePairs, seedInitialRates } from '@/lib/actions/exchangeRates.actions'
+import { getAllRatePairs } from '@/lib/actions/exchangeRates.actions'
 import { getAccounts } from '@/lib/actions/accounts.actions'
 import { getAccountMovements } from '@/lib/actions/account_movements.actions'
 import { SettingsPageClient } from './SettingsPageClient'
@@ -25,9 +25,6 @@ export default async function SettingsPage() {
   if (!userRow) {
     redirect('/login')
   }
-
-  // Seed initial rates if table is empty
-  await seedInitialRates()
 
   const [profileResult, ratesResult, accountsResult, movementsResult] = await Promise.all([
     getUserProfile(userRow.id),

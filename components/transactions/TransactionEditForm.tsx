@@ -1,6 +1,6 @@
 'use client'
 
-import { VStack, Box } from '@chakra-ui/react'
+import { VStack, Box, FieldRoot, FieldLabel, NativeSelectRoot, NativeSelectField } from '@chakra-ui/react'
 import { useState, useEffect } from 'react'
 import { updateTransaction } from '@/lib/actions/transactions.actions'
 import { toaster } from '@/lib/toaster'
@@ -12,7 +12,7 @@ import { CurrencySelect } from '@/components/ui/CurrencySelect'
 import { CategorySelect } from '@/components/ui/CategorySelect'
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
 import { CurrencyPreview } from './CurrencyPreview'
-import type { Category, Currency, TransactionWithCategory } from '@/types/database.types'
+import type { Account, Category, Currency, TransactionWithCategory } from '@/types/database.types'
 
 const TYPE_OPTIONS = [
   { value: 'expense', label: 'Gasto' },
@@ -24,17 +24,19 @@ interface Props {
   onClose: () => void
   userId: string
   categories: Category[]
+  accounts?: Account[]
   transaction: TransactionWithCategory
   onSuccess: () => void
 }
 
-export function TransactionEditForm({ isOpen, onClose, userId, categories, transaction, onSuccess }: Props) {
+export function TransactionEditForm({ isOpen, onClose, userId, categories, accounts = [], transaction, onSuccess }: Props) {
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     type: transaction.type,
     amount: String(transaction.amount),
     currency: transaction.currency as Currency,
     category_id: transaction.category_id,
+    account_id: transaction.account_id ?? '',
     description: transaction.description,
     date: transaction.date,
     notes: transaction.notes ?? '',
@@ -46,6 +48,7 @@ export function TransactionEditForm({ isOpen, onClose, userId, categories, trans
       amount: String(transaction.amount),
       currency: transaction.currency as Currency,
       category_id: transaction.category_id,
+      account_id: transaction.account_id ?? '',
       description: transaction.description,
       date: transaction.date,
       notes: transaction.notes ?? '',
@@ -59,6 +62,7 @@ export function TransactionEditForm({ isOpen, onClose, userId, categories, trans
     const result = await updateTransaction(transaction.id, userId, {
       ...formData,
       amount: parseFloat(formData.amount),
+      account_id: formData.account_id || null,
     })
 
     if (result.success) {
@@ -107,6 +111,25 @@ export function TransactionEditForm({ isOpen, onClose, userId, categories, trans
             filterByType={formData.type}
             required
           />
+
+          {accounts.length > 0 && (
+            <FieldRoot>
+              <FieldLabel>Cuenta (opcional)</FieldLabel>
+              <NativeSelectRoot>
+                <NativeSelectField
+                  value={formData.account_id}
+                  onChange={(e) => setFormData({ ...formData, account_id: e.target.value })}
+                >
+                  <option value="">Sin cuenta específica</option>
+                  {accounts.map((acc) => (
+                    <option key={acc.id} value={acc.id}>
+                      {acc.icon ?? '💳'} {acc.name} ({acc.currency})
+                    </option>
+                  ))}
+                </NativeSelectField>
+              </NativeSelectRoot>
+            </FieldRoot>
+          )}
 
           <Box w="full" minH="10">
             <CurrencyPreview

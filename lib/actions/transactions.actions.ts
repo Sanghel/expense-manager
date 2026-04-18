@@ -24,8 +24,14 @@ export async function createTransaction(
 
     if (error) throw error
 
+    if (validated.account_id) {
+      const rpcName = validated.type === 'income' ? 'increment_account_balance' : 'decrement_account_balance'
+      await insforgeAdmin.database.rpc(rpcName, { account_id: validated.account_id, amount: validated.amount })
+    }
+
     revalidatePath('/transactions')
     revalidatePath('/dashboard')
+    revalidatePath('/settings')
     revalidatePath('/calendar')
     return { success: true, data: transaction }
   } catch (error) {
@@ -61,6 +67,15 @@ export async function updateTransaction(
   data: UpdateTransactionInput
 ) {
   try {
+    const { data: oldTx, error: fetchError } = await insforgeAdmin.database
+      .from('transactions')
+      .select('account_id, type, amount')
+      .eq('id', id)
+      .eq('user_id', userId)
+      .single()
+
+    if (fetchError) throw fetchError
+
     const validated = updateTransactionSchema.parse(data)
 
     const { data: transaction, error } = await insforgeAdmin.database
@@ -73,8 +88,21 @@ export async function updateTransaction(
 
     if (error) throw error
 
+    // Reverse old account effect
+    if (oldTx.account_id) {
+      const reverseRpc = oldTx.type === 'expense' ? 'increment_account_balance' : 'decrement_account_balance'
+      await insforgeAdmin.database.rpc(reverseRpc, { account_id: oldTx.account_id, amount: Number(oldTx.amount) })
+    }
+
+    // Apply new account effect
+    if (transaction.account_id) {
+      const applyRpc = transaction.type === 'income' ? 'increment_account_balance' : 'decrement_account_balance'
+      await insforgeAdmin.database.rpc(applyRpc, { account_id: transaction.account_id, amount: Number(transaction.amount) })
+    }
+
     revalidatePath('/transactions')
     revalidatePath('/dashboard')
+    revalidatePath('/settings')
     revalidatePath('/calendar')
     return { success: true, data: transaction }
   } catch (error) {
@@ -85,6 +113,13 @@ export async function updateTransaction(
 
 export async function deleteTransaction(id: string, userId: string) {
   try {
+    const { data: tx } = await insforgeAdmin.database
+      .from('transactions')
+      .select('account_id, type, amount')
+      .eq('id', id)
+      .eq('user_id', userId)
+      .single()
+
     const { error } = await insforgeAdmin.database
       .from('transactions')
       .delete()
@@ -93,8 +128,14 @@ export async function deleteTransaction(id: string, userId: string) {
 
     if (error) throw error
 
+    if (tx?.account_id) {
+      const reverseRpc = tx.type === 'expense' ? 'increment_account_balance' : 'decrement_account_balance'
+      await insforgeAdmin.database.rpc(reverseRpc, { account_id: tx.account_id, amount: Number(tx.amount) })
+    }
+
     revalidatePath('/transactions')
     revalidatePath('/dashboard')
+    revalidatePath('/settings')
     revalidatePath('/calendar')
     return { success: true }
   } catch (_error) {

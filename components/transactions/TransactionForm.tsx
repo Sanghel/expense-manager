@@ -1,6 +1,6 @@
 'use client'
 
-import { VStack, Box } from '@chakra-ui/react'
+import { VStack, Box, FieldRoot, FieldLabel, NativeSelectRoot, NativeSelectField } from '@chakra-ui/react'
 import { useState } from 'react'
 import { createTransaction } from '@/lib/actions/transactions.actions'
 import { toaster } from '@/lib/toaster'
@@ -12,7 +12,7 @@ import { CurrencySelect } from '@/components/ui/CurrencySelect'
 import { CategorySelect } from '@/components/ui/CategorySelect'
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
 import { CurrencyPreview } from './CurrencyPreview'
-import type { Category, Currency } from '@/types/database.types'
+import type { Account, Category, Currency } from '@/types/database.types'
 
 const TYPE_OPTIONS = [
   { value: 'expense', label: 'Gasto' },
@@ -24,6 +24,7 @@ interface Props {
   onClose: () => void
   userId: string
   categories: Category[]
+  accounts?: Account[]
   onSuccess: () => void
 }
 
@@ -32,12 +33,13 @@ const defaultForm = {
   amount: '',
   currency: 'COP' as Currency,
   category_id: '',
+  account_id: '',
   description: '',
   date: new Date().toISOString().split('T')[0],
   notes: '',
 }
 
-export function TransactionForm({ isOpen, onClose, userId, categories, onSuccess }: Props) {
+export function TransactionForm({ isOpen, onClose, userId, categories, accounts = [], onSuccess }: Props) {
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState(defaultForm)
 
@@ -48,6 +50,7 @@ export function TransactionForm({ isOpen, onClose, userId, categories, onSuccess
     const result = await createTransaction(userId, {
       ...formData,
       amount: parseFloat(formData.amount),
+      account_id: formData.account_id || null,
     })
 
     if (result.success) {
@@ -97,6 +100,25 @@ export function TransactionForm({ isOpen, onClose, userId, categories, onSuccess
             filterByType={formData.type}
             required
           />
+
+          {accounts.length > 0 && (
+            <FieldRoot>
+              <FieldLabel>Cuenta (opcional)</FieldLabel>
+              <NativeSelectRoot>
+                <NativeSelectField
+                  value={formData.account_id}
+                  onChange={(e) => setFormData({ ...formData, account_id: e.target.value })}
+                >
+                  <option value="">Sin cuenta específica</option>
+                  {accounts.map((acc) => (
+                    <option key={acc.id} value={acc.id}>
+                      {acc.icon ?? '💳'} {acc.name} ({acc.currency})
+                    </option>
+                  ))}
+                </NativeSelectField>
+              </NativeSelectRoot>
+            </FieldRoot>
+          )}
 
           <Box w="full" minH="10">
             <CurrencyPreview

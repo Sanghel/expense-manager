@@ -5,6 +5,7 @@ export const createTransactionSchema = z.object({
   currency: z.enum(['COP', 'USD', 'VES']),
   type: z.enum(['income', 'expense']),
   category_id: z.string().uuid(),
+  account_id: z.string().uuid().nullable().optional(),
   description: z.string().min(1, 'Description is required'),
   date: z.string(),
   notes: z.string().optional(),

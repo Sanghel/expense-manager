@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { insforgeAdmin } from '@/lib/insforge-admin'
 import { getCategories } from '@/lib/actions/categories.actions'
+import { getAccounts } from '@/lib/actions/accounts.actions'
 import { DashboardShell } from '@/components/dashboard/DashboardShell'
 import { FloatingChat } from '@/components/chat/FloatingChat'
 
@@ -14,6 +15,7 @@ export default async function DashboardLayout({
 
   let userId: string | null = null
   let categories: Awaited<ReturnType<typeof getCategories>>['data'] = []
+  let accounts: Awaited<ReturnType<typeof getAccounts>>['data'] = []
 
   if (session?.user?.email) {
     const { data: user } = await insforgeAdmin.database
@@ -24,8 +26,12 @@ export default async function DashboardLayout({
 
     if (user) {
       userId = user.id
-      const result = await getCategories(user.id)
-      categories = result.success ? result.data : []
+      const [categoriesResult, accountsResult] = await Promise.all([
+        getCategories(user.id),
+        getAccounts(user.id),
+      ])
+      categories = categoriesResult.success ? categoriesResult.data : []
+      accounts = accountsResult.success ? accountsResult.data : []
     }
   }
 
@@ -33,7 +39,7 @@ export default async function DashboardLayout({
     <>
       <DashboardShell>{children}</DashboardShell>
       {userId && (
-        <FloatingChat userId={userId} categories={categories ?? []} />
+        <FloatingChat userId={userId} categories={categories ?? []} accounts={accounts ?? []} />
       )}
     </>
   )

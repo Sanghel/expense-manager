@@ -1,7 +1,7 @@
 'use client'
 
 import { memo } from 'react'
-import { Heading, Badge, Text } from '@chakra-ui/react'
+import { Heading, Badge, Text, HStack } from '@chakra-ui/react'
 import { formatCurrency } from '@/lib/utils/currency'
 import { Card } from '@/components/ui/Card'
 import { DataTable, type ColumnDef } from '@/components/ui/DataTable'
@@ -28,7 +28,10 @@ const columns: ColumnDef<TransactionWithCategory>[] = [
     header: 'Categoría',
     render: (t) => (
       <Badge colorPalette={t.type === 'income' ? 'green' : 'red'}>
-        {t.category.name}
+        <HStack gap={1}>
+          <Text>{t.category.icon ?? '🏷️'}</Text>
+          <Text>{t.category.name}</Text>
+        </HStack>
       </Badge>
     ),
   },

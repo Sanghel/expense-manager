@@ -54,7 +54,16 @@ export function RecurringTransactionsList({ userId, transactions, onEdit }: Prop
 
   const columns: ColumnDef<RecurringTransactionWithCategory>[] = [
     { key: 'description', header: 'Descripción', render: (t) => t.description },
-    { key: 'category', header: 'Categoría', render: (t) => t.category.name },
+    {
+      key: 'category',
+      header: 'Categoría',
+      render: (t) => (
+        <HStack gap={1}>
+          <Text>{t.category.icon ?? '🏷️'}</Text>
+          <Text>{t.category.name}</Text>
+        </HStack>
+      ),
+    },
     { key: 'amount', header: 'Monto', render: (t) => `${t.amount.toLocaleString()} ${t.currency}` },
     { key: 'frequency', header: 'Frecuencia', render: (t) => FREQUENCY_LABELS[t.frequency] ?? t.frequency },
     {
@@ -99,7 +108,7 @@ export function RecurringTransactionsList({ userId, transactions, onEdit }: Prop
                   <Flex flex={1} direction="column" gap={1} minW={0}>
                     <Text fontWeight="600" fontSize="sm" color="white" lineClamp={1}>{t.description}</Text>
                     <HStack gap={2} flexWrap="wrap">
-                      <Text fontSize="xs" color="#6b7280">{t.category.name}</Text>
+                      <Text fontSize="xs" color="#6b7280">{t.category.icon ?? '🏷️'} {t.category.name}</Text>
                       <Text fontSize="xs" color="#4b5563">·</Text>
                       <Text fontSize="xs" color="#6b7280">{FREQUENCY_LABELS[t.frequency] ?? t.frequency}</Text>
                     </HStack>

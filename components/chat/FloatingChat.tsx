@@ -5,16 +5,17 @@ import { Box, IconButton, Icon } from '@chakra-ui/react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { BsStars } from 'react-icons/bs'
 import { ChatInterface } from './ChatInterface'
-import type { Category } from '@/types/database.types'
+import type { Account, Category } from '@/types/database.types'
 
 interface Props {
   userId: string
   categories: Category[]
+  accounts?: Account[]
 }
 
 const MotionBox = motion.create(Box as React.ComponentType<React.ComponentProps<typeof Box>>)
 
-export function FloatingChat({ userId, categories }: Props) {
+export function FloatingChat({ userId, categories, accounts = [] }: Props) {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
@@ -35,16 +36,17 @@ export function FloatingChat({ userId, categories }: Props) {
             borderColor="#2d2d35"
             overflow="hidden"
             /* Desktop */
-            bottom={{ base: '80px', md: '88px' }}
+            bottom={{ base: '130px', md: '88px' }}
             right={{ base: '12px', md: '24px' }}
             left={{ base: '12px', md: 'auto' }}
             w={{ base: 'auto', md: '380px' }}
-            h={{ base: 'calc(100vh - 160px)', md: '520px' }}
-            maxH={{ base: '600px', md: '520px' }}
+            h={{ base: 'calc(100vh - 210px)', md: '520px' }}
+            maxH={{ base: '560px', md: '520px' }}
           >
             <ChatInterface
               userId={userId}
               categories={categories}
+              accounts={accounts}
               onClose={() => setIsOpen(false)}
             />
           </MotionBox>

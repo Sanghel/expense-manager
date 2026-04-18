@@ -7,7 +7,8 @@ import { getTransactions } from '@/lib/actions/transactions.actions'
 import { getBudgets } from '@/lib/actions/budgets.actions'
 import { getUserProfile } from '@/lib/actions/users.actions'
 import { getAllRatePairs } from '@/lib/actions/exchangeRates.actions'
-import type { TransactionWithCategory, Currency } from '@/types/database.types'
+import { getAccounts } from '@/lib/actions/accounts.actions'
+import type { TransactionWithCategory, Currency, Account } from '@/types/database.types'
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions)
@@ -26,17 +27,19 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
-  const [profileResult, transactionsResult, budgetsResult, ratesResult] = await Promise.all([
+  const [profileResult, transactionsResult, budgetsResult, ratesResult, accountsResult] = await Promise.all([
     getUserProfile(user.id),
     getTransactions(user.id, 500),
     getBudgets(user.id),
     getAllRatePairs(),
+    getAccounts(user.id),
   ])
 
   const preferredCurrency = profileResult.success ? (profileResult.data?.preferred_currency ?? 'COP') : 'COP'
   const transactions = transactionsResult.success ? (transactionsResult.data ?? []) : []
   const budgets = budgetsResult.success ? (budgetsResult.data ?? []) : []
   const exchangeRates = ratesResult.success ? (ratesResult.data ?? []) : []
+  const accounts = (accountsResult.success ? accountsResult.data : []) as Account[]
 
   return (
     <DashboardContent
@@ -45,6 +48,7 @@ export default async function DashboardPage() {
       initialBudgets={budgets as any[]}
       initialPreferredCurrency={preferredCurrency as Currency}
       initialExchangeRates={exchangeRates as any[]}
+      initialAccounts={accounts}
     />
   )
 }

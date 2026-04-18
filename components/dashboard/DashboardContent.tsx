@@ -5,9 +5,10 @@ import dynamic from 'next/dynamic'
 import { Box, Heading, VStack, HStack, Spinner } from '@chakra-ui/react'
 import { FinancialCards } from './FinancialCards'
 import { RecentTransactions } from './RecentTransactions'
+import { AccountsOverview } from './AccountsOverview'
 import { BudgetWidget } from '@/components/budgets/BudgetWidget'
 import { MonthSelector } from './MonthSelector'
-import type { TransactionWithCategory, Currency } from '@/types/database.types'
+import type { TransactionWithCategory, Currency, Account } from '@/types/database.types'
 
 const MonthlyTrendChart = dynamic(
   () => import('./MonthlyTrendChart').then((m) => m.MonthlyTrendChart),
@@ -20,6 +21,7 @@ interface Props {
   initialBudgets: any[]
   initialPreferredCurrency: Currency
   initialExchangeRates: any[]
+  initialAccounts?: Account[]
 }
 
 export function DashboardContent({
@@ -27,6 +29,7 @@ export function DashboardContent({
   initialBudgets,
   initialPreferredCurrency,
   initialExchangeRates,
+  initialAccounts = [],
 }: Props) {
   const currentMonth = new Date().toISOString().slice(0, 7)
   const [selectedMonth, setSelectedMonth] = useState(currentMonth)
@@ -44,7 +47,10 @@ export function DashboardContent({
           month={selectedMonth}
           preferredCurrency={initialPreferredCurrency}
           exchangeRates={initialExchangeRates}
+          accounts={initialAccounts}
         />
+
+        <AccountsOverview accounts={initialAccounts} />
 
         <MonthlyTrendChart transactions={initialTransactions} />
 

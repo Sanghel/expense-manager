@@ -4,8 +4,10 @@ import { redirect } from 'next/navigation'
 import { insforgeAdmin } from '@/lib/insforge-admin'
 import { getUserProfile } from '@/lib/actions/users.actions'
 import { getAllRatePairs, seedInitialRates } from '@/lib/actions/exchangeRates.actions'
+import { getAccounts } from '@/lib/actions/accounts.actions'
+import { getAccountMovements } from '@/lib/actions/account_movements.actions'
 import { SettingsPageClient } from './SettingsPageClient'
-import type { User, ExchangeRate } from '@/types/database.types'
+import type { User, ExchangeRate, Account, AccountMovementWithAccounts } from '@/types/database.types'
 
 export default async function SettingsPage() {
   const session = await getServerSession(authOptions)
@@ -27,13 +29,17 @@ export default async function SettingsPage() {
   // Seed initial rates if table is empty
   await seedInitialRates()
 
-  const [profileResult, ratesResult] = await Promise.all([
+  const [profileResult, ratesResult, accountsResult, movementsResult] = await Promise.all([
     getUserProfile(userRow.id),
     getAllRatePairs(),
+    getAccounts(userRow.id),
+    getAccountMovements(userRow.id),
   ])
 
   const user = profileResult.success ? (profileResult.data as User) : null
   const rates = (ratesResult.success ? ratesResult.data : []) as ExchangeRate[]
+  const accounts = (accountsResult.success ? accountsResult.data : []) as Account[]
+  const movements = (movementsResult.success ? movementsResult.data : []) as AccountMovementWithAccounts[]
 
   if (!user) {
     redirect('/login')
@@ -44,6 +50,8 @@ export default async function SettingsPage() {
       userId={userRow.id}
       preferredCurrency={user.preferred_currency}
       initialRates={rates}
+      initialAccounts={accounts}
+      initialMovements={movements}
     />
   )
 }

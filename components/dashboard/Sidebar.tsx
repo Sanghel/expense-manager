@@ -1,8 +1,7 @@
 'use client'
 
-import { Box, VStack, Button, Icon } from '@chakra-ui/react'
-import { usePathname, useRouter } from 'next/navigation'
-import Link from 'next/link'
+import { Box, VStack, Button, Icon, Spinner } from '@chakra-ui/react'
+import { usePathname } from 'next/navigation'
 import {
   FiHome,
   FiDollarSign,
@@ -16,6 +15,7 @@ import {
   FiDownload,
 } from 'react-icons/fi'
 import { IconType } from 'react-icons'
+import { useNavigation } from '@/hooks/useNavigation'
 
 const navItems: { href: string; label: string; icon: IconType }[] = [
   { href: '/dashboard', label: 'Dashboard', icon: FiHome },
@@ -33,7 +33,7 @@ const navItems: { href: string; label: string; icon: IconType }[] = [
 
 export function Sidebar() {
   const pathname = usePathname()
-  const router = useRouter()
+  const { navigate, loadingPath } = useNavigation()
 
   return (
     <Box
@@ -51,23 +51,20 @@ export function Sidebar() {
       <VStack gap={2} align="stretch">
         {navItems.map((item) => {
           const isActive = pathname === item.href
+          const isLoading = loadingPath === item.href
           return (
             <Button
               key={item.href}
-              asChild
               justifyContent="flex-start"
               gap={2}
               bg={isActive ? '#4F46E5' : 'transparent'}
               color={isActive ? 'white' : '#B0B0B0'}
-              _hover={{
-                bg: isActive ? '#4338CA' : '#26262f',
-              }}
+              _hover={{ bg: isActive ? '#4338CA' : '#26262f' }}
               transition="background-color 0.2s ease"
+              onClick={() => navigate(item.href)}
             >
-              <Link href={item.href} onMouseEnter={() => router.prefetch(item.href)}>
-                <Icon as={item.icon} />
-                {item.label}
-              </Link>
+              {isLoading ? <Spinner size="xs" /> : <Icon as={item.icon} />}
+              {item.label}
             </Button>
           )
         })}

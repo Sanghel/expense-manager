@@ -16,7 +16,10 @@ import {
   DialogTitle,
   DialogBody,
   DialogCloseTrigger,
+  IconButton,
+  Icon,
 } from '@chakra-ui/react'
+import { FiX } from 'react-icons/fi'
 import { useState } from 'react'
 import type { TransactionWithCategory } from '@/types/database.types'
 
@@ -156,13 +159,26 @@ export function TransactionCalendar({ initialTransactions }: Props) {
       </Box>
 
       {/* Day details dialog */}
-      <DialogRoot open={selectedDay !== null} onOpenChange={details => !details.open && setSelectedDay(null)} size="md" placement="center" lazyMount unmountOnExit>
+      <DialogRoot open={selectedDay !== null} onOpenChange={details => !details.open && setSelectedDay(null)} size="md" placement="center" lazyMount unmountOnExit closeOnInteractOutside={false}>
         <DialogBackdrop />
         <DialogPositioner>
-          <DialogContent tabIndex={-1}>
-            <DialogHeader>
-              <DialogTitle>Transacciones del {selectedDay?.[0] && new Date(selectedDay[0].date).toLocaleDateString('es-ES')}</DialogTitle>
-              <DialogCloseTrigger />
+          <DialogContent tabIndex={-1} mx={{ base: 3, md: 0 }}>
+            <DialogHeader borderBottomWidth="1px" borderColor="#2d2d35" py={4}>
+              <HStack justify="space-between" align="center">
+                <DialogTitle color="white">Transacciones del {selectedDay?.[0] && new Date(selectedDay[0].date).toLocaleDateString('es-ES')}</DialogTitle>
+                <DialogCloseTrigger asChild>
+                  <IconButton
+                    aria-label="Cerrar"
+                    size="sm"
+                    variant="ghost"
+                    color="#B0B0B0"
+                    _hover={{ color: 'white', bg: '#2d2d35' }}
+                    onClick={() => setSelectedDay(null)}
+                  >
+                    <Icon as={FiX} />
+                  </IconButton>
+                </DialogCloseTrigger>
+              </HStack>
             </DialogHeader>
             <DialogBody>
               <VStack alignItems="flex-start" gap="2">

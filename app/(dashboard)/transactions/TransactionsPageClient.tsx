@@ -17,7 +17,7 @@ import { TransactionEditForm } from '@/components/transactions/TransactionEditFo
 import { TransactionsTable } from '@/components/transactions/TransactionsTable'
 import { TransactionsFilter, type FilterState } from '@/components/transactions/TransactionsFilter'
 import { useDebounce } from '@/hooks/useDebounce'
-import type { Category, TransactionWithCategory } from '@/types/database.types'
+import type { Account, Category, TransactionWithCategory } from '@/types/database.types'
 
 const PAGE_SIZE = 20
 
@@ -25,6 +25,7 @@ interface Props {
   userId: string
   categories: Category[]
   initialTransactions: TransactionWithCategory[]
+  accounts?: Account[]
 }
 
 const defaultFilters: FilterState = {
@@ -34,12 +35,16 @@ const defaultFilters: FilterState = {
   month: '',
 }
 
-export function TransactionsPageClient({ userId, categories, initialTransactions }: Props) {
+export function TransactionsPageClient({ userId, categories, initialTransactions, accounts = [] }: Props) {
   const router = useRouter()
   const { open: isCreateOpen, onOpen: onCreateOpen, onClose: onCreateClose } = useDisclosure()
   const { open: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } = useDisclosure()
 
-  const [transactions] = useState<TransactionWithCategory[]>(initialTransactions)
+  const [transactions, setTransactions] = useState<TransactionWithCategory[]>(initialTransactions)
+
+  useEffect(() => {
+    setTransactions(initialTransactions)
+  }, [initialTransactions])
   const [editingTransaction, setEditingTransaction] = useState<TransactionWithCategory | null>(null)
   const [filters, setFilters] = useState<FilterState>(defaultFilters)
   const [page, setPage] = useState(1)
@@ -137,6 +142,7 @@ export function TransactionsPageClient({ userId, categories, initialTransactions
         onClose={onCreateClose}
         userId={userId}
         categories={categories}
+        accounts={accounts}
         onSuccess={() => router.refresh()}
       />
 
@@ -146,6 +152,7 @@ export function TransactionsPageClient({ userId, categories, initialTransactions
           onClose={handleEditClose}
           userId={userId}
           categories={categories}
+          accounts={accounts}
           transaction={editingTransaction}
           onSuccess={() => { router.refresh(); handleEditClose() }}
         />

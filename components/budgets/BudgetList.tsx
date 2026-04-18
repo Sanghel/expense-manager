@@ -1,16 +1,17 @@
 'use client'
 
-import { VStack, HStack, Box, Text, Button, Heading, useDisclosure, DialogRoot, DialogBackdrop, DialogPositioner, DialogContent, DialogHeader, DialogTitle, DialogBody, DialogFooter, DialogCloseTrigger } from '@chakra-ui/react'
+import { VStack, HStack, Box, Text, Button, Heading, useDisclosure } from '@chakra-ui/react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { deleteBudget } from '@/lib/actions/budgets.actions'
 import { toaster } from '@/lib/toaster'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { BudgetProgress } from './BudgetProgress'
 import type { Budget } from '@/types/database.types'
 
 interface BudgetWithSpent extends Budget {
   spent: number
-  category: { name: string; type: string }
+  category: { name: string; type: string; icon: string | null }
 }
 
 interface Props {
@@ -67,7 +68,9 @@ export function BudgetList({ userId, initialBudgets, onEdit }: Props) {
             <VStack gap={3} align="stretch">
               <HStack justify="space-between">
                 <div>
-                  <Heading size="sm">{budget.category?.name || 'Unknown'}</Heading>
+                  <Heading size="sm">
+                    {budget.category?.icon && <>{budget.category.icon} </>}{budget.category?.name || 'Unknown'}
+                  </Heading>
                   <Text fontSize="xs" color="#B0B0B0" mt={1}>
                     {budget.period === 'monthly' ? 'Mensual' : 'Anual'} • {budget.start_date}
                   </Text>
@@ -103,34 +106,14 @@ export function BudgetList({ userId, initialBudgets, onEdit }: Props) {
         ))}
       </VStack>
 
-      <DialogRoot
-        open={open}
-        onOpenChange={({ open: isOpen }) => !isOpen && onClose()}
-        placement="center"
-        lazyMount
-        unmountOnExit
-      >
-        <DialogBackdrop />
-        <DialogPositioner>
-          <DialogContent tabIndex={-1}>
-          <DialogHeader>
-            <DialogTitle>Eliminar Presupuesto</DialogTitle>
-          </DialogHeader>
-          <DialogCloseTrigger />
-          <DialogBody>
-            ¿Estás seguro? Esta acción no se puede deshacer.
-          </DialogBody>
-          <DialogFooter>
-            <Button variant="outline" onClick={onClose}>
-              Cancelar
-            </Button>
-            <Button colorScheme="red" onClick={handleDelete} loading={isDeleting} ml={3}>
-              Eliminar
-            </Button>
-          </DialogFooter>
-          </DialogContent>
-        </DialogPositioner>
-      </DialogRoot>
+      <ConfirmDialog
+        isOpen={open}
+        onClose={onClose}
+        onConfirm={handleDelete}
+        title="Eliminar Presupuesto"
+        description="¿Estás seguro? Esta acción no se puede deshacer."
+        isLoading={isDeleting}
+      />
     </>
   )
 }

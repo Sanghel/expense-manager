@@ -30,6 +30,39 @@ export interface Category {
   created_at: string
 }
 
+export type AccountType = 'bank' | 'digital' | 'crypto' | 'cash'
+
+export interface Account {
+  id: string
+  user_id: string
+  name: string
+  type: AccountType
+  currency: Currency
+  balance: number
+  color: string | null
+  icon: string | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface AccountMovement {
+  id: string
+  user_id: string
+  from_account_id: string
+  to_account_id: string
+  amount: number
+  currency: Currency
+  description: string | null
+  date: string
+  created_at: string
+}
+
+export interface AccountMovementWithAccounts extends AccountMovement {
+  from_account: Account
+  to_account: Account
+}
+
 export interface Transaction {
   id: string
   user_id: string
@@ -37,6 +70,7 @@ export interface Transaction {
   currency: Currency
   type: TransactionType
   category_id: string
+  account_id: string | null
   description: string
   date: string // ISO date
   source: TransactionSource

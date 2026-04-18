@@ -11,25 +11,29 @@ import {
   Spinner,
   Separator,
   Icon,
+  NativeSelectRoot,
+  NativeSelectField,
 } from '@chakra-ui/react'
 import { useState, useRef, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { FiSend, FiCheck, FiX, FiMessageSquare, FiXCircle } from 'react-icons/fi'
 import { categorizePurchase, type CategorizedTransaction } from '@/lib/actions/ai.actions'
 import { createTransaction } from '@/lib/actions/transactions.actions'
 import { toaster } from '@/lib/toaster'
-import type { Category } from '@/types/database.types'
+import type { Account, Category } from '@/types/database.types'
 
 interface ChatMessage {
   id: string
   role: 'user' | 'assistant' | 'system'
   text: string
-  preview?: CategorizedTransaction & { category_name?: string }
+  preview?: CategorizedTransaction & { category_name?: string; account_id?: string | null }
   timestamp: number
 }
 
 interface Props {
   userId: string
   categories: Category[]
+  accounts?: Account[]
   onClose?: () => void
 }
 
@@ -55,7 +59,8 @@ function saveHistory(messages: ChatMessage[]) {
   }
 }
 
-export function ChatInterface({ userId, categories, onClose }: Props) {
+export function ChatInterface({ userId, categories, accounts = [], onClose }: Props) {
+  const router = useRouter()
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -71,7 +76,7 @@ export function ChatInterface({ userId, categories, onClose }: Props) {
         {
           id: 'welcome',
           role: 'system',
-          text: '¡Hola! Escribe tus gastos o ingresos en lenguaje natural y los categorizo automáticamente. Por ejemplo: "Gasté 45.000 en el supermercado" o "Recibí 500 dólares de salario".',
+          text: '¡Hola! Escribe tus gastos o ingresos en lenguaje natural y los categorizo automáticamente. Por ejemplo: "Gasté 45.000 en el supermercado" o "Recibí 500 dólares de salario". Antes de confirmar puedes elegir a qué cuenta asociar la transacción.',
           timestamp: Date.now(),
         },
       ])
@@ -135,6 +140,16 @@ export function ChatInterface({ userId, categories, onClose }: Props) {
     setLoading(false)
   }
 
+  const updatePreviewAccount = (msgId: string, accountId: string | null) => {
+    setMessages((prev) => {
+      const updated = prev.map((m) =>
+        m.id === msgId && m.preview ? { ...m, preview: { ...m.preview, account_id: accountId } } : m
+      )
+      saveHistory(updated)
+      return updated
+    })
+  }
+
   const handleConfirm = async (msg: ChatMessage) => {
     if (!msg.preview) return
 
@@ -143,6 +158,7 @@ export function ChatInterface({ userId, categories, onClose }: Props) {
       currency: msg.preview.currency,
       type: msg.preview.type,
       category_id: msg.preview.category_id,
+      account_id: msg.preview.account_id ?? null,
       description: msg.preview.description,
       date: msg.preview.date,
       notes: undefined,
@@ -150,6 +166,7 @@ export function ChatInterface({ userId, categories, onClose }: Props) {
 
     if (result.success) {
       toaster.create({ title: 'Transacción guardada', type: 'success', duration: 3000 })
+      router.refresh()
       // Marcar el mensaje como confirmado (sin preview)
       setMessages((prev) => {
         const updated = prev.map((m) =>
@@ -291,6 +308,31 @@ export function ChatInterface({ userId, categories, onClose }: Props) {
                           <Text fontSize="sm" color="#B0B0B0">Fecha</Text>
                           <Text fontSize="sm" color="white">{msg.preview.date}</Text>
                         </HStack>
+                        {accounts.length > 0 && (
+                          <>
+                            <Separator />
+                            <HStack justify="space-between">
+                              <Text fontSize="sm" color="#B0B0B0">Cuenta</Text>
+                              <NativeSelectRoot size="sm" w="auto" minW="150px">
+                                <NativeSelectField
+                                  value={msg.preview.account_id ?? ''}
+                                  onChange={(e) => updatePreviewAccount(msg.id, e.target.value || null)}
+                                  bg="#18181d"
+                                  borderColor="#2d2d35"
+                                  color="white"
+                                  fontSize="sm"
+                                >
+                                  <option value="">Sin cuenta</option>
+                                  {accounts.map((acc) => (
+                                    <option key={acc.id} value={acc.id}>
+                                      {acc.icon ?? '💳'} {acc.name}
+                                    </option>
+                                  ))}
+                                </NativeSelectField>
+                              </NativeSelectRoot>
+                            </HStack>
+                          </>
+                        )}
                       </VStack>
                       <HStack gap={2}>
                         <Button

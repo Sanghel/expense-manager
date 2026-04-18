@@ -12,9 +12,9 @@ import {
   VStack,
   Button,
   Icon,
+  Spinner,
 } from '@chakra-ui/react'
 import { usePathname } from 'next/navigation'
-import Link from 'next/link'
 import Image from 'next/image'
 import {
   FiHome,
@@ -29,6 +29,7 @@ import {
   FiDownload,
 } from 'react-icons/fi'
 import { IconType } from 'react-icons'
+import { useNavigation } from '@/hooks/useNavigation'
 
 const navItems: { href: string; label: string; icon: IconType }[] = [
   { href: '/dashboard', label: 'Dashboard', icon: FiHome },
@@ -51,6 +52,7 @@ interface Props {
 
 export function MobileNav({ isOpen, onClose }: Props) {
   const pathname = usePathname()
+  const { navigate, loadingPath } = useNavigation()
 
   return (
     <DrawerRoot open={isOpen} onOpenChange={({ open }) => !open && onClose()} placement="start">
@@ -67,22 +69,20 @@ export function MobileNav({ isOpen, onClose }: Props) {
             <VStack gap={1} align="stretch">
               {navItems.map((item) => {
                 const isActive = pathname === item.href
+                const isLoading = loadingPath === item.href
                 return (
                   <Button
                     key={item.href}
-                    asChild
                     justifyContent="flex-start"
                     gap={2}
                     bg={isActive ? '#4F46E5' : 'transparent'}
                     color={isActive ? 'white' : '#B0B0B0'}
                     _hover={{ bg: isActive ? '#4338CA' : '#26262f' }}
                     transition="background-color 0.2s ease"
-                    onClick={onClose}
+                    onClick={() => { navigate(item.href); onClose() }}
                   >
-                    <Link href={item.href}>
-                      <Icon as={item.icon} />
-                      {item.label}
-                    </Link>
+                    {isLoading ? <Spinner size="xs" /> : <Icon as={item.icon} />}
+                    {item.label}
                   </Button>
                 )
               })}

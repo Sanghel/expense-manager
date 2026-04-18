@@ -1,8 +1,7 @@
 'use client'
 
-import { Box, Flex, Text, Icon } from '@chakra-ui/react'
+import { Box, Flex, Text, Icon, Spinner } from '@chakra-ui/react'
 import { usePathname } from 'next/navigation'
-import Link from 'next/link'
 import {
   FiHome,
   FiDollarSign,
@@ -11,6 +10,7 @@ import {
   FiTrendingUp,
 } from 'react-icons/fi'
 import { IconType } from 'react-icons'
+import { useNavigation } from '@/hooks/useNavigation'
 
 const primaryItems: { href: string; label: string; icon: IconType }[] = [
   { href: '/dashboard', label: 'Dashboard', icon: FiHome },
@@ -22,6 +22,7 @@ const primaryItems: { href: string; label: string; icon: IconType }[] = [
 
 export function BottomNav() {
   const pathname = usePathname()
+  const { navigate, loadingPath } = useNavigation()
 
   return (
     <Box
@@ -42,28 +43,31 @@ export function BottomNav() {
             item.href === '/dashboard'
               ? pathname === '/dashboard'
               : pathname.startsWith(item.href)
+          const isLoading = loadingPath === item.href
           return (
-            <Link key={item.href} href={item.href} style={{ flex: 1 }}>
-              <Flex
-                direction="column"
-                align="center"
-                justify="center"
-                py={2}
-                gap="2px"
-                color={isActive ? '#6366F1' : '#6b7280'}
-                _hover={{ color: '#818cf8' }}
-                transition="color 0.15s ease"
+            <Flex
+              key={item.href}
+              flex={1}
+              direction="column"
+              align="center"
+              justify="center"
+              py={2}
+              gap="2px"
+              color={isActive ? '#6366F1' : '#6b7280'}
+              _hover={{ color: '#818cf8' }}
+              transition="color 0.15s ease"
+              cursor="pointer"
+              onClick={() => navigate(item.href)}
+            >
+              {isLoading ? <Spinner size="xs" /> : <Icon as={item.icon} boxSize={5} />}
+              <Text
+                fontSize="10px"
+                fontWeight={isActive ? '600' : '400'}
+                lineHeight="1"
               >
-                <Icon as={item.icon} boxSize={5} />
-                <Text
-                  fontSize="10px"
-                  fontWeight={isActive ? '600' : '400'}
-                  lineHeight="1"
-                >
-                  {item.label}
-                </Text>
-              </Flex>
-            </Link>
+                {item.label}
+              </Text>
+            </Flex>
           )
         })}
       </Flex>

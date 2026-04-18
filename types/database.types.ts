@@ -50,9 +50,11 @@ export interface AccountMovement {
   id: string
   user_id: string
   from_account_id: string
+  from_amount: number
+  from_currency: Currency
   to_account_id: string
-  amount: number
-  currency: Currency
+  to_amount: number
+  to_currency: Currency
   description: string | null
   date: string
   created_at: string

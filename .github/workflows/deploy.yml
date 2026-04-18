@@ -18,6 +18,8 @@ jobs:
     name: Deploy Preview
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/develop')
+    permissions:
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
 

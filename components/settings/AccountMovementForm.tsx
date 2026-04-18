@@ -6,7 +6,11 @@ import { createAccountMovement } from '@/lib/actions/account_movements.actions'
 import { toaster } from '@/lib/toaster'
 import { FormDialog } from '@/components/ui/FormDialog'
 import { FormInput } from '@/components/ui/FormInput'
-import { CurrencySelect } from '@/components/ui/CurrencySelect'
+const CURRENCY_OPTIONS: { value: string; label: string }[] = [
+  { value: 'COP', label: 'COP - Peso Colombiano' },
+  { value: 'USD', label: 'USD - Dólar' },
+  { value: 'VES', label: 'VES - Bolívar (Bs)' },
+]
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
 import type { Account, Currency } from '@/types/database.types'
 
@@ -20,9 +24,11 @@ interface Props {
 
 const defaultForm = {
   from_account_id: '',
+  from_amount: '',
+  from_currency: 'COP' as Currency,
   to_account_id: '',
-  amount: '',
-  currency: 'COP' as Currency,
+  to_amount: '',
+  to_currency: 'COP' as Currency,
   description: '',
   date: new Date().toISOString().split('T')[0],
 }
@@ -37,9 +43,11 @@ export function AccountMovementForm({ isOpen, onClose, userId, accounts, onSucce
 
     const result = await createAccountMovement(userId, {
       from_account_id: formData.from_account_id,
+      from_amount: parseFloat(formData.from_amount),
+      from_currency: formData.from_currency,
       to_account_id: formData.to_account_id,
-      amount: parseFloat(formData.amount),
-      currency: formData.currency,
+      to_amount: parseFloat(formData.to_amount),
+      to_currency: formData.to_currency,
       description: formData.description || null,
       date: formData.date,
     })
@@ -76,6 +84,30 @@ export function AccountMovementForm({ isOpen, onClose, userId, accounts, onSucce
             </NativeSelectRoot>
           </FieldRoot>
 
+          <FormInput
+            label="Monto enviado"
+            value={formData.from_amount}
+            onChange={(v) => setFormData({ ...formData, from_amount: v })}
+            type="number"
+            step="0.01"
+            min="0.01"
+            required
+          />
+
+          <FieldRoot required>
+            <FieldLabel>Moneda origen</FieldLabel>
+            <NativeSelectRoot>
+              <NativeSelectField
+                value={formData.from_currency}
+                onChange={(e) => setFormData({ ...formData, from_currency: e.target.value as Currency })}
+              >
+                {CURRENCY_OPTIONS.map((c) => (
+                  <option key={c.value} value={c.value}>{c.label}</option>
+                ))}
+              </NativeSelectField>
+            </NativeSelectRoot>
+          </FieldRoot>
+
           <FieldRoot required>
             <FieldLabel>Cuenta destino</FieldLabel>
             <NativeSelectRoot>
@@ -96,27 +128,34 @@ export function AccountMovementForm({ isOpen, onClose, userId, accounts, onSucce
           </FieldRoot>
 
           <FormInput
-            label="Monto"
-            value={formData.amount}
-            onChange={(v) => setFormData({ ...formData, amount: v })}
+            label="Monto recibido"
+            value={formData.to_amount}
+            onChange={(v) => setFormData({ ...formData, to_amount: v })}
             type="number"
             step="0.01"
             min="0.01"
             required
           />
 
-          <CurrencySelect
-            value={formData.currency}
-            onChange={(v) => setFormData({ ...formData, currency: v })}
-            showFullLabel
-            required
-          />
+          <FieldRoot required>
+            <FieldLabel>Moneda destino</FieldLabel>
+            <NativeSelectRoot>
+              <NativeSelectField
+                value={formData.to_currency}
+                onChange={(e) => setFormData({ ...formData, to_currency: e.target.value as Currency })}
+              >
+                {CURRENCY_OPTIONS.map((c) => (
+                  <option key={c.value} value={c.value}>{c.label}</option>
+                ))}
+              </NativeSelectField>
+            </NativeSelectRoot>
+          </FieldRoot>
 
           <FormInput
             label="Descripción (opcional)"
             value={formData.description}
             onChange={(v) => setFormData({ ...formData, description: v })}
-            placeholder="Ej: Transferencia mensual"
+            placeholder="Ej: Cambio de dólares"
           />
 
           <FormInput

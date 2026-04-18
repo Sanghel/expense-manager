@@ -41,15 +41,15 @@ export async function createAccountMovement(userId: string, data: CreateAccountM
 
     if (error) throw error
 
-    // Actualizar balances
+    // Actualizar balances con montos diferenciados por moneda
     await Promise.all([
       insforgeAdmin.database.rpc('decrement_account_balance', {
         account_id: validated.from_account_id,
-        amount: validated.amount,
+        amount: validated.from_amount,
       }),
       insforgeAdmin.database.rpc('increment_account_balance', {
         account_id: validated.to_account_id,
-        amount: validated.amount,
+        amount: validated.to_amount,
       }),
     ])
 
@@ -83,15 +83,15 @@ export async function deleteAccountMovement(id: string, userId: string) {
 
     if (error) throw error
 
-    // Revertir balances
+    // Revertir balances con montos diferenciados por moneda
     await Promise.all([
       insforgeAdmin.database.rpc('increment_account_balance', {
         account_id: movement.from_account_id,
-        amount: movement.amount,
+        amount: movement.from_amount,
       }),
       insforgeAdmin.database.rpc('decrement_account_balance', {
         account_id: movement.to_account_id,
-        amount: movement.amount,
+        amount: movement.to_amount,
       }),
     ])
 

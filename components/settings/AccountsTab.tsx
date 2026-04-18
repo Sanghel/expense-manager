@@ -93,23 +93,30 @@ export function AccountsTab({ userId, initialAccounts, initialMovements }: Props
     { key: 'date', header: 'Fecha', render: (m) => new Date(m.date).toLocaleDateString('es-CO') },
     {
       key: 'from',
-      header: 'Origen',
+      header: 'Cuenta origen',
       render: (m) => (
         <Text fontSize="sm">{m.from_account?.icon ?? '💳'} {m.from_account?.name ?? '—'}</Text>
       ),
     },
     {
+      key: 'from_amount',
+      header: 'Monto enviado',
+      render: (m) => (
+        <Text fontWeight="semibold">{formatCurrency(m.from_amount, m.from_currency)}</Text>
+      ),
+    },
+    {
       key: 'to',
-      header: 'Destino',
+      header: 'Cuenta destino',
       render: (m) => (
         <Text fontSize="sm">{m.to_account?.icon ?? '💳'} {m.to_account?.name ?? '—'}</Text>
       ),
     },
     {
-      key: 'amount',
-      header: 'Monto',
+      key: 'to_amount',
+      header: 'Monto recibido',
       render: (m) => (
-        <Text fontWeight="semibold">{formatCurrency(m.amount, m.currency)}</Text>
+        <Text fontWeight="semibold">{formatCurrency(m.to_amount, m.to_currency)}</Text>
       ),
     },
     { key: 'description', header: 'Descripción', render: (m) => m.description ?? '—' },

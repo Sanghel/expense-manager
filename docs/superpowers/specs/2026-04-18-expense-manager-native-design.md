@@ -115,8 +115,9 @@ expense-manager-native/
 EXPO_PUBLIC_INSFORGE_URL=<igual al web>
 EXPO_PUBLIC_INSFORGE_ANON_KEY=<igual al web>
 EXPO_PUBLIC_GOOGLE_CLIENT_ID=<nuevo — tipo "iOS" en Google Cloud Console>
-INSFORGE_JWT_SECRET=<secret del proyecto InsForge>
 ```
+
+> El mecanismo exacto para que InsForge RLS verifique el usuario autenticado se definirá en la Fase 1 de implementación. Las opciones son: (a) InsForge auth nativo con `signInWithIdToken`, o (b) JWT firmado server-side. Nunca se expone un secret en el cliente móvil.
 
 ### Sesión persistente
 

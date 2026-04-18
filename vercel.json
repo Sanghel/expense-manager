@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/generate-recurring",
       "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/cron/update-exchange-rates",
+      "schedule": "0 17 * * *"
     }
   ]
 }

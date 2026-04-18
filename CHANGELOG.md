@@ -1,5 +1,30 @@
 # Changelog
 
+## [1.2.0] — 2026-04-18
+
+### Added
+
+**Tasas de cambio automáticas**
+- Cron job diario (`/api/cron/update-exchange-rates`) que se ejecuta a las 12 PM Colombia (17:00 UTC)
+- Obtiene tasas en tiempo real desde exchangerate-api.com para USD↔COP y USD↔VES
+- Calcula automáticamente VES↔COP por regla de tres
+- Inserta los 6 pares de conversión en BD compartida para todos los usuarios
+
+**Movimientos entre cuentas mejorados**
+- Campos separados por cuenta: monto enviado + moneda origen / monto recibido + moneda destino
+- Permite registrar cambios de divisas con montos manuales sin conversión automática
+- Tabla de movimientos muestra "Monto enviado" y "Monto recibido" con sus respectivas monedas
+- Balances de cuentas se actualizan usando los montos diferenciados por moneda
+
+### Changed
+
+- Settings: formulario manual de tasas de cambio reemplazado por tabla read-only con tasas actuales y fecha de última actualización
+- Eliminadas funciones `updateRate()` y `seedInitialRates()` del servidor (ya no necesarias)
+
+### Fixed
+
+- GitHub Actions: permisos `pull-requests: write` agregados al job `deploy-preview` para permitir comentarios de preview URL en PRs
+
 ## [1.1.0] — 2026-04-17
 
 ### Added

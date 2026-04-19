@@ -14,15 +14,15 @@ Aplicación móvil iOS + Android que replica la funcionalidad completa del proye
 
 ## Decisiones de arquitectura
 
-| Decisión | Elección | Razón |
-|----------|----------|-------|
-| Framework | Expo (React Native) | TypeScript/React familiar, iOS + Android desde un codebase |
-| Routing | Expo Router | File-based routing idéntico a Next.js App Router |
-| Estilos | NativeWind | Clases Tailwind en React Native, mismo lenguaje visual que el web |
-| Autenticación | expo-auth-session + Google OAuth | Consistencia con el web, gratuito, sin vendor lock-in |
-| Base de datos | InsForge SDK (anon key) | Misma BD, acceso directo con RLS para seguridad |
-| Repositorio | Independiente | `/projects/expense-manager-native` — repo separado |
-| Git flow | GitHub Flow (mismo que el web) | Issues → feature branches → PRs a develop → PR a main |
+| Decisión      | Elección                         | Razón                                                             |
+| ------------- | -------------------------------- | ----------------------------------------------------------------- |
+| Framework     | Expo (React Native)              | TypeScript/React familiar, iOS + Android desde un codebase        |
+| Routing       | Expo Router                      | File-based routing idéntico a Next.js App Router                  |
+| Estilos       | NativeWind                       | Clases Tailwind en React Native, mismo lenguaje visual que el web |
+| Autenticación | expo-auth-session + Google OAuth | Consistencia con el web, gratuito, sin vendor lock-in             |
+| Base de datos | InsForge SDK (anon key)          | Misma BD, acceso directo con RLS para seguridad                   |
+| Repositorio   | Independiente                    | `/projects/expense-manager-native` — repo separado                |
+| Git flow      | GitHub Flow (mismo que el web)   | Issues → feature branches → PRs a develop → PR a main             |
 
 ---
 
@@ -201,15 +201,15 @@ export const colors = {
 
 ### Equivalencias de componentes
 
-| Web (Chakra UI) | Nativo (NativeWind) |
-|----------------|---------------------|
-| `HStack` | `View className="flex-row"` |
-| `VStack` | `View className="flex-col"` |
+| Web (Chakra UI) | Nativo (NativeWind)                    |
+| --------------- | -------------------------------------- |
+| `HStack`        | `View className="flex-row"`            |
+| `VStack`        | `View className="flex-col"`            |
 | `PrimaryButton` | `TouchableOpacity` + clases NativeWind |
-| `FormDialog` | `Modal` de React Native |
-| `DataTable` | `FlatList` con filas estilizadas |
-| `Input` | `TextInput` + NativeWind |
-| `NativeSelect` | Modal custom con lista de opciones |
+| `FormDialog`    | `Modal` de React Native                |
+| `DataTable`     | `FlatList` con filas estilizadas       |
+| `Input`         | `TextInput` + NativeWind               |
+| `NativeSelect`  | Modal custom con lista de opciones     |
 
 ### Diferencias con el web
 
@@ -253,12 +253,12 @@ export async function getTransactions(userId: string) {
 
 ### Archivos reutilizables del web
 
-| Archivo | Estado |
-|---------|--------|
-| `types/database.types.ts` | Copia exacta — sin cambios |
-| `lib/utils/currency.ts` | Copia exacta — sin cambios |
-| `lib/validations/*.ts` | Copia exacta — sin cambios |
-| `lib/actions/*.ts` | Misma estructura — quitar `'use server'` y `revalidatePath` |
+| Archivo                   | Estado                                                      |
+| ------------------------- | ----------------------------------------------------------- |
+| `types/database.types.ts` | Copia exacta — sin cambios                                  |
+| `lib/utils/currency.ts`   | Copia exacta — sin cambios                                  |
+| `lib/validations/*.ts`    | Copia exacta — sin cambios                                  |
+| `lib/actions/*.ts`        | Misma estructura — quitar `'use server'` y `revalidatePath` |
 
 ---
 
@@ -324,16 +324,16 @@ feature/[issue-number]-[descripcion]
 
 ## Fases de implementación (resumen)
 
-| Fase | Contenido |
-|------|-----------|
-| 0 | Setup: scaffold Expo, NativeWind, Expo Router, repo GitHub |
-| 1 | Autenticación: Google OAuth, SecureStore, AuthContext, RLS en InsForge |
-| 2 | Dashboard + navegación base: Tab Navigator, layout, pantalla principal |
-| 3 | Transacciones: lista, crear, editar, eliminar |
-| 4 | Cuentas y movimientos entre cuentas |
-| 5 | Presupuestos y metas de ahorro |
-| 6 | Transacciones recurrentes |
-| 7 | Reportes y calendario |
-| 8 | Chat IA (Claude) |
-| 9 | Etiquetas, exportar datos, configuración |
-| 10 | PR final a main, release v1.0.0 |
+| Fase | Contenido                                                              |
+| ---- | ---------------------------------------------------------------------- |
+| 0    | Setup: scaffold Expo, NativeWind, Expo Router, repo GitHub             |
+| 1    | Autenticación: Google OAuth, SecureStore, AuthContext, RLS en InsForge |
+| 2    | Dashboard + navegación base: Tab Navigator, layout, pantalla principal |
+| 3    | Transacciones: lista, crear, editar, eliminar                          |
+| 4    | Cuentas y movimientos entre cuentas                                    |
+| 5    | Presupuestos y metas de ahorro                                         |
+| 6    | Transacciones recurrentes                                              |
+| 7    | Reportes y calendario                                                  |
+| 8    | Chat IA (Claude)                                                       |
+| 9    | Etiquetas, exportar datos, configuración                               |
+| 10   | PR final a main, release v1.0.0                                        |

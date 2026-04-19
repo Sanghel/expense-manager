@@ -1,8 +1,11 @@
 'use client'
 
 import { signIn } from 'next-auth/react'
+import Image from 'next/image'
 import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
+import logo from '@/public/brand/gh_push_money_logo.png'
+import { HStack, Text } from '@chakra-ui/react'
 
 function LoginContent() {
   const searchParams = useSearchParams()
@@ -137,13 +140,27 @@ function LoginContent() {
       `}</style>
 
       <div className="login-card">
-        <div className="login-logo">
-          <span className="login-logo-name">GitPush Money</span>
-
+        <div
+          className="login-logo"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Image src={logo} alt="GitPush Money" width={50} height={50} />
+          <HStack gap={2} align="center" justify="center">
+            <Text fontSize="24px" fontWeight="bold" color="brand.300">
+              GitPush
+            </Text>
+            <Text fontSize="24px" fontWeight="bold" color="brand.200">
+              Money
+            </Text>
+          </HStack>
         </div>
 
-        <h1 className="login-heading">Bienvenido de vuelta</h1>
-        <p className="login-subheading">
+        <h1 className="login-heading text-center">Bienvenido de vuelta</h1>
+        <p className="login-subheading text-center">
           Inicia sesión para acceder a tu panel financiero.
         </p>
 

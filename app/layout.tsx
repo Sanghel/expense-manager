@@ -17,7 +17,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: 'GitPush Money',
-  description: 'Gestiona tus finanzas personales con IA: transacciones, presupuestos, metas de ahorro y más.',
+  description:
+    'Gestiona tus finanzas personales con IA: transacciones, presupuestos, metas de ahorro y más.',
+  icons: {
+    icon: '/icon.png',
+  },
 }
 
 export default function RootLayout({
@@ -30,7 +34,10 @@ export default function RootLayout({
       lang="es"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
     >
-      <body className="min-h-full flex flex-col bg-black text-white" suppressHydrationWarning>
+      <body
+        className="min-h-full flex flex-col bg-black text-white"
+        suppressHydrationWarning
+      >
         <SessionProvider>
           <ChakraProvider>{children}</ChakraProvider>
         </SessionProvider>

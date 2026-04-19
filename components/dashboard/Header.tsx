@@ -12,11 +12,14 @@ import {
   AvatarRoot,
   AvatarImage,
   AvatarFallback,
-  Heading,
+  HStack,
+  Text,
 } from '@chakra-ui/react'
 import { signOut, useSession } from 'next-auth/react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { FiLogOut, FiSettings } from 'react-icons/fi'
+import logo from '@/public/brand/gh_push_money_logo.png'
 
 export function Header() {
   const { data: session } = useSession()
@@ -34,10 +37,15 @@ export function Header() {
     >
       <Flex justify="space-between" align="center">
         <Flex align="center" gap={2}>
-          {/* <Image src="/brand/money-manager.svg" alt="GitPush Money" width={28} height={28} /> */}
-          <Heading size="sm" color="white" letterSpacing="tight">
-            GitPush Money
-          </Heading>
+          <Image src={logo} alt="GitPush Money" width={30} height={30} />
+          <HStack gap={2} align="center" justify="center">
+            <Text fontSize="18px" fontWeight="bold" color="brand.300">
+              GitPush
+            </Text>
+            <Text fontSize="18px" fontWeight="bold" color="brand.200">
+              Money
+            </Text>
+          </HStack>
         </Flex>
 
         {session?.user && (

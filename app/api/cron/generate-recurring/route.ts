@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { insforgeAdmin } from '@/lib/insforge-admin'
 import { generateRecurringTransactions } from '@/lib/actions/recurring.actions'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(req: NextRequest) {
   const start = new Date().toISOString()
   console.log(`[cron:generate-recurring] start=${start}`)
@@ -49,7 +51,7 @@ export async function GET(req: NextRequest) {
       transactionsGenerated: totalGenerated,
     })
   } catch (error) {
-    console.error('[cron:generate-recurring] unhandled error:', error)
+    console.error(`[cron:generate-recurring] unhandled error=${JSON.stringify(error)}`)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

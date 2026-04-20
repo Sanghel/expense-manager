@@ -108,6 +108,7 @@ export interface RecurringTransaction {
   currency: Currency
   type: TransactionType
   category_id: string
+  account_id: string | null
   description: string
   frequency: RecurrenceFrequency
   start_date: string // ISO date

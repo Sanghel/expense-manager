@@ -28,6 +28,7 @@ export async function createRecurringTransaction(
         currency: validated.currency,
         type: validated.type,
         category_id: validated.category_id,
+        account_id: validated.account_id ?? null,
         description: validated.description,
         frequency: validated.frequency,
         start_date: validated.start_date,

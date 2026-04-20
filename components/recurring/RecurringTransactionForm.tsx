@@ -10,7 +10,7 @@ import { RadioSelect } from '@/components/ui/RadioSelect'
 import { CurrencySelect } from '@/components/ui/CurrencySelect'
 import { CategorySelect } from '@/components/ui/CategorySelect'
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
-import type { Category, Currency, RecurringTransactionWithCategory } from '@/types/database.types'
+import type { Account, Category, Currency, RecurringTransactionWithCategory } from '@/types/database.types'
 
 const TYPE_OPTIONS = [
   { value: 'expense', label: 'Gasto' },
@@ -22,6 +22,7 @@ interface Props {
   onClose: () => void
   userId: string
   categories: Category[]
+  accounts: Account[]
   onSuccess: () => void
   initialData?: RecurringTransactionWithCategory
   transactionId?: string
@@ -32,6 +33,7 @@ const defaultForm = {
   amount: '',
   currency: 'COP' as Currency,
   category_id: '',
+  account_id: '',
   description: '',
   frequency: 'monthly' as 'daily' | 'weekly' | 'monthly' | 'yearly',
   start_date: new Date().toISOString().split('T')[0],
@@ -43,6 +45,7 @@ export function RecurringTransactionForm({
   onClose,
   userId,
   categories,
+  accounts,
   onSuccess,
   initialData,
   transactionId,
@@ -57,6 +60,7 @@ export function RecurringTransactionForm({
         amount: String(initialData.amount),
         currency: initialData.currency as Currency,
         category_id: initialData.category_id,
+        account_id: initialData.account_id ?? '',
         description: initialData.description,
         frequency: initialData.frequency,
         start_date: initialData.start_date,
@@ -79,6 +83,7 @@ export function RecurringTransactionForm({
       currency: form.currency,
       type: form.type,
       category_id: form.category_id,
+      account_id: form.account_id || null,
       description: form.description,
       frequency: form.frequency,
       start_date: form.start_date,
@@ -151,6 +156,25 @@ export function RecurringTransactionForm({
             placeholder="Ej: Suscripción Netflix"
             required
           />
+
+          {accounts.length > 0 && (
+            <FieldRoot>
+              <FieldLabel>Cuenta asociada <span style={{ color: '#B0B0B0', fontSize: '0.85em' }}>(opcional)</span></FieldLabel>
+              <NativeSelectRoot>
+                <NativeSelectField
+                  value={form.account_id}
+                  onChange={(e) => setForm({ ...form, account_id: e.target.value })}
+                >
+                  <option value="">Sin cuenta</option>
+                  {accounts.map((acc) => (
+                    <option key={acc.id} value={acc.id}>
+                      {acc.name} ({acc.currency})
+                    </option>
+                  ))}
+                </NativeSelectField>
+              </NativeSelectRoot>
+            </FieldRoot>
+          )}
 
           <FieldRoot required>
             <FieldLabel>Frecuencia</FieldLabel>

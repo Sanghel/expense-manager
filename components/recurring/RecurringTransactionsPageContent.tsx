@@ -6,15 +6,16 @@ import { useRouter } from 'next/navigation'
 import { FiPlus } from 'react-icons/fi'
 import { RecurringTransactionForm } from '@/components/recurring/RecurringTransactionForm'
 import { RecurringTransactionsList } from '@/components/recurring/RecurringTransactionsList'
-import type { Category, RecurringTransactionWithCategory } from '@/types/database.types'
+import type { Account, Category, RecurringTransactionWithCategory } from '@/types/database.types'
 
 interface Props {
   userId: string
   categories: Category[]
+  accounts: Account[]
   initialTransactions: RecurringTransactionWithCategory[]
 }
 
-export function RecurringTransactionsPageContent({ userId, categories, initialTransactions }: Props) {
+export function RecurringTransactionsPageContent({ userId, categories, accounts, initialTransactions }: Props) {
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingTransaction, setEditingTransaction] = useState<RecurringTransactionWithCategory | null>(null)
   const router = useRouter()
@@ -39,6 +40,7 @@ export function RecurringTransactionsPageContent({ userId, categories, initialTr
         onClose={handleClose}
         userId={userId}
         categories={categories}
+        accounts={accounts}
         initialData={editingTransaction ?? undefined}
         transactionId={editingTransaction?.id}
         onSuccess={() => {

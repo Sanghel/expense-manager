@@ -6,6 +6,7 @@ import { createSavingsGoal, updateSavingsGoal } from '@/lib/actions/savings.acti
 import { toaster } from '@/lib/toaster'
 import { FormDialog } from '@/components/ui/FormDialog'
 import { FormInput } from '@/components/ui/FormInput'
+import { InputAmount } from '@/components/ui/InputAmount'
 import { CurrencySelect } from '@/components/ui/CurrencySelect'
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
 import type { Currency, SavingsGoal } from '@/types/database.types'
@@ -21,7 +22,7 @@ interface Props {
 
 const defaultForm = {
   name: '',
-  target_amount: '',
+  target_amount: undefined as number | undefined,
   currency: 'COP' as Currency,
   deadline: '',
 }
@@ -34,7 +35,7 @@ export function SavingsGoalForm({ isOpen, onClose, userId, onSuccess, initialDat
     if (initialData) {
       setForm({
         name: initialData.name,
-        target_amount: String(initialData.target_amount),
+        target_amount: Number(initialData.target_amount) as number | undefined,
         currency: initialData.currency,
         deadline: initialData.deadline ?? '',
       })
@@ -52,7 +53,7 @@ export function SavingsGoalForm({ isOpen, onClose, userId, onSuccess, initialDat
     setLoading(true)
     const payload = {
       name: form.name,
-      target_amount: parseFloat(form.target_amount),
+      target_amount: form.target_amount ?? 0,
       currency: form.currency,
       deadline: form.deadline || undefined,
     }
@@ -93,14 +94,11 @@ export function SavingsGoalForm({ isOpen, onClose, userId, onSuccess, initialDat
             required
           />
 
-          <FormInput
+          <InputAmount
             label="Monto Objetivo"
             value={form.target_amount}
             onChange={(v) => setForm({ ...form, target_amount: v })}
-            type="number"
-            placeholder="0.00"
-            step="0.01"
-            required
+            isRequired
           />
 
           <CurrencySelect

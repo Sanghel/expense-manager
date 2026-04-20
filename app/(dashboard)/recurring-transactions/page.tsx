@@ -5,6 +5,7 @@ import { insforgeAdmin } from '@/lib/insforge-admin'
 import { RecurringTransactionsPageContent } from '@/components/recurring/RecurringTransactionsPageContent'
 import { getCategories } from '@/lib/actions/categories.actions'
 import { getRecurringTransactions } from '@/lib/actions/recurring.actions'
+import { getAccounts } from '@/lib/actions/accounts.actions'
 
 export default async function RecurringTransactionsPage() {
   const session = await getServerSession(authOptions)
@@ -24,12 +25,14 @@ export default async function RecurringTransactionsPage() {
     redirect('/login')
   }
 
-  const [categoriesResult, transactionsResult] = await Promise.all([
+  const [categoriesResult, transactionsResult, accountsResult] = await Promise.all([
     getCategories(user.id),
     getRecurringTransactions(user.id),
+    getAccounts(user.id),
   ])
   const categories = categoriesResult.success ? (categoriesResult.data ?? []) : []
   const transactions = transactionsResult.success ? (transactionsResult.data ?? []) : []
+  const accounts = accountsResult.success ? (accountsResult.data ?? []) : []
 
-  return <RecurringTransactionsPageContent userId={user.id} categories={categories} initialTransactions={transactions} />
+  return <RecurringTransactionsPageContent userId={user.id} categories={categories} accounts={accounts} initialTransactions={transactions} />
 }

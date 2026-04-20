@@ -1,6 +1,7 @@
 'use client'
 
-import { Box, VStack, HStack, Text, Button, Badge, IconButton, Input } from '@chakra-ui/react'
+import { Box, VStack, HStack, Text, Button, Badge, IconButton } from '@chakra-ui/react'
+import { InputAmount } from '@/components/ui/InputAmount'
 import { FiEdit2, FiTrash2 } from 'react-icons/fi'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -26,7 +27,7 @@ function getStatusBadge(goal: SavingsGoal) {
 export function SavingsGoalCard({ goal, userId, onEdit }: Props) {
   const router = useRouter()
   const [isAddFundsOpen, setIsAddFundsOpen] = useState(false)
-  const [fundsAmount, setFundsAmount] = useState('')
+  const [fundsAmount, setFundsAmount] = useState<number | undefined>(undefined)
   const [loading, setLoading] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
@@ -35,16 +36,16 @@ export function SavingsGoalCard({ goal, userId, onEdit }: Props) {
   const status = getStatusBadge(goal)
 
   const handleAddFunds = async () => {
-    if (!fundsAmount) {
+    if (!fundsAmount || fundsAmount <= 0) {
       toaster.create({ title: 'Por favor ingresa un monto', type: 'error', duration: 3000 })
       return
     }
     setLoading(true)
-    const result = await addFundsToGoal(goal.id, userId, { amount: parseFloat(fundsAmount) })
+    const result = await addFundsToGoal(goal.id, userId, { amount: fundsAmount ?? 0 })
     setLoading(false)
     if (result.success) {
       toaster.create({ title: 'Fondos añadidos', type: 'success', duration: 3000 })
-      setFundsAmount('')
+      setFundsAmount(undefined)
       setIsAddFundsOpen(false)
       router.refresh()
     } else {
@@ -142,16 +143,15 @@ export function SavingsGoalCard({ goal, userId, onEdit }: Props) {
 
       <FormDialog
         isOpen={isAddFundsOpen}
-        onClose={() => { setIsAddFundsOpen(false); setFundsAmount('') }}
+        onClose={() => { setIsAddFundsOpen(false); setFundsAmount(undefined) }}
         title="Añadir Fondos"
       >
         <VStack gap="4">
-          <Input
-            type="number"
-            placeholder="Monto"
+          <InputAmount
+            label="Monto"
             value={fundsAmount}
-            onChange={(e) => setFundsAmount(e.target.value)}
-            step="0.01"
+            onChange={setFundsAmount}
+            isRequired
           />
           <PrimaryButton width="full" loading={loading} onClick={handleAddFunds}>
             Añadir

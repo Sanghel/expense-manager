@@ -28,6 +28,7 @@ export async function createRecurringTransaction(
         currency: validated.currency,
         type: validated.type,
         category_id: validated.category_id,
+        account_id: validated.account_id ?? null,
         description: validated.description,
         frequency: validated.frequency,
         start_date: validated.start_date,
@@ -156,8 +157,9 @@ export async function generateRecurringTransactions(userId: string) {
     const transactions = []
 
     for (const recurring of recurringTransactions || []) {
-      const lastGenerated = recurring.last_generated ? new Date(recurring.last_generated) : new Date(recurring.start_date)
-      const nextDate = getNextDate(lastGenerated, recurring.frequency)
+      const nextDate = recurring.last_generated
+        ? getNextDate(new Date(recurring.last_generated), recurring.frequency)
+        : new Date(recurring.start_date)
 
       if (nextDate.toISOString().split('T')[0] <= today) {
         const { error: insertError } = await insforgeAdmin.database

@@ -6,11 +6,12 @@ import { createRecurringTransaction, updateRecurringTransaction } from '@/lib/ac
 import { toaster } from '@/lib/toaster'
 import { FormDialog } from '@/components/ui/FormDialog'
 import { FormInput } from '@/components/ui/FormInput'
+import { InputAmount } from '@/components/ui/InputAmount'
 import { RadioSelect } from '@/components/ui/RadioSelect'
 import { CurrencySelect } from '@/components/ui/CurrencySelect'
 import { CategorySelect } from '@/components/ui/CategorySelect'
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
-import type { Category, Currency, RecurringTransactionWithCategory } from '@/types/database.types'
+import type { Account, Category, Currency, RecurringTransactionWithCategory } from '@/types/database.types'
 
 const TYPE_OPTIONS = [
   { value: 'expense', label: 'Gasto' },
@@ -22,6 +23,7 @@ interface Props {
   onClose: () => void
   userId: string
   categories: Category[]
+  accounts: Account[]
   onSuccess: () => void
   initialData?: RecurringTransactionWithCategory
   transactionId?: string
@@ -29,9 +31,10 @@ interface Props {
 
 const defaultForm = {
   type: 'expense' as 'income' | 'expense',
-  amount: '',
+  amount: undefined as number | undefined,
   currency: 'COP' as Currency,
   category_id: '',
+  account_id: '',
   description: '',
   frequency: 'monthly' as 'daily' | 'weekly' | 'monthly' | 'yearly',
   start_date: new Date().toISOString().split('T')[0],
@@ -43,6 +46,7 @@ export function RecurringTransactionForm({
   onClose,
   userId,
   categories,
+  accounts,
   onSuccess,
   initialData,
   transactionId,
@@ -54,9 +58,10 @@ export function RecurringTransactionForm({
     if (initialData) {
       setForm({
         type: initialData.type,
-        amount: String(initialData.amount),
+        amount: Number(initialData.amount) as number | undefined,
         currency: initialData.currency as Currency,
         category_id: initialData.category_id,
+        account_id: initialData.account_id ?? '',
         description: initialData.description,
         frequency: initialData.frequency,
         start_date: initialData.start_date,
@@ -75,10 +80,11 @@ export function RecurringTransactionForm({
 
     setLoading(true)
     const payload = {
-      amount: parseFloat(form.amount as string),
+      amount: form.amount ?? 0,
       currency: form.currency,
       type: form.type,
       category_id: form.category_id,
+      account_id: form.account_id || null,
       description: form.description,
       frequency: form.frequency,
       start_date: form.start_date,
@@ -121,14 +127,11 @@ export function RecurringTransactionForm({
             required
           />
 
-          <FormInput
+          <InputAmount
             label="Monto"
             value={form.amount}
             onChange={(v) => setForm({ ...form, amount: v })}
-            type="number"
-            placeholder="0.00"
-            step="0.01"
-            required
+            isRequired
           />
 
           <CurrencySelect
@@ -151,6 +154,25 @@ export function RecurringTransactionForm({
             placeholder="Ej: Suscripción Netflix"
             required
           />
+
+          {accounts.length > 0 && (
+            <FieldRoot>
+              <FieldLabel>Cuenta asociada <span style={{ color: '#B0B0B0', fontSize: '0.85em' }}>(opcional)</span></FieldLabel>
+              <NativeSelectRoot>
+                <NativeSelectField
+                  value={form.account_id}
+                  onChange={(e) => setForm({ ...form, account_id: e.target.value })}
+                >
+                  <option value="">Sin cuenta</option>
+                  {accounts.map((acc) => (
+                    <option key={acc.id} value={acc.id}>
+                      {acc.name} ({acc.currency})
+                    </option>
+                  ))}
+                </NativeSelectField>
+              </NativeSelectRoot>
+            </FieldRoot>
+          )}
 
           <FieldRoot required>
             <FieldLabel>Frecuencia</FieldLabel>

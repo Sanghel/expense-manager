@@ -9,6 +9,8 @@ interface FinancialSummary {
   balance: number
   currency: Currency
   transactionCount: number
+  incomeCount: number
+  expenseCount: number
 }
 
 export function useFinancialSummary(
@@ -30,21 +32,20 @@ export function useFinancialSummary(
       return rate ? rate.rate : 1
     }
 
-    const income = filtered
-      .filter((t) => t.type === 'income')
-      .reduce(
-        (sum, t) =>
-          sum + Number(t.amount) * getRateMultiplier(t.currency as Currency, preferredCurrency),
-        0
-      )
+    const incomeTransactions = filtered.filter((t) => t.type === 'income')
+    const expenseTransactions = filtered.filter((t) => t.type === 'expense')
 
-    const expense = filtered
-      .filter((t) => t.type === 'expense')
-      .reduce(
-        (sum, t) =>
-          sum + Number(t.amount) * getRateMultiplier(t.currency as Currency, preferredCurrency),
-        0
-      )
+    const income = incomeTransactions.reduce(
+      (sum, t) =>
+        sum + Number(t.amount) * getRateMultiplier(t.currency as Currency, preferredCurrency),
+      0
+    )
+
+    const expense = expenseTransactions.reduce(
+      (sum, t) =>
+        sum + Number(t.amount) * getRateMultiplier(t.currency as Currency, preferredCurrency),
+      0
+    )
 
     return {
       totalIncome: income,
@@ -52,6 +53,8 @@ export function useFinancialSummary(
       balance: income - expense,
       currency: preferredCurrency,
       transactionCount: filtered.length,
+      incomeCount: incomeTransactions.length,
+      expenseCount: expenseTransactions.length,
     }
   }, [transactions, month, preferredCurrency, exchangeRates])
 

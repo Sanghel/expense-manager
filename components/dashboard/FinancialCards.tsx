@@ -52,12 +52,12 @@ export const FinancialCards = memo(function FinancialCards({
       <StatCard
         label="Gastos"
         value={formatCurrency(summary.totalExpense, preferredCurrency)}
-        helpText={`${summary.transactionCount} transacciones`}
+        helpText={`${summary.expenseCount} transacciones`}
       />
       <StatCard
         label="Ingresos"
         value={formatCurrency(summary.totalIncome, preferredCurrency)}
-        helpText="Este mes"
+        helpText={`${summary.incomeCount} transacciones`}
       />
     </SimpleGrid>
   )

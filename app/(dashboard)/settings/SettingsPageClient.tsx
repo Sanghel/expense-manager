@@ -4,6 +4,7 @@ import { Box, Heading, VStack, Text, Separator, Tabs } from '@chakra-ui/react'
 import { CurrencySelector } from '@/components/settings/CurrencySelector'
 import { ExchangeRatesForm } from '@/components/settings/ExchangeRatesForm'
 import { AccountsTab } from '@/components/settings/AccountsTab'
+import { CronActionsPanel } from '@/components/settings/CronActionsPanel'
 import type {
   Currency,
   ExchangeRate,
@@ -77,6 +78,18 @@ export function SettingsPageClient({
                 hoy.
               </Text>
               <ExchangeRatesForm initialRates={initialRates} />
+            </Box>
+
+            <Separator />
+
+            <Box>
+              <Text fontWeight="semibold" mb={1} color="white">
+                Mantenimiento
+              </Text>
+              <Text fontSize="sm" color="#B0B0B0" mb={4}>
+                Ejecuta manualmente los procesos automáticos del sistema.
+              </Text>
+              <CronActionsPanel userId={userId} />
             </Box>
           </VStack>
         </Tabs.Content>

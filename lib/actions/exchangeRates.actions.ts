@@ -3,6 +3,61 @@
 import { insforgeAdmin } from '@/lib/insforge-admin'
 import type { Currency } from '@/types/database.types'
 
+export async function updateExchangeRates() {
+  const apiKey = process.env.EXCHANGE_RATE_API_KEY
+  if (!apiKey) {
+    return { success: false, error: 'EXCHANGE_RATE_API_KEY no configurada' }
+  }
+
+  try {
+    const res = await fetch(`https://v6.exchangerate-api.com/v6/${apiKey}/latest/USD`)
+    if (!res.ok) {
+      const body = await res.text()
+      console.error(`[updateExchangeRates] API error status=${res.status} body=${body}`)
+      return { success: false, error: `exchangerate-api respondió con ${res.status}` }
+    }
+
+    const json = await res.json()
+    const usdCop: number = json.conversion_rates.COP
+    const usdVes: number = json.conversion_rates.VES
+    const today = new Date().toISOString().split('T')[0]
+
+    const rates = [
+      { from_currency: 'USD', to_currency: 'COP', rate: usdCop, date: today },
+      { from_currency: 'COP', to_currency: 'USD', rate: 1 / usdCop, date: today },
+      { from_currency: 'USD', to_currency: 'VES', rate: usdVes, date: today },
+      { from_currency: 'VES', to_currency: 'USD', rate: 1 / usdVes, date: today },
+      { from_currency: 'VES', to_currency: 'COP', rate: usdCop / usdVes, date: today },
+      { from_currency: 'COP', to_currency: 'VES', rate: usdVes / usdCop, date: today },
+    ]
+
+    const { error: deleteError } = await insforgeAdmin.database
+      .from('exchange_rates')
+      .delete()
+      .eq('date', today)
+
+    if (deleteError) {
+      console.error('[updateExchangeRates] delete error:', JSON.stringify(deleteError))
+      return { success: false, error: 'Error al limpiar tasas del día' }
+    }
+
+    const { error: insertError } = await insforgeAdmin.database
+      .from('exchange_rates')
+      .insert(rates)
+
+    if (insertError) {
+      console.error('[updateExchangeRates] insert error:', JSON.stringify(insertError))
+      return { success: false, error: 'Error al guardar tasas' }
+    }
+
+    console.log(`[updateExchangeRates] done date=${today} usdCop=${usdCop} usdVes=${usdVes}`)
+    return { success: true, data: { usdCop, usdVes, vesCop: usdCop / usdVes, date: today } }
+  } catch (error) {
+    console.error('[updateExchangeRates] unhandled error:', error)
+    return { success: false, error: 'Error interno al actualizar tasas' }
+  }
+}
+
 export async function getLatestRates() {
   try {
     const { data, error } = await insforgeAdmin.database

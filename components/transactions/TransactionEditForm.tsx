@@ -6,6 +6,7 @@ import { updateTransaction } from '@/lib/actions/transactions.actions'
 import { toaster } from '@/lib/toaster'
 import { FormDialog } from '@/components/ui/FormDialog'
 import { FormInput } from '@/components/ui/FormInput'
+import { InputAmount } from '@/components/ui/InputAmount'
 import { FormTextarea } from '@/components/ui/FormTextarea'
 import { RadioSelect } from '@/components/ui/RadioSelect'
 import { CurrencySelect } from '@/components/ui/CurrencySelect'
@@ -33,7 +34,7 @@ export function TransactionEditForm({ isOpen, onClose, userId, categories, accou
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     type: transaction.type,
-    amount: String(transaction.amount),
+    amount: Number(transaction.amount) as number | undefined,
     currency: transaction.currency as Currency,
     category_id: transaction.category_id,
     account_id: transaction.account_id ?? '',
@@ -45,7 +46,7 @@ export function TransactionEditForm({ isOpen, onClose, userId, categories, accou
   useEffect(() => {
     setFormData({
       type: transaction.type,
-      amount: String(transaction.amount),
+      amount: Number(transaction.amount) as number | undefined,
       currency: transaction.currency as Currency,
       category_id: transaction.category_id,
       account_id: transaction.account_id ?? '',
@@ -61,7 +62,7 @@ export function TransactionEditForm({ isOpen, onClose, userId, categories, accou
 
     const result = await updateTransaction(transaction.id, userId, {
       ...formData,
-      amount: parseFloat(formData.amount),
+      amount: formData.amount ?? 0,
       account_id: formData.account_id || null,
     })
 
@@ -87,14 +88,11 @@ export function TransactionEditForm({ isOpen, onClose, userId, categories, accou
             required
           />
 
-          <FormInput
+          <InputAmount
             label="Monto"
             value={formData.amount}
             onChange={(v) => setFormData({ ...formData, amount: v })}
-            type="number"
-            step="0.01"
-            min="0.01"
-            required
+            isRequired
           />
 
           <CurrencySelect
@@ -133,7 +131,7 @@ export function TransactionEditForm({ isOpen, onClose, userId, categories, accou
 
           <Box w="full" minH="10">
             <CurrencyPreview
-              amount={parseFloat(formData.amount) || 0}
+              amount={formData.amount ?? 0}
               fromCurrency={formData.currency}
             />
           </Box>

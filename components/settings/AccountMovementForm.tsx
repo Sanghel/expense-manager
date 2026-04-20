@@ -6,6 +6,7 @@ import { createAccountMovement } from '@/lib/actions/account_movements.actions'
 import { toaster } from '@/lib/toaster'
 import { FormDialog } from '@/components/ui/FormDialog'
 import { FormInput } from '@/components/ui/FormInput'
+import { InputAmount } from '@/components/ui/InputAmount'
 const CURRENCY_OPTIONS: { value: string; label: string }[] = [
   { value: 'COP', label: 'COP - Peso Colombiano' },
   { value: 'USD', label: 'USD - Dólar' },
@@ -24,10 +25,10 @@ interface Props {
 
 const defaultForm = {
   from_account_id: '',
-  from_amount: '',
+  from_amount: undefined as number | undefined,
   from_currency: 'COP' as Currency,
   to_account_id: '',
-  to_amount: '',
+  to_amount: undefined as number | undefined,
   to_currency: 'COP' as Currency,
   description: '',
   date: new Date().toISOString().split('T')[0],
@@ -43,10 +44,10 @@ export function AccountMovementForm({ isOpen, onClose, userId, accounts, onSucce
 
     const result = await createAccountMovement(userId, {
       from_account_id: formData.from_account_id,
-      from_amount: parseFloat(formData.from_amount),
+      from_amount: formData.from_amount ?? 0,
       from_currency: formData.from_currency,
       to_account_id: formData.to_account_id,
-      to_amount: parseFloat(formData.to_amount),
+      to_amount: formData.to_amount ?? 0,
       to_currency: formData.to_currency,
       description: formData.description || null,
       date: formData.date,
@@ -84,14 +85,11 @@ export function AccountMovementForm({ isOpen, onClose, userId, accounts, onSucce
             </NativeSelectRoot>
           </FieldRoot>
 
-          <FormInput
+          <InputAmount
             label="Monto enviado"
             value={formData.from_amount}
             onChange={(v) => setFormData({ ...formData, from_amount: v })}
-            type="number"
-            step="0.01"
-            min="0.01"
-            required
+            isRequired
           />
 
           <FieldRoot required>
@@ -127,14 +125,11 @@ export function AccountMovementForm({ isOpen, onClose, userId, accounts, onSucce
             </NativeSelectRoot>
           </FieldRoot>
 
-          <FormInput
+          <InputAmount
             label="Monto recibido"
             value={formData.to_amount}
             onChange={(v) => setFormData({ ...formData, to_amount: v })}
-            type="number"
-            step="0.01"
-            min="0.01"
-            required
+            isRequired
           />
 
           <FieldRoot required>

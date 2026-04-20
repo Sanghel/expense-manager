@@ -6,6 +6,7 @@ import { createAccount, updateAccount } from '@/lib/actions/accounts.actions'
 import { toaster } from '@/lib/toaster'
 import { FormDialog } from '@/components/ui/FormDialog'
 import { FormInput } from '@/components/ui/FormInput'
+import { InputAmount } from '@/components/ui/InputAmount'
 import { RadioSelect } from '@/components/ui/RadioSelect'
 import { CurrencySelect } from '@/components/ui/CurrencySelect'
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
@@ -32,7 +33,7 @@ const defaultForm = {
   name: '',
   type: 'bank' as 'bank' | 'digital' | 'crypto' | 'cash',
   currency: 'COP' as Currency,
-  balance: '0',
+  balance: 0 as number | undefined,
   icon: '💳',
   color: '#6366f1',
 }
@@ -47,7 +48,7 @@ export function AccountForm({ isOpen, onClose, userId, editingAccount, onSuccess
         name: editingAccount.name,
         type: editingAccount.type,
         currency: editingAccount.currency as Currency,
-        balance: String(editingAccount.balance),
+        balance: Number(editingAccount.balance) as number | undefined,
         icon: editingAccount.icon ?? '💳',
         color: editingAccount.color ?? '#6366f1',
       })
@@ -64,7 +65,7 @@ export function AccountForm({ isOpen, onClose, userId, editingAccount, onSuccess
       name: formData.name,
       type: formData.type,
       currency: formData.currency,
-      balance: parseFloat(formData.balance) || 0,
+      balance: formData.balance ?? 0,
       icon: formData.icon || null,
       color: formData.color || null,
     }
@@ -118,13 +119,10 @@ export function AccountForm({ isOpen, onClose, userId, editingAccount, onSuccess
             required
           />
 
-          <FormInput
+          <InputAmount
             label={editingAccount ? 'Balance actual' : 'Balance inicial'}
             value={formData.balance}
             onChange={(v) => setFormData({ ...formData, balance: v })}
-            type="number"
-            step="0.01"
-            min="0"
           />
 
           <HStack gap={4} w="full">

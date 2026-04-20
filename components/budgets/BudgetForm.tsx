@@ -6,6 +6,7 @@ import { createBudget, updateBudget } from '@/lib/actions/budgets.actions'
 import { toaster } from '@/lib/toaster'
 import { FormDialog } from '@/components/ui/FormDialog'
 import { FormInput } from '@/components/ui/FormInput'
+import { InputAmount } from '@/components/ui/InputAmount'
 import { RadioSelect } from '@/components/ui/RadioSelect'
 import { CurrencySelect } from '@/components/ui/CurrencySelect'
 import { CategorySelect } from '@/components/ui/CategorySelect'
@@ -44,7 +45,7 @@ interface Props {
 const defaultForm = {
   type: 'expense' as 'income' | 'expense',
   category_id: '',
-  amount: '',
+  amount: undefined as number | undefined,
   currency: 'COP' as Currency,
   period: 'monthly' as 'monthly' | 'yearly',
   start_date: new Date().toISOString().split('T')[0],
@@ -61,7 +62,7 @@ export function BudgetForm({ isOpen, onClose, userId, categories, onSuccess, edi
         setFormData({
           type: (category?.type || 'expense') as 'income' | 'expense',
           category_id: editingBudget.category_id,
-          amount: String(editingBudget.amount),
+          amount: Number(editingBudget.amount) as number | undefined,
           currency: editingBudget.currency,
           period: editingBudget.period,
           start_date: editingBudget.start_date,
@@ -84,7 +85,7 @@ export function BudgetForm({ isOpen, onClose, userId, categories, onSuccess, edi
 
     const budgetData = {
       category_id: formData.category_id,
-      amount: parseFloat(formData.amount),
+      amount: formData.amount ?? 0,
       currency: formData.currency,
       period: formData.period,
       start_date: formData.start_date,
@@ -134,15 +135,11 @@ export function BudgetForm({ isOpen, onClose, userId, categories, onSuccess, edi
             required
           />
 
-          <FormInput
+          <InputAmount
             label="Monto del Presupuesto"
             value={formData.amount}
             onChange={(v) => setFormData({ ...formData, amount: v })}
-            type="number"
-            min="0"
-            step="0.01"
-            placeholder="0.00"
-            required
+            isRequired
           />
 
           <CurrencySelect

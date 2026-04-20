@@ -6,6 +6,7 @@ import { createRecurringTransaction, updateRecurringTransaction } from '@/lib/ac
 import { toaster } from '@/lib/toaster'
 import { FormDialog } from '@/components/ui/FormDialog'
 import { FormInput } from '@/components/ui/FormInput'
+import { InputAmount } from '@/components/ui/InputAmount'
 import { RadioSelect } from '@/components/ui/RadioSelect'
 import { CurrencySelect } from '@/components/ui/CurrencySelect'
 import { CategorySelect } from '@/components/ui/CategorySelect'
@@ -29,7 +30,7 @@ interface Props {
 
 const defaultForm = {
   type: 'expense' as 'income' | 'expense',
-  amount: '',
+  amount: undefined as number | undefined,
   currency: 'COP' as Currency,
   category_id: '',
   description: '',
@@ -54,7 +55,7 @@ export function RecurringTransactionForm({
     if (initialData) {
       setForm({
         type: initialData.type,
-        amount: String(initialData.amount),
+        amount: Number(initialData.amount) as number | undefined,
         currency: initialData.currency as Currency,
         category_id: initialData.category_id,
         description: initialData.description,
@@ -75,7 +76,7 @@ export function RecurringTransactionForm({
 
     setLoading(true)
     const payload = {
-      amount: parseFloat(form.amount as string),
+      amount: form.amount ?? 0,
       currency: form.currency,
       type: form.type,
       category_id: form.category_id,
@@ -121,14 +122,11 @@ export function RecurringTransactionForm({
             required
           />
 
-          <FormInput
+          <InputAmount
             label="Monto"
             value={form.amount}
             onChange={(v) => setForm({ ...form, amount: v })}
-            type="number"
-            placeholder="0.00"
-            step="0.01"
-            required
+            isRequired
           />
 
           <CurrencySelect

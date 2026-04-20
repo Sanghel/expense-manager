@@ -64,9 +64,13 @@ export function InputAmount({
   }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    // Allow digits, dot (thousands), comma (decimal), minus
-    const val = e.target.value.replace(/[^0-9.,\-]/g, '')
-    setRawInput(val)
+    const stripped = e.target.value.replace(/[^0-9,\-]/g, '')
+    const parts = stripped.split(',')
+    const intFormatted = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+    const formatted = parts.length > 1
+      ? intFormatted + ',' + parts[1].slice(0, 2)
+      : intFormatted
+    setRawInput(formatted)
   }
 
   return (

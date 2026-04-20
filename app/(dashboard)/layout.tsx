@@ -3,6 +3,7 @@ import { authOptions } from '@/lib/auth'
 import { insforgeAdmin } from '@/lib/insforge-admin'
 import { getCategories } from '@/lib/actions/categories.actions'
 import { getAccounts } from '@/lib/actions/accounts.actions'
+// import { runDailyCatchUp } from '@/lib/utils/dailyCatchUp'
 import { DashboardShell } from '@/components/dashboard/DashboardShell'
 import { FloatingChat } from '@/components/chat/FloatingChat'
 
@@ -29,6 +30,7 @@ export default async function DashboardLayout({
       const [categoriesResult, accountsResult] = await Promise.all([
         getCategories(user.id),
         getAccounts(user.id),
+        // runDailyCatchUp(user.id),
       ])
       categories = categoriesResult.success ? categoriesResult.data : []
       accounts = accountsResult.success ? accountsResult.data : []

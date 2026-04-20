@@ -168,10 +168,15 @@ export async function generateRecurringTransactions(userId: string) {
             currency: recurring.currency,
             type: recurring.type,
             category_id: recurring.category_id,
+            account_id: recurring.account_id ?? null,
             description: recurring.description,
             date: nextDate.toISOString().split('T')[0],
             source: 'manual',
           }])
+
+        if (insertError) {
+          console.error('generateRecurringTransactions: insert error for recurring', recurring.id, JSON.stringify(insertError))
+        }
 
         if (!insertError) {
           await insforgeAdmin.database

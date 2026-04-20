@@ -6,7 +6,7 @@
     },
     {
       "path": "/api/cron/update-exchange-rates",
-      "schedule": "5 15 * * *"
+      "schedule": "0 17 * * *"
     }
   ]
 }

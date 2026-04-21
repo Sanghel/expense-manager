@@ -38,9 +38,13 @@ export function CronActionsPanel({ userId }: Props) {
     setRecurringState({ status: 'loading', message: '' })
     const result = await generateRecurringTransactions(userId)
     if (result.success && result.data) {
+      const { generated, skipped } = result.data
+      const msg = generated === 0 && skipped > 0
+        ? `0 generadas (${skipped} ya registradas hoy)`
+        : `${generated} transacción(es) generada(s)`
       setRecurringState({
-        status: 'success',
-        message: `${result.data.generated} transacción(es) generada(s)`,
+        status: generated > 0 ? 'success' : 'idle',
+        message: result.error ? `${msg} — ${result.error}` : msg,
       })
     } else {
       setRecurringState({ status: 'error', message: result.error ?? 'Error desconocido' })

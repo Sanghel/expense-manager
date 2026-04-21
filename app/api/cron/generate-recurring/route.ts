@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { insforgeAdmin } from '@/lib/insforge-admin'
-import { generateRecurringTransactions } from '@/lib/actions/recurring.actions'
+import { generateRecurringForUser } from '@/lib/utils/recurring-generator'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,10 +17,14 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    const today = new Date().toISOString().split('T')[0]
+    console.log(`[cron:generate-recurring] today=${today}`)
+
     const { data: users, error } = await insforgeAdmin.database
       .from('recurring_transactions')
       .select('user_id')
       .eq('is_active', true)
+      .lte('start_date', today)
 
     if (error) {
       console.error('[cron:generate-recurring] DB fetch users error:', JSON.stringify(error))
@@ -28,30 +32,35 @@ export async function GET(req: NextRequest) {
     }
 
     const uniqueUserIds = [...new Set((users ?? []).map((r: { user_id: string }) => r.user_id))]
-    console.log(`[cron:generate-recurring] activeUsers=${uniqueUserIds.length}`)
+    console.log(`[cron:generate-recurring] activeUsers=${uniqueUserIds.length} userIds=${JSON.stringify(uniqueUserIds)}`)
 
-    const results = await Promise.all(
-      uniqueUserIds.map((userId) => generateRecurringTransactions(userId as string))
-    )
+    let totalGenerated = 0
+    let totalSkipped = 0
+    const allErrors: string[] = []
 
-    const totalGenerated = results.reduce(
-      (sum, r) => sum + (r.success && r.data ? r.data.generated : 0),
-      0
-    )
-
-    const failures = results.filter((r) => !r.success)
-    if (failures.length > 0) {
-      console.error(`[cron:generate-recurring] failures=${failures.length}`, failures.map((f) => f.error))
+    for (const userId of uniqueUserIds) {
+      console.log(`[cron:generate-recurring] processing userId=${userId}`)
+      const result = await generateRecurringForUser(userId as string)
+      totalGenerated += result.generated
+      totalSkipped += result.skipped
+      if (result.errors.length > 0) {
+        console.error(`[cron:generate-recurring] userId=${userId} errors=`, result.errors)
+        allErrors.push(...result.errors.map(e => `${userId}: ${e}`))
+      }
+      console.log(`[cron:generate-recurring] userId=${userId} generated=${result.generated} skipped=${result.skipped}`)
     }
 
-    console.log(`[cron:generate-recurring] done usersProcessed=${uniqueUserIds.length} transactionsGenerated=${totalGenerated}`)
+    console.log(`[cron:generate-recurring] done usersProcessed=${uniqueUserIds.length} totalGenerated=${totalGenerated} totalSkipped=${totalSkipped} errors=${allErrors.length}`)
+
     return NextResponse.json({
       ok: true,
       usersProcessed: uniqueUserIds.length,
       transactionsGenerated: totalGenerated,
+      transactionsSkipped: totalSkipped,
+      errors: allErrors.length > 0 ? allErrors : undefined,
     })
   } catch (error) {
-    console.error(`[cron:generate-recurring] unhandled error=${JSON.stringify(error)}`)
+    console.error(`[cron:generate-recurring] unhandled error=`, error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

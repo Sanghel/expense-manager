@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { insforgeAdmin } from '@/lib/insforge-admin'
+import { generateRecurringForUser } from '@/lib/utils/recurring-generator'
 import {
   createRecurringTransactionSchema,
   updateRecurringTransactionSchema,
@@ -134,88 +135,19 @@ export async function toggleRecurringTransaction(id: string, userId: string, isA
 
 export async function generateRecurringTransactions(userId: string) {
   try {
-    const today = new Date().toISOString().split('T')[0]
-
-    const { data: active, error: fetchError1 } = await insforgeAdmin.database
-      .from('recurring_transactions')
-      .select()
-      .eq('user_id', userId)
-      .eq('is_active', true)
-      .is('end_date', null)
-
-    const { data: withEndDate, error: fetchError2 } = await insforgeAdmin.database
-      .from('recurring_transactions')
-      .select()
-      .eq('user_id', userId)
-      .eq('is_active', true)
-      .gte('end_date', today)
-
-    if (fetchError1) throw fetchError1
-    if (fetchError2) throw fetchError2
-    const recurringTransactions = [...(active || []), ...(withEndDate || [])]
-
-    const transactions = []
-
-    for (const recurring of recurringTransactions || []) {
-      const nextDate = recurring.last_generated
-        ? getNextDate(new Date(recurring.last_generated), recurring.frequency)
-        : new Date(recurring.start_date)
-
-      if (nextDate.toISOString().split('T')[0] <= today) {
-        const { error: insertError } = await insforgeAdmin.database
-          .from('transactions')
-          .insert([{
-            user_id: userId,
-            amount: recurring.amount,
-            currency: recurring.currency,
-            type: recurring.type,
-            category_id: recurring.category_id,
-            account_id: recurring.account_id ?? null,
-            description: recurring.description,
-            date: nextDate.toISOString().split('T')[0],
-            source: 'manual',
-          }])
-
-        if (insertError) {
-          console.error('generateRecurringTransactions: insert error for recurring', recurring.id, JSON.stringify(insertError))
-        }
-
-        if (!insertError) {
-          await insforgeAdmin.database
-            .from('recurring_transactions')
-            .update({ last_generated: today })
-            .eq('id', recurring.id)
-
-          transactions.push(recurring)
-        }
+    const result = await generateRecurringForUser(userId)
+    console.log('[generateRecurringTransactions] result:', JSON.stringify(result))
+    revalidatePath('/recurring-transactions')
+    if (result.errors.length > 0) {
+      return {
+        success: true,
+        data: { generated: result.generated, skipped: result.skipped },
+        error: `Errores: ${result.errors.join(' | ')}`,
       }
     }
-
-    revalidatePath('/recurring-transactions')
-    return { success: true, data: { generated: transactions.length } }
+    return { success: true, data: { generated: result.generated, skipped: result.skipped } }
   } catch (error) {
-    console.error('Generate recurring transactions error:', error)
+    console.error('generateRecurringTransactions wrapper error:', error)
     return { success: false, error: 'Failed to generate recurring transactions' }
   }
-}
-
-function getNextDate(lastDate: Date, frequency: string): Date {
-  const date = new Date(lastDate)
-
-  switch (frequency) {
-    case 'daily':
-      date.setDate(date.getDate() + 1)
-      break
-    case 'weekly':
-      date.setDate(date.getDate() + 7)
-      break
-    case 'monthly':
-      date.setMonth(date.getMonth() + 1)
-      break
-    case 'yearly':
-      date.setFullYear(date.getFullYear() + 1)
-      break
-  }
-
-  return date
 }

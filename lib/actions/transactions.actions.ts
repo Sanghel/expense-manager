@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { insforgeAdmin } from '@/lib/insforge-admin'
+import { applyBalanceDelta } from '@/lib/utils/balance-updater'
 import {
   createTransactionSchema,
   updateTransactionSchema,
@@ -25,8 +26,8 @@ export async function createTransaction(
     if (error) throw error
 
     if (validated.account_id) {
-      const rpcName = validated.type === 'income' ? 'increment_account_balance' : 'decrement_account_balance'
-      await insforgeAdmin.database.rpc(rpcName, { account_id: validated.account_id, amount: validated.amount })
+      const direction = validated.type === 'income' ? 'add' : 'subtract'
+      await applyBalanceDelta(validated.account_id, validated.amount, validated.currency, direction)
     }
 
     revalidatePath('/transactions')
@@ -69,7 +70,7 @@ export async function updateTransaction(
   try {
     const { data: oldTx, error: fetchError } = await insforgeAdmin.database
       .from('transactions')
-      .select('account_id, type, amount')
+      .select('account_id, type, amount, currency')
       .eq('id', id)
       .eq('user_id', userId)
       .single()
@@ -90,14 +91,14 @@ export async function updateTransaction(
 
     // Reverse old account effect
     if (oldTx.account_id) {
-      const reverseRpc = oldTx.type === 'expense' ? 'increment_account_balance' : 'decrement_account_balance'
-      await insforgeAdmin.database.rpc(reverseRpc, { account_id: oldTx.account_id, amount: Number(oldTx.amount) })
+      const reverseDirection = oldTx.type === 'expense' ? 'add' : 'subtract'
+      await applyBalanceDelta(oldTx.account_id, Number(oldTx.amount), oldTx.currency, reverseDirection)
     }
 
     // Apply new account effect
     if (transaction.account_id) {
-      const applyRpc = transaction.type === 'income' ? 'increment_account_balance' : 'decrement_account_balance'
-      await insforgeAdmin.database.rpc(applyRpc, { account_id: transaction.account_id, amount: Number(transaction.amount) })
+      const applyDirection = transaction.type === 'income' ? 'add' : 'subtract'
+      await applyBalanceDelta(transaction.account_id, Number(transaction.amount), transaction.currency, applyDirection)
     }
 
     revalidatePath('/transactions')
@@ -115,7 +116,7 @@ export async function deleteTransaction(id: string, userId: string) {
   try {
     const { data: tx } = await insforgeAdmin.database
       .from('transactions')
-      .select('account_id, type, amount')
+      .select('account_id, type, amount, currency')
       .eq('id', id)
       .eq('user_id', userId)
       .single()
@@ -129,8 +130,8 @@ export async function deleteTransaction(id: string, userId: string) {
     if (error) throw error
 
     if (tx?.account_id) {
-      const reverseRpc = tx.type === 'expense' ? 'increment_account_balance' : 'decrement_account_balance'
-      await insforgeAdmin.database.rpc(reverseRpc, { account_id: tx.account_id, amount: Number(tx.amount) })
+      const reverseDirection = tx.type === 'expense' ? 'add' : 'subtract'
+      await applyBalanceDelta(tx.account_id, Number(tx.amount), tx.currency, reverseDirection)
     }
 
     revalidatePath('/transactions')

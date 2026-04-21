@@ -1,6 +1,6 @@
 import { insforgeAdmin } from '@/lib/insforge-admin'
 import { updateExchangeRates } from '@/lib/actions/exchangeRates.actions'
-import { generateRecurringTransactions } from '@/lib/actions/recurring.actions'
+import { generateRecurringForUser } from '@/lib/utils/recurring-generator'
 
 export async function runDailyCatchUp(userId: string): Promise<void> {
   const today = new Date().toISOString().split('T')[0]
@@ -40,7 +40,11 @@ async function catchUpRecurringTransactions(userId: string, today: string): Prom
 
     if ((count ?? 0) > 0) {
       console.log(`[dailyCatchUp] ${count} recurring transaction(s) due — generating for user ${userId}`)
-      await generateRecurringTransactions(userId)
+      const { generated, skipped, errors } = await generateRecurringForUser(userId)
+      console.log(`[dailyCatchUp] recurring generation complete: generated=${generated}, skipped=${skipped}, errors=${errors.length}`)
+      if (errors.length > 0) {
+        console.error('[dailyCatchUp] recurring generation errors:', errors)
+      }
     }
   } catch (error) {
     console.error('[dailyCatchUp] recurring transactions check failed:', error)

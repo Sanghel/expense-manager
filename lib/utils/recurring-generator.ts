@@ -81,15 +81,33 @@ export async function generateRecurringForUser(userId: string): Promise<{
     }
 
     if (recurring.account_id) {
-      const rpcName = recurring.type === 'income' ? 'increment_account_balance' : 'decrement_account_balance'
-      const { error: rpcError } = await insforgeAdmin.database.rpc(rpcName, {
-        account_id: recurring.account_id,
-        amount: recurring.amount,
-      })
-      if (rpcError) {
-        const msg = `balance-rpc-error id=${recurring.id}: ${JSON.stringify(rpcError)}`
+      const { data: account, error: fetchBalanceError } = await insforgeAdmin.database
+        .from('accounts')
+        .select('balance')
+        .eq('id', recurring.account_id)
+        .single()
+
+      if (fetchBalanceError || !account) {
+        const msg = `balance-fetch-error id=${recurring.id}: ${JSON.stringify(fetchBalanceError)}`
         console.error(`[recurring-gen] ${msg}`)
         errors.push(msg)
+      } else {
+        const currentBalance = Number(account.balance)
+        const amt = Number(recurring.amount)
+        const newBalance = recurring.type === 'income' ? currentBalance + amt : currentBalance - amt
+
+        console.log(`[recurring-gen] balance update account=${recurring.account_id} type=${recurring.type} current=${currentBalance} amount=${amt} new=${newBalance}`)
+
+        const { error: balanceError } = await insforgeAdmin.database
+          .from('accounts')
+          .update({ balance: newBalance, updated_at: new Date().toISOString() })
+          .eq('id', recurring.account_id)
+
+        if (balanceError) {
+          const msg = `balance-update-error id=${recurring.id}: ${JSON.stringify(balanceError)}`
+          console.error(`[recurring-gen] ${msg}`)
+          errors.push(msg)
+        }
       }
     }
 

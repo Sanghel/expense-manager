@@ -80,6 +80,19 @@ export async function generateRecurringForUser(userId: string): Promise<{
       continue
     }
 
+    if (recurring.account_id) {
+      const rpcName = recurring.type === 'income' ? 'increment_account_balance' : 'decrement_account_balance'
+      const { error: rpcError } = await insforgeAdmin.database.rpc(rpcName, {
+        account_id: recurring.account_id,
+        amount: recurring.amount,
+      })
+      if (rpcError) {
+        const msg = `balance-rpc-error id=${recurring.id}: ${JSON.stringify(rpcError)}`
+        console.error(`[recurring-gen] ${msg}`)
+        errors.push(msg)
+      }
+    }
+
     const { error: updateError } = await insforgeAdmin.database
       .from('recurring_transactions')
       .update({ last_generated: nextDateStr })

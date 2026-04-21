@@ -1,4 +1,5 @@
 import { insforgeAdmin } from '@/lib/insforge-admin'
+import { applyBalanceDelta } from '@/lib/utils/balance-updater'
 
 function getNextDate(lastDate: Date, frequency: string): Date {
   const date = new Date(lastDate)
@@ -81,55 +82,17 @@ export async function generateRecurringForUser(userId: string): Promise<{
     }
 
     if (recurring.account_id) {
-      const { data: account, error: fetchBalanceError } = await insforgeAdmin.database
-        .from('accounts')
-        .select('balance, currency')
-        .eq('id', recurring.account_id)
-        .single()
-
-      if (fetchBalanceError || !account) {
-        const msg = `balance-fetch-error id=${recurring.id}: ${JSON.stringify(fetchBalanceError)}`
+      const direction = recurring.type === 'income' ? 'add' : 'subtract'
+      const balanceError = await applyBalanceDelta(
+        recurring.account_id,
+        Number(recurring.amount),
+        recurring.currency,
+        direction
+      )
+      if (balanceError) {
+        const msg = `balance-error id=${recurring.id}: ${balanceError}`
         console.error(`[recurring-gen] ${msg}`)
         errors.push(msg)
-      } else {
-        const currentBalance = Number(account.balance)
-        let amt = Number(recurring.amount)
-
-        if (recurring.currency !== account.currency) {
-          const { data: rate } = await insforgeAdmin.database
-            .from('exchange_rates')
-            .select('rate')
-            .eq('from_currency', recurring.currency)
-            .eq('to_currency', account.currency)
-            .order('date', { ascending: false })
-            .limit(1)
-            .single()
-
-          if (!rate) {
-            const msg = `no-exchange-rate id=${recurring.id} from=${recurring.currency} to=${account.currency}`
-            console.error(`[recurring-gen] ${msg}`)
-            errors.push(msg)
-            continue
-          }
-
-          amt = amt * Number(rate.rate)
-          console.log(`[recurring-gen] currency converted ${recurring.currency}→${account.currency} rate=${rate.rate} amt=${Number(recurring.amount)}→${amt}`)
-        }
-
-        const newBalance = recurring.type === 'income' ? currentBalance + amt : currentBalance - amt
-
-        console.log(`[recurring-gen] balance update account=${recurring.account_id} type=${recurring.type} current=${currentBalance} amount=${amt} new=${newBalance}`)
-
-        const { error: balanceError } = await insforgeAdmin.database
-          .from('accounts')
-          .update({ balance: newBalance, updated_at: new Date().toISOString() })
-          .eq('id', recurring.account_id)
-
-        if (balanceError) {
-          const msg = `balance-update-error id=${recurring.id}: ${JSON.stringify(balanceError)}`
-          console.error(`[recurring-gen] ${msg}`)
-          errors.push(msg)
-        }
       }
     }
 

@@ -83,7 +83,7 @@ export async function generateRecurringForUser(userId: string): Promise<{
     if (recurring.account_id) {
       const { data: account, error: fetchBalanceError } = await insforgeAdmin.database
         .from('accounts')
-        .select('balance')
+        .select('balance, currency')
         .eq('id', recurring.account_id)
         .single()
 
@@ -93,7 +93,29 @@ export async function generateRecurringForUser(userId: string): Promise<{
         errors.push(msg)
       } else {
         const currentBalance = Number(account.balance)
-        const amt = Number(recurring.amount)
+        let amt = Number(recurring.amount)
+
+        if (recurring.currency !== account.currency) {
+          const { data: rate } = await insforgeAdmin.database
+            .from('exchange_rates')
+            .select('rate')
+            .eq('from_currency', recurring.currency)
+            .eq('to_currency', account.currency)
+            .order('date', { ascending: false })
+            .limit(1)
+            .single()
+
+          if (!rate) {
+            const msg = `no-exchange-rate id=${recurring.id} from=${recurring.currency} to=${account.currency}`
+            console.error(`[recurring-gen] ${msg}`)
+            errors.push(msg)
+            continue
+          }
+
+          amt = amt * Number(rate.rate)
+          console.log(`[recurring-gen] currency converted ${recurring.currency}→${account.currency} rate=${rate.rate} amt=${Number(recurring.amount)}→${amt}`)
+        }
+
         const newBalance = recurring.type === 'income' ? currentBalance + amt : currentBalance - amt
 
         console.log(`[recurring-gen] balance update account=${recurring.account_id} type=${recurring.type} current=${currentBalance} amount=${amt} new=${newBalance}`)

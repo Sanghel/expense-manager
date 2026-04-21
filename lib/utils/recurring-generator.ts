@@ -96,6 +96,7 @@ export async function generateRecurringForUser(userId: string): Promise<{
       const msg = `update-last-generated id=${recurring.id}: ${JSON.stringify(updateError)}`
       console.error(`[recurring-gen] ${msg}`)
       errors.push(msg)
+      continue
     }
 
     generated++

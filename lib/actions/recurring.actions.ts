@@ -136,8 +136,16 @@ export async function toggleRecurringTransaction(id: string, userId: string, isA
 export async function generateRecurringTransactions(userId: string) {
   try {
     const result = await generateRecurringForUser(userId)
+    console.log('[generateRecurringTransactions] result:', JSON.stringify(result))
     revalidatePath('/recurring-transactions')
-    return { success: true, data: { generated: result.generated } }
+    if (result.errors.length > 0) {
+      return {
+        success: true,
+        data: { generated: result.generated, skipped: result.skipped },
+        error: `Errores: ${result.errors.join(' | ')}`,
+      }
+    }
+    return { success: true, data: { generated: result.generated, skipped: result.skipped } }
   } catch (error) {
     console.error('generateRecurringTransactions wrapper error:', error)
     return { success: false, error: 'Failed to generate recurring transactions' }

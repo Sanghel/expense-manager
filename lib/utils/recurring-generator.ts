@@ -45,13 +45,6 @@ export async function generateRecurringForUser(userId: string): Promise<{
   const recurringList = [...(noEndDate ?? []), ...(withEndDate ?? [])]
 
   for (const recurring of recurringList) {
-    // Idempotency: if already generated today, skip
-    if (recurring.last_generated === today) {
-      skipped++
-      console.log(`[recurring-gen] skip id=${recurring.id} already generated today`)
-      continue
-    }
-
     const nextDate = recurring.last_generated
       ? getNextDate(new Date(recurring.last_generated), recurring.frequency)
       : new Date(recurring.start_date)
@@ -89,7 +82,7 @@ export async function generateRecurringForUser(userId: string): Promise<{
 
     const { error: updateError } = await insforgeAdmin.database
       .from('recurring_transactions')
-      .update({ last_generated: today })
+      .update({ last_generated: nextDateStr })
       .eq('id', recurring.id)
 
     if (updateError) {

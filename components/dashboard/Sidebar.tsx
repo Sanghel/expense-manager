@@ -24,7 +24,7 @@ const navItems: { href: string; label: string; icon: IconType }[] = [
   { href: '/recurring-transactions', label: 'Recurrentes', icon: FiRepeat },
   { href: '/savings-goals', label: 'Metas de Ahorro', icon: FiTarget },
   { href: '/loans', label: 'Préstamos', icon: FiCreditCard },
-  { href: '/tags', label: 'Etiquetas', icon: FiTag },
+  // { href: '/tags', label: 'Etiquetas', icon: FiTag },
   { href: '/calendar', label: 'Calendario', icon: FiCalendar },
   { href: '/categories', label: 'Categorías', icon: FiTag },
   { href: '/reports', label: 'Reportes', icon: FiBarChart2 },

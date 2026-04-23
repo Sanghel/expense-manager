@@ -27,10 +27,21 @@ interface Props {
   onFilterChange: (filters: ReportFiltersState) => void
 }
 
+function getCurrentMonthRange(): { firstDay: string; lastDay: string } {
+  const now = new Date()
+  const y = now.getFullYear()
+  const m = String(now.getMonth() + 1).padStart(2, '0')
+  const firstDay = `${y}-${m}-01`
+  const last = new Date(y, now.getMonth() + 1, 0)
+  const lastDay = `${last.getFullYear()}-${String(last.getMonth() + 1).padStart(2, '0')}-${String(last.getDate()).padStart(2, '0')}`
+  return { firstDay, lastDay }
+}
+
 export function ReportFilters({ userId, onFilterChange }: Props) {
+  const { firstDay, lastDay } = getCurrentMonthRange()
   const [filters, setFilters] = useState<ReportFiltersState>({
-    startDate: '',
-    endDate: '',
+    startDate: firstDay,
+    endDate: lastDay,
     categoryIds: [],
     transactionType: 'all',
   })
@@ -47,6 +58,12 @@ export function ReportFilters({ userId, onFilterChange }: Props) {
     }
     fetchCategories()
   }, [userId])
+
+  // Notify parent of the initial current-month filter on first render
+  useEffect(() => {
+    onFilterChange(filters)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleTypeChange = (value: string) => {
     const type = value as 'all' | 'income' | 'expense'
@@ -75,9 +92,10 @@ export function ReportFilters({ userId, onFilterChange }: Props) {
   }
 
   const handleReset = () => {
+    const { firstDay, lastDay } = getCurrentMonthRange()
     const newFilters: ReportFiltersState = {
-      startDate: '',
-      endDate: '',
+      startDate: firstDay,
+      endDate: lastDay,
       categoryIds: [],
       transactionType: 'all',
     }

@@ -9,9 +9,9 @@ const SIZES = [96, 144, 180, 192, 512]
 async function main() {
   fs.mkdirSync(OUTPUT_DIR, { recursive: true })
 
-  // Logo ocupa el 65% del canvas — el resto es padding con fondo oscuro
+  // Logo ocupa el 65% del canvas — padding transparente (iOS aplica su propio fondo negro)
   const LOGO_RATIO = 0.65
-  const BG = { r: 15, g: 15, b: 19, alpha: 1 }
+  const TRANSPARENT = { r: 0, g: 0, b: 0, alpha: 0 }
 
   for (const size of SIZES) {
     const logoSize = Math.round(size * LOGO_RATIO)
@@ -19,11 +19,11 @@ async function main() {
     const padA = Math.floor(totalPad / 2)
     const padB = totalPad - padA
     await sharp(SOURCE)
-      .resize(logoSize, logoSize, { fit: 'contain', background: BG })
-      .extend({ top: padA, bottom: padB, left: padA, right: padB, background: BG })
+      .resize(logoSize, logoSize, { fit: 'contain', background: TRANSPARENT })
+      .extend({ top: padA, bottom: padB, left: padA, right: padB, background: TRANSPARENT })
       .png()
       .toFile(path.join(OUTPUT_DIR, `icon-${size}x${size}.png`))
-    console.log(`✓ icon-${size}x${size}.png  (logo ${logoSize}px en canvas ${size}px)`)
+    console.log(`✓ icon-${size}x${size}.png  (logo ${logoSize}px, fondo transparente)`)
   }
 
   // Maskable icon (Android 12+): logo al 55% — safe zone indigo para Android 12+

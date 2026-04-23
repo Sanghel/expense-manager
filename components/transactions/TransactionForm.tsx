@@ -14,6 +14,7 @@ import { CategorySelect } from '@/components/ui/CategorySelect'
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
 import { CurrencyPreview } from './CurrencyPreview'
 import type { Account, Category, Currency } from '@/types/database.types'
+import { getLocalDateString } from '@/lib/utils/dates'
 
 const TYPE_OPTIONS = [
   { value: 'expense', label: 'Gasto' },
@@ -36,7 +37,7 @@ const defaultForm = {
   category_id: '',
   account_id: '',
   description: '',
-  date: new Date().toISOString().split('T')[0],
+  date: getLocalDateString(),
   notes: '',
 }
 

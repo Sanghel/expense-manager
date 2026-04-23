@@ -11,7 +11,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false)
 
   return (
-    <Flex direction="column" h="100vh" bg="#0f0f13">
+    <Flex direction="column" h="100dvh" bg="#0f0f13">
       <Header />
       <Flex flex="1" overflow="hidden" bg="#0f0f13">
         <Sidebar />
@@ -20,7 +20,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           flex="1"
           overflow="auto"
           p={{ base: 4, md: 6, lg: 8 }}
-          pb={{ base: '84px', md: 6, lg: 8 }}
+          pb={{ base: 'calc(84px + env(safe-area-inset-bottom))', md: 6, lg: 8 }}
           bg="#0f0f13"
         >
           {children}

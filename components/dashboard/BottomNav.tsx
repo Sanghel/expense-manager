@@ -39,6 +39,7 @@ export function BottomNav({ onMoreClick }: Props) {
       borderTopWidth="1px"
       borderColor="#2d2d35"
       display={{ base: 'block', md: 'none' }}
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       <Flex>
         {primaryItems.map((item) => {

@@ -34,6 +34,7 @@ export function Header() {
       px={{ base: 4, md: 6 }}
       py={3}
       flexShrink={0}
+      style={{ paddingTop: 'max(12px, env(safe-area-inset-top))' }}
     >
       <Flex justify="space-between" align="center">
         <Flex align="center" gap={2}>

@@ -4,18 +4,20 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "type-check": "tsc --noEmit",
-    "test:crons": "npx tsx scripts/test-crons.ts"
+    "test:crons": "npx tsx scripts/test-crons.ts",
+    "generate-icons": "npx tsx scripts/generate-pwa-icons.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.89.0",
     "@chakra-ui/next-js": "^2.4.2",
     "@chakra-ui/react": "^3.34.0",
+    "@ducanh2912/next-pwa": "^10.2.9",
     "@emotion/cache": "^11.14.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
@@ -42,6 +44,7 @@
     "eslint-config-next": "16.2.3",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.8.2",
+    "sharp": "^0.34.5",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

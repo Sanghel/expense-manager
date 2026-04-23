@@ -12,6 +12,7 @@ import { CurrencySelect } from '@/components/ui/CurrencySelect'
 import { CategorySelect } from '@/components/ui/CategorySelect'
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
 import type { Account, Category, Currency, RecurringTransactionWithCategory } from '@/types/database.types'
+import { getLocalDateString } from '@/lib/utils/dates'
 
 const TYPE_OPTIONS = [
   { value: 'expense', label: 'Gasto' },
@@ -37,7 +38,7 @@ const defaultForm = {
   account_id: '',
   description: '',
   frequency: 'monthly' as 'daily' | 'weekly' | 'monthly' | 'yearly',
-  start_date: new Date().toISOString().split('T')[0],
+  start_date: getLocalDateString(),
   end_date: '',
 }
 

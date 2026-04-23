@@ -1,11 +1,15 @@
 'use client'
 
+import { useState } from 'react'
 import { Flex, Box } from '@chakra-ui/react'
 import { Header } from './Header'
 import { Sidebar } from './Sidebar'
 import { BottomNav } from './BottomNav'
+import { MobileNav } from './MobileNav'
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false)
+
   return (
     <Flex direction="column" h="100vh" bg="#0f0f13">
       <Header />
@@ -22,7 +26,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           {children}
         </Box>
       </Flex>
-      <BottomNav />
+      <BottomNav onMoreClick={() => setIsMobileNavOpen(true)} />
+      <MobileNav isOpen={isMobileNavOpen} onClose={() => setIsMobileNavOpen(false)} />
     </Flex>
   )
 }

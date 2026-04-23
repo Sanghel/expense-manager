@@ -22,6 +22,8 @@ import {
 import { FiX } from 'react-icons/fi'
 import { useState } from 'react'
 import type { TransactionWithCategory } from '@/types/database.types'
+import { formatCurrency } from '@/lib/utils/currency'
+import { getLocalDateString } from '@/lib/utils/dates'
 
 interface Props {
   userId: string
@@ -45,9 +47,7 @@ export function TransactionCalendar({ initialTransactions }: Props) {
   }
 
   const getTransactionsForDay = (day: number) => {
-    const dateStr = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
-      .toISOString()
-      .split('T')[0]
+    const dateStr = getLocalDateString(new Date(currentDate.getFullYear(), currentDate.getMonth(), day))
     return transactions.filter(t => t.date === dateStr)
   }
 
@@ -119,10 +119,11 @@ export function TransactionCalendar({ initialTransactions }: Props) {
                   borderWidth="1px"
                   borderRadius="md"
                   p="2"
-                  bg={hasTransactions ? 'blue.50' : 'bg.muted'}
+                  bg={hasTransactions ? '#1a1a27' : 'transparent'}
+                  borderColor={hasTransactions ? '#4F46E5' : '#2d2d35'}
                   cursor={hasTransactions ? 'pointer' : 'default'}
                   onClick={() => hasTransactions && handleDayClick(day)}
-                  _hover={hasTransactions ? { bg: 'blue.100' } : {}}
+                  _hover={hasTransactions ? { bg: '#252535' } : { bg: '#1a1a1a' }}
                   transition="background 0.2s"
                 >
                   <VStack alignItems="flex-start" gap="1" height="100%">
@@ -140,7 +141,7 @@ export function TransactionCalendar({ initialTransactions }: Props) {
                             width="100%"
                             justifyContent="flex-start"
                           >
-                            {t.amount.toLocaleString()} {t.currency}
+                            {formatCurrency(Number(t.amount), t.currency)}
                           </Badge>
                         ))}
                         {dayTransactions.length > 2 && (
@@ -194,8 +195,8 @@ export function TransactionCalendar({ initialTransactions }: Props) {
                     >
                       <HStack justifyContent="space-between" mb="1">
                         <Text fontWeight="bold">{txn.description}</Text>
-                        <Text fontWeight="bold" color={txn.type === 'income' ? 'green.600' : 'red.600'}>
-                          {txn.type === 'income' ? '+' : '-'} {txn.amount.toLocaleString()} {txn.currency}
+                        <Text fontWeight="bold" color={txn.type === 'income' ? '#10B981' : '#F43F5E'}>
+                          {txn.type === 'income' ? '+' : '-'}{formatCurrency(Number(txn.amount), txn.currency)}
                         </Text>
                       </HStack>
                       <HStack justifyContent="space-between" fontSize="sm" color="fg.muted">

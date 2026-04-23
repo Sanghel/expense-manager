@@ -5,9 +5,9 @@ import { usePathname } from 'next/navigation'
 import {
   FiHome,
   FiDollarSign,
-  FiRepeat,
   FiTarget,
-  FiTrendingUp,
+  FiRepeat,
+  FiMoreHorizontal,
 } from 'react-icons/fi'
 import { IconType } from 'react-icons'
 import { useNavigation } from '@/hooks/useNavigation'
@@ -17,10 +17,13 @@ const primaryItems: { href: string; label: string; icon: IconType }[] = [
   { href: '/transactions', label: 'Transacciones', icon: FiDollarSign },
   { href: '/savings-goals', label: 'Metas', icon: FiTarget },
   { href: '/recurring-transactions', label: 'Recurrentes', icon: FiRepeat },
-  { href: '/budgets', label: 'Presupuestos', icon: FiTrendingUp },
 ]
 
-export function BottomNav() {
+interface Props {
+  onMoreClick: () => void
+}
+
+export function BottomNav({ onMoreClick }: Props) {
   const pathname = usePathname()
   const { navigate, loadingPath } = useNavigation()
 
@@ -60,16 +63,30 @@ export function BottomNav() {
               onClick={() => navigate(item.href)}
             >
               {isLoading ? <Spinner size="xs" /> : <Icon as={item.icon} boxSize={5} />}
-              <Text
-                fontSize="10px"
-                fontWeight={isActive ? '600' : '400'}
-                lineHeight="1"
-              >
+              <Text fontSize="10px" fontWeight={isActive ? '600' : '400'} lineHeight="1">
                 {item.label}
               </Text>
             </Flex>
           )
         })}
+
+        {/* Más — opens the full drawer */}
+        <Flex
+          flex={1}
+          direction="column"
+          align="center"
+          justify="center"
+          py={2}
+          gap="2px"
+          color="#6b7280"
+          _hover={{ color: '#818cf8' }}
+          transition="color 0.15s ease"
+          cursor="pointer"
+          onClick={onMoreClick}
+        >
+          <Icon as={FiMoreHorizontal} boxSize={5} />
+          <Text fontSize="10px" fontWeight="400" lineHeight="1">Más</Text>
+        </Flex>
       </Flex>
     </Box>
   )

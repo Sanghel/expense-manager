@@ -155,3 +155,25 @@ export interface TransactionWithTags extends Transaction {
   category: Category
   tags?: Tag[]
 }
+
+export type LoanType = 'lent' | 'borrowed'
+export type LoanStatus = 'active' | 'settled'
+
+export interface Loan {
+  id: string
+  user_id: string
+  person_name: string
+  amount: number
+  currency: Currency
+  account_id: string | null
+  type: LoanType
+  status: LoanStatus
+  notes: string | null
+  created_at: string
+  updated_at: string
+  settled_at: string | null
+}
+
+export interface LoanWithAccount extends Loan {
+  account: Pick<Account, 'id' | 'name' | 'currency' | 'icon'> | null
+}

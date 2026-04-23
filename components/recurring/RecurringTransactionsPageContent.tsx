@@ -6,7 +6,11 @@ import { useRouter } from 'next/navigation'
 import { FiPlus } from 'react-icons/fi'
 import { RecurringTransactionForm } from '@/components/recurring/RecurringTransactionForm'
 import { RecurringTransactionsList } from '@/components/recurring/RecurringTransactionsList'
-import type { Account, Category, RecurringTransactionWithCategory } from '@/types/database.types'
+import type {
+  Account,
+  Category,
+  RecurringTransactionWithCategory,
+} from '@/types/database.types'
 
 interface Props {
   userId: string
@@ -15,9 +19,15 @@ interface Props {
   initialTransactions: RecurringTransactionWithCategory[]
 }
 
-export function RecurringTransactionsPageContent({ userId, categories, accounts, initialTransactions }: Props) {
+export function RecurringTransactionsPageContent({
+  userId,
+  categories,
+  accounts,
+  initialTransactions,
+}: Props) {
   const [isFormOpen, setIsFormOpen] = useState(false)
-  const [editingTransaction, setEditingTransaction] = useState<RecurringTransactionWithCategory | null>(null)
+  const [editingTransaction, setEditingTransaction] =
+    useState<RecurringTransactionWithCategory | null>(null)
   const router = useRouter()
 
   const handleClose = () => {
@@ -28,8 +38,16 @@ export function RecurringTransactionsPageContent({ userId, categories, accounts,
   return (
     <VStack alignItems="flex-start" gap={{ base: 4, md: 6 }}>
       <HStack justifyContent="space-between" width="100%">
-        <Heading size={{ base: 'md', md: 'lg' }}>Gastos Recurrentes</Heading>
-        <Button bg="#4F46E5" color="white" _hover={{ bg: '#4338CA' }} onClick={() => setIsFormOpen(true)} size={{ base: 'sm', md: 'md' }}>
+        <Heading size={{ base: 'md', md: 'lg' }}>
+          Transacciones Recurrentes
+        </Heading>
+        <Button
+          bg="#4F46E5"
+          color="white"
+          _hover={{ bg: '#4338CA' }}
+          onClick={() => setIsFormOpen(true)}
+          size={{ base: 'sm', md: 'md' }}
+        >
           <FiPlus />
           Nueva Recurrente
         </Button>

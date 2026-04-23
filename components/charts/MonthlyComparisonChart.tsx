@@ -16,6 +16,7 @@ import { getTransactions } from '@/lib/actions/transactions.actions'
 import { Card } from '@/components/ui/Card'
 import type { TransactionWithCategory } from '@/types/database.types'
 import type { ReportFiltersState } from '@/components/ReportFilters'
+import { formatCurrency } from '@/lib/utils/currency'
 
 interface ChartDataPoint {
   month: string
@@ -130,12 +131,15 @@ export function MonthlyComparisonChart({ userId, months = 12, filters }: Props) 
             <XAxis dataKey="month" />
             <YAxis />
             <Tooltip
-              formatter={(value) => `$${Number(value).toFixed(2)}`}
+              formatter={(value) => [formatCurrency(Number(value), 'COP'), '']}
               contentStyle={{
-                backgroundColor: '#1a1a1a',
-                border: '1px solid #333',
-                borderRadius: '4px',
+                backgroundColor: '#1a1a23',
+                border: '1px solid #2d2d35',
+                borderRadius: '8px',
+                color: '#ffffff',
               }}
+              labelStyle={{ color: '#B0B0B0' }}
+              cursor={{ fill: 'rgba(255, 255, 255, 0.04)' }}
             />
             <Legend />
             <Bar dataKey="income" fill="#2ECC71" name="Ingresos" />

@@ -19,7 +19,7 @@ import { TransactionsFilter, type FilterState } from '@/components/transactions/
 import { useDebounce } from '@/hooks/useDebounce'
 import type { Account, Category, TransactionWithCategory } from '@/types/database.types'
 
-const PAGE_SIZE = 20
+const PAGE_SIZE = 10
 
 interface Props {
   userId: string

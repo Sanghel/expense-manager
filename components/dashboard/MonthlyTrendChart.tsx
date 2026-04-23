@@ -14,6 +14,7 @@ import {
 } from 'recharts'
 import { Card } from '@/components/ui/Card'
 import type { TransactionWithCategory } from '@/types/database.types'
+import { formatCurrency } from '@/lib/utils/currency'
 
 interface ChartDataPoint {
   month: string
@@ -66,7 +67,16 @@ export const MonthlyTrendChart = memo(function MonthlyTrendChart({ transactions 
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
             <YAxis />
-            <Tooltip />
+            <Tooltip
+              formatter={(value) => [formatCurrency(Number(value), 'COP'), '']}
+              contentStyle={{
+                backgroundColor: '#1a1a23',
+                border: '1px solid #2d2d35',
+                borderRadius: '8px',
+                color: '#ffffff',
+              }}
+              labelStyle={{ color: '#B0B0B0' }}
+            />
             <Legend />
             <Line
               type="monotone"

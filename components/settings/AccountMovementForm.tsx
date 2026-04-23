@@ -14,6 +14,7 @@ const CURRENCY_OPTIONS: { value: string; label: string }[] = [
 ]
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
 import type { Account, Currency } from '@/types/database.types'
+import { getLocalDateString } from '@/lib/utils/dates'
 
 interface Props {
   isOpen: boolean
@@ -31,7 +32,7 @@ const defaultForm = {
   to_amount: undefined as number | undefined,
   to_currency: 'COP' as Currency,
   description: '',
-  date: new Date().toISOString().split('T')[0],
+  date: getLocalDateString(),
 }
 
 export function AccountMovementForm({ isOpen, onClose, userId, accounts, onSuccess }: Props) {

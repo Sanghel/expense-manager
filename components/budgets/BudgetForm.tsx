@@ -13,6 +13,7 @@ import { CategorySelect } from '@/components/ui/CategorySelect'
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
 import { CancelButton } from '@/components/ui/CancelButton'
 import type { Category, Currency } from '@/types/database.types'
+import { getLocalDateString } from '@/lib/utils/dates'
 
 const TYPE_OPTIONS = [
   { value: 'expense', label: 'Gasto' },
@@ -48,7 +49,7 @@ const defaultForm = {
   amount: undefined as number | undefined,
   currency: 'COP' as Currency,
   period: 'monthly' as 'monthly' | 'yearly',
-  start_date: new Date().toISOString().split('T')[0],
+  start_date: getLocalDateString(),
 }
 
 export function BudgetForm({ isOpen, onClose, userId, categories, onSuccess, editingBudget }: Props) {

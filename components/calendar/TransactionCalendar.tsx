@@ -23,6 +23,7 @@ import { FiX } from 'react-icons/fi'
 import { useState } from 'react'
 import type { TransactionWithCategory } from '@/types/database.types'
 import { formatCurrency } from '@/lib/utils/currency'
+import { getLocalDateString } from '@/lib/utils/dates'
 
 interface Props {
   userId: string
@@ -46,9 +47,7 @@ export function TransactionCalendar({ initialTransactions }: Props) {
   }
 
   const getTransactionsForDay = (day: number) => {
-    const dateStr = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
-      .toISOString()
-      .split('T')[0]
+    const dateStr = getLocalDateString(new Date(currentDate.getFullYear(), currentDate.getMonth(), day))
     return transactions.filter(t => t.date === dateStr)
   }
 

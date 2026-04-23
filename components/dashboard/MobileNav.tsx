@@ -6,8 +6,6 @@ import {
   DrawerPositioner,
   DrawerContent,
   DrawerCloseTrigger,
-  DrawerHeader,
-  DrawerTitle,
   DrawerBody,
   VStack,
   Button,
@@ -15,7 +13,6 @@ import {
   Spinner,
 } from '@chakra-ui/react'
 import { usePathname } from 'next/navigation'
-import Image from 'next/image'
 import {
   FiHome,
   FiDollarSign,
@@ -57,17 +54,18 @@ export function MobileNav({ isOpen, onClose }: Props) {
   const { navigate, loadingPath } = useNavigation()
 
   return (
-    <DrawerRoot open={isOpen} onOpenChange={({ open }) => !open && onClose()} placement="start">
+    <DrawerRoot open={isOpen} onOpenChange={({ open }) => !open && onClose()} placement="end">
       <DrawerBackdrop />
       <DrawerPositioner>
-        <DrawerContent bg="#18181d" borderRightWidth="1px" borderColor="#2d2d35" maxW="72">
-          <DrawerHeader borderBottomWidth="1px" borderColor="#2d2d35" py={4} px={4}>
-            <DrawerTitle>
-              <Image src="/brand/money-manager.png" alt="GitPush Money" width={110} height={60} style={{ objectFit: 'contain' }} />
-            </DrawerTitle>
-          </DrawerHeader>
-          <DrawerCloseTrigger color="white" top={3} right={3} />
-          <DrawerBody px={3} py={4}>
+        <DrawerContent
+          bg="#18181d"
+          borderLeftWidth="1px"
+          borderColor="#2d2d35"
+          maxW="72"
+          style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
+        >
+          <DrawerCloseTrigger color="white" top={3} left={3} />
+          <DrawerBody px={3} pt={12} pb={4}>
             <VStack gap={1} align="stretch">
               {navItems.map((item) => {
                 const isActive = pathname === item.href

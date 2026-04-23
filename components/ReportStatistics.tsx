@@ -5,6 +5,7 @@ import { SimpleGrid, Box, Text, Spinner, Center } from '@chakra-ui/react'
 import { getTransactions } from '@/lib/actions/transactions.actions'
 import type { TransactionWithCategory } from '@/types/database.types'
 import type { ReportFiltersState } from '@/components/ReportFilters'
+import { formatCurrency } from '@/lib/utils/currency'
 
 interface StatCardProps {
   label: string
@@ -100,17 +101,17 @@ export function ReportStatistics({ userId, filters }: Props) {
     <SimpleGrid columns={{ base: 1, md: 3 }} gap={6} mb={8}>
       <StatCard
         label="Ingresos Totales"
-        value={`$${stats.totalIncome.toFixed(2)}`}
+        value={formatCurrency(stats.totalIncome, 'COP')}
         color="#2ECC71"
       />
       <StatCard
         label="Gastos Totales"
-        value={`$${stats.totalExpense.toFixed(2)}`}
+        value={formatCurrency(stats.totalExpense, 'COP')}
         color="#E74C3C"
       />
       <StatCard
         label="Balance Neto"
-        value={`$${stats.netBalance.toFixed(2)}`}
+        value={formatCurrency(Math.abs(stats.netBalance), 'COP')}
         color={stats.netBalance >= 0 ? '#2ECC71' : '#E74C3C'}
       />
     </SimpleGrid>

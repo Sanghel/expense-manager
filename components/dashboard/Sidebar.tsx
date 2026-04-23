@@ -13,6 +13,7 @@ import {
   FiTarget,
   FiCalendar,
   FiDownload,
+  FiCreditCard,
 } from 'react-icons/fi'
 import { IconType } from 'react-icons'
 import { useNavigation } from '@/hooks/useNavigation'
@@ -22,6 +23,7 @@ const navItems: { href: string; label: string; icon: IconType }[] = [
   { href: '/transactions', label: 'Transacciones', icon: FiDollarSign },
   { href: '/recurring-transactions', label: 'Recurrentes', icon: FiRepeat },
   { href: '/savings-goals', label: 'Metas de Ahorro', icon: FiTarget },
+  { href: '/loans', label: 'Préstamos', icon: FiCreditCard },
   { href: '/tags', label: 'Etiquetas', icon: FiTag },
   { href: '/calendar', label: 'Calendario', icon: FiCalendar },
   { href: '/categories', label: 'Categorías', icon: FiTag },

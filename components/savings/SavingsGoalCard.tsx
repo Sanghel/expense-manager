@@ -1,20 +1,19 @@
 'use client'
 
 import { Box, VStack, HStack, Text, Button, Badge, IconButton } from '@chakra-ui/react'
-import { InputAmount } from '@/components/ui/InputAmount'
 import { FiEdit2, FiTrash2 } from 'react-icons/fi'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { addFundsToGoal, deleteSavingsGoal } from '@/lib/actions/savings.actions'
+import { deleteSavingsGoal } from '@/lib/actions/savings.actions'
 import { toaster } from '@/lib/toaster'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
-import { FormDialog } from '@/components/ui/FormDialog'
-import { PrimaryButton } from '@/components/ui/PrimaryButton'
-import type { SavingsGoal } from '@/types/database.types'
+import { AddFundsForm } from '@/components/savings/AddFundsForm'
+import type { Account, SavingsGoal } from '@/types/database.types'
 
 interface Props {
   goal: SavingsGoal
   userId: string
+  accounts: Account[]
   onEdit: (goal: SavingsGoal) => void
 }
 
@@ -24,34 +23,14 @@ function getStatusBadge(goal: SavingsGoal) {
   return { label: 'En Progreso', colorPalette: 'blue' }
 }
 
-export function SavingsGoalCard({ goal, userId, onEdit }: Props) {
+export function SavingsGoalCard({ goal, userId, accounts, onEdit }: Props) {
   const router = useRouter()
   const [isAddFundsOpen, setIsAddFundsOpen] = useState(false)
-  const [fundsAmount, setFundsAmount] = useState<number | undefined>(undefined)
-  const [loading, setLoading] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
 
   const progress = (goal.current_amount / goal.target_amount) * 100
   const status = getStatusBadge(goal)
-
-  const handleAddFunds = async () => {
-    if (!fundsAmount || fundsAmount <= 0) {
-      toaster.create({ title: 'Por favor ingresa un monto', type: 'error', duration: 3000 })
-      return
-    }
-    setLoading(true)
-    const result = await addFundsToGoal(goal.id, userId, { amount: fundsAmount ?? 0 })
-    setLoading(false)
-    if (result.success) {
-      toaster.create({ title: 'Fondos añadidos', type: 'success', duration: 3000 })
-      setFundsAmount(undefined)
-      setIsAddFundsOpen(false)
-      router.refresh()
-    } else {
-      toaster.create({ title: result.error || 'Error', type: 'error', duration: 3000 })
-    }
-  }
 
   const confirmDelete = async () => {
     setDeleteLoading(true)
@@ -141,23 +120,14 @@ export function SavingsGoalCard({ goal, userId, onEdit }: Props) {
         isLoading={deleteLoading}
       />
 
-      <FormDialog
+      <AddFundsForm
         isOpen={isAddFundsOpen}
-        onClose={() => { setIsAddFundsOpen(false); setFundsAmount(undefined) }}
-        title="Añadir Fondos"
-      >
-        <VStack gap="4">
-          <InputAmount
-            label="Monto"
-            value={fundsAmount}
-            onChange={setFundsAmount}
-            isRequired
-          />
-          <PrimaryButton width="full" loading={loading} onClick={handleAddFunds}>
-            Añadir
-          </PrimaryButton>
-        </VStack>
-      </FormDialog>
+        onClose={() => setIsAddFundsOpen(false)}
+        goal={goal}
+        userId={userId}
+        accounts={accounts}
+        onSuccess={() => router.refresh()}
+      />
     </>
   )
 }

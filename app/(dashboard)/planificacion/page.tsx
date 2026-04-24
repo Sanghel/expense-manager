@@ -5,8 +5,9 @@ import { insforgeAdmin } from '@/lib/insforge-admin'
 import { getSavingsGoals } from '@/lib/actions/savings.actions'
 import { getCategories } from '@/lib/actions/categories.actions'
 import { getBudgets } from '@/lib/actions/budgets.actions'
+import { getAccounts } from '@/lib/actions/accounts.actions'
 import { PlanificacionPageClient } from './PlanificacionPageClient'
-import type { SavingsGoal, Category } from '@/types/database.types'
+import type { SavingsGoal, Category, Account } from '@/types/database.types'
 
 type Tab = 'metas' | 'presupuestos'
 
@@ -37,10 +38,15 @@ export default async function PlanificacionPage({
   let initialGoals: SavingsGoal[] | null = null
   let initialBudgets: unknown[] | null = null
   let categories: Category[] = []
+  let accounts: Account[] = []
 
   if (tab === 'metas') {
-    const result = await getSavingsGoals(user.id)
-    initialGoals = result.success ? (result.data ?? []) : []
+    const [goalsResult, accountsResult] = await Promise.all([
+      getSavingsGoals(user.id),
+      getAccounts(user.id),
+    ])
+    initialGoals = goalsResult.success ? (goalsResult.data ?? []) : []
+    accounts = (accountsResult.success ? accountsResult.data : []) as Account[]
   } else if (tab === 'presupuestos') {
     const [categoriesResult, budgetsResult] = await Promise.all([
       getCategories(user.id),
@@ -57,6 +63,7 @@ export default async function PlanificacionPage({
       initialGoals={initialGoals}
       initialBudgets={initialBudgets}
       categories={categories}
+      accounts={accounts}
     />
   )
 }

@@ -4,7 +4,7 @@ import { Box, Heading, Tabs } from '@chakra-ui/react'
 import { useRouter } from 'next/navigation'
 import { SavingsGoalsPageContent } from '@/components/savings/SavingsGoalsPageContent'
 import { BudgetsPageClient } from '../budgets/BudgetsPageClient'
-import type { SavingsGoal, Category } from '@/types/database.types'
+import type { Account, SavingsGoal, Category } from '@/types/database.types'
 
 type Tab = 'metas' | 'presupuestos'
 
@@ -14,6 +14,7 @@ interface Props {
   initialGoals: SavingsGoal[] | null
   initialBudgets: unknown[] | null
   categories: Category[]
+  accounts?: Account[]
 }
 
 export function PlanificacionPageClient({
@@ -22,6 +23,7 @@ export function PlanificacionPageClient({
   initialGoals,
   initialBudgets,
   categories,
+  accounts = [],
 }: Props) {
   const router = useRouter()
 
@@ -59,7 +61,7 @@ export function PlanificacionPageClient({
 
         <Tabs.Content value="metas">
           {initialGoals !== null && (
-            <SavingsGoalsPageContent userId={userId} initialGoals={initialGoals} />
+            <SavingsGoalsPageContent userId={userId} initialGoals={initialGoals} accounts={accounts} />
           )}
         </Tabs.Content>
 

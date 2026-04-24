@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { insforgeAdmin } from '@/lib/insforge-admin'
+import { applyBalanceDelta } from '@/lib/utils/balance-updater'
 import {
   createSavingsGoalSchema,
   updateSavingsGoalSchema,
@@ -10,7 +11,7 @@ import {
   type UpdateSavingsGoalInput,
   type AddFundsInput,
 } from '@/lib/validations/savings'
-import type { SavingsGoal } from '@/types/database.types'
+import type { SavingsGoal, Currency } from '@/types/database.types'
 
 export async function createSavingsGoal(userId: string, data: CreateSavingsGoalInput) {
   if (!userId) {
@@ -111,7 +112,11 @@ export async function deleteSavingsGoal(id: string, userId: string) {
   }
 }
 
-export async function addFundsToGoal(id: string, userId: string, data: AddFundsInput) {
+export async function addFundsToGoal(
+  id: string,
+  userId: string,
+  data: AddFundsInput & { account_id?: string; currency?: Currency }
+) {
   try {
     const validated = addFundsSchema.parse(data)
 
@@ -137,8 +142,26 @@ export async function addFundsToGoal(id: string, userId: string, data: AddFundsI
 
     if (updateError) throw updateError
 
+    const contributionCurrency = data.currency ?? goal.currency
+
+    // Record the contribution
+    await insforgeAdmin.database.from('savings_contributions').insert({
+      goal_id: id,
+      user_id: userId,
+      amount: validated.amount,
+      currency: contributionCurrency,
+      account_id: data.account_id ?? null,
+    })
+
+    // Deduct from account balance when an account is specified
+    if (data.account_id) {
+      await applyBalanceDelta(data.account_id, validated.amount, contributionCurrency, 'subtract')
+    }
+
     revalidatePath('/savings-goals')
     revalidatePath('/planificacion')
+    revalidatePath('/dashboard')
+    revalidatePath('/settings')
     return { success: true, data: updated as SavingsGoal }
   } catch (error) {
     console.error('Add funds to goal error:', error)

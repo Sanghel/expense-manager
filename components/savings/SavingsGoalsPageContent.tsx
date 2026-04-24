@@ -6,14 +6,15 @@ import { useRouter } from 'next/navigation'
 import { FiPlus } from 'react-icons/fi'
 import { SavingsGoalForm } from '@/components/savings/SavingsGoalForm'
 import { SavingsGoalsGrid } from '@/components/savings/SavingsGoalsGrid'
-import type { SavingsGoal } from '@/types/database.types'
+import type { Account, SavingsGoal } from '@/types/database.types'
 
 interface Props {
   userId: string
   initialGoals: SavingsGoal[]
+  accounts?: Account[]
 }
 
-export function SavingsGoalsPageContent({ userId, initialGoals }: Props) {
+export function SavingsGoalsPageContent({ userId, initialGoals, accounts = [] }: Props) {
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingGoal, setEditingGoal] = useState<SavingsGoal | null>(null)
   const router = useRouter()
@@ -45,7 +46,7 @@ export function SavingsGoalsPageContent({ userId, initialGoals }: Props) {
         }}
       />
 
-      <SavingsGoalsGrid userId={userId} goals={initialGoals} onEdit={setEditingGoal} />
+      <SavingsGoalsGrid userId={userId} goals={initialGoals} accounts={accounts} onEdit={setEditingGoal} />
     </VStack>
   )
 }

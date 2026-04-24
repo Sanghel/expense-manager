@@ -31,14 +31,14 @@ export function ReportsContent({ userId }: Props) {
       <ReportStatistics userId={userId} filters={filters} />
 
       <SimpleGrid columns={{ base: 1, md: 2 }} gap={6}>
-        <Box gridColumn={{ base: 'auto', md: '1 / -1' }}>
-          <AccumulatedBalanceChart userId={userId} filters={filters} />
-        </Box>
+        <ExpensesByCategoryChart userId={userId} type="expense" filters={filters} />
+        <ExpensesByCategoryChart userId={userId} type="income" filters={filters} />
         <Box gridColumn={{ base: 'auto', md: '1 / -1' }}>
           <MonthlyComparisonChart userId={userId} months={12} filters={filters} />
         </Box>
-        <ExpensesByCategoryChart userId={userId} type="expense" filters={filters} />
-        <ExpensesByCategoryChart userId={userId} type="income" filters={filters} />
+        <Box gridColumn={{ base: 'auto', md: '1 / -1' }}>
+          <AccumulatedBalanceChart userId={userId} filters={filters} />
+        </Box>
       </SimpleGrid>
     </Box>
   )

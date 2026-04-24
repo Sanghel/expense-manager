@@ -41,6 +41,7 @@ export async function createSavingsGoal(userId: string, data: CreateSavingsGoalI
     if (error) throw error
 
     revalidatePath('/savings-goals')
+    revalidatePath('/planificacion')
     return { success: true, data: goal as SavingsGoal }
   } catch (error) {
     console.error('Create savings goal error:', error)
@@ -83,6 +84,7 @@ export async function updateSavingsGoal(id: string, userId: string, data: Update
     if (error) throw error
 
     revalidatePath('/savings-goals')
+    revalidatePath('/planificacion')
     return { success: true, data: goal as SavingsGoal }
   } catch (error) {
     console.error('Update savings goal error:', error)
@@ -101,6 +103,7 @@ export async function deleteSavingsGoal(id: string, userId: string) {
     if (error) throw error
 
     revalidatePath('/savings-goals')
+    revalidatePath('/planificacion')
     return { success: true }
   } catch (error) {
     console.error('Delete savings goal error:', error)
@@ -135,6 +138,7 @@ export async function addFundsToGoal(id: string, userId: string, data: AddFundsI
     if (updateError) throw updateError
 
     revalidatePath('/savings-goals')
+    revalidatePath('/planificacion')
     return { success: true, data: updated as SavingsGoal }
   } catch (error) {
     console.error('Add funds to goal error:', error)
@@ -155,6 +159,7 @@ export async function markGoalAsCompleted(id: string, userId: string) {
     if (error) throw error
 
     revalidatePath('/savings-goals')
+    revalidatePath('/planificacion')
     return { success: true, data: goal as SavingsGoal }
   } catch (error) {
     console.error('Mark goal as completed error:', error)

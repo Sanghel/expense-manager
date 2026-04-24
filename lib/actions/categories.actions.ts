@@ -47,6 +47,7 @@ export async function createCategory(
 
     if (error) throw error
     revalidatePath('/categories')
+    revalidatePath('/settings')
     return { success: true, data: category }
   } catch (error) {
     console.error('Create category error:', error)
@@ -72,6 +73,7 @@ export async function updateCategory(
 
     if (error) throw error
     revalidatePath('/categories')
+    revalidatePath('/settings')
     return { success: true, data: category }
   } catch (error) {
     console.error('Update category error:', error)
@@ -101,6 +103,7 @@ export async function deleteCategory(id: string, userId: string) {
 
     if (error) throw error
     revalidatePath('/categories')
+    revalidatePath('/settings')
     return { success: true }
   } catch (error) {
     console.error('Delete category error:', error)

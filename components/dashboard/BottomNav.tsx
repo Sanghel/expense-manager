@@ -15,7 +15,7 @@ import { useNavigation } from '@/hooks/useNavigation'
 const primaryItems: { href: string; label: string; icon: IconType }[] = [
   { href: '/dashboard', label: 'Dashboard', icon: FiHome },
   { href: '/movimientos', label: 'Movimientos', icon: FiLayers },
-  { href: '/savings-goals', label: 'Metas', icon: FiTarget },
+  { href: '/planificacion', label: 'Planificación', icon: FiTarget },
   { href: '/reports', label: 'Reportes', icon: FiBarChart2 },
 ]
 

@@ -6,10 +6,17 @@ import { getUserProfile } from '@/lib/actions/users.actions'
 import { getAllRatePairs } from '@/lib/actions/exchangeRates.actions'
 import { getAccounts } from '@/lib/actions/accounts.actions'
 import { getAccountMovements } from '@/lib/actions/account_movements.actions'
+import { getCategories } from '@/lib/actions/categories.actions'
 import { SettingsPageClient } from './SettingsPageClient'
-import type { User, ExchangeRate, Account, AccountMovementWithAccounts } from '@/types/database.types'
+import type { User, ExchangeRate, Account, AccountMovementWithAccounts, Category } from '@/types/database.types'
 
-export default async function SettingsPage() {
+type Tab = 'general' | 'accounts' | 'categorias'
+
+export default async function SettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>
+}) {
   const session = await getServerSession(authOptions)
 
   if (!session?.user?.email) {
@@ -25,6 +32,9 @@ export default async function SettingsPage() {
   if (!userRow) {
     redirect('/login')
   }
+
+  const params = await searchParams
+  const tab = (params.tab as Tab) || 'general'
 
   const [profileResult, ratesResult, accountsResult, movementsResult] = await Promise.all([
     getUserProfile(userRow.id),
@@ -42,6 +52,12 @@ export default async function SettingsPage() {
     redirect('/login')
   }
 
+  let initialCategories: Category[] = []
+  if (tab === 'categorias') {
+    const result = await getCategories(userRow.id)
+    initialCategories = result.success ? (result.data ?? []) : []
+  }
+
   return (
     <SettingsPageClient
       userId={userRow.id}
@@ -49,6 +65,8 @@ export default async function SettingsPage() {
       initialRates={rates}
       initialAccounts={accounts}
       initialMovements={movements}
+      activeTab={tab}
+      initialCategories={initialCategories}
     />
   )
 }

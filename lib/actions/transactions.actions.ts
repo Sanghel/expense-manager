@@ -31,6 +31,7 @@ export async function createTransaction(
     }
 
     revalidatePath('/transactions')
+    revalidatePath('/movimientos')
     revalidatePath('/dashboard')
     revalidatePath('/settings')
     revalidatePath('/calendar')
@@ -102,6 +103,7 @@ export async function updateTransaction(
     }
 
     revalidatePath('/transactions')
+    revalidatePath('/movimientos')
     revalidatePath('/dashboard')
     revalidatePath('/settings')
     revalidatePath('/calendar')
@@ -135,6 +137,7 @@ export async function deleteTransaction(id: string, userId: string) {
     }
 
     revalidatePath('/transactions')
+    revalidatePath('/movimientos')
     revalidatePath('/dashboard')
     revalidatePath('/settings')
     revalidatePath('/calendar')

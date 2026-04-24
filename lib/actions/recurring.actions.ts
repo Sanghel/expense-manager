@@ -41,6 +41,7 @@ export async function createRecurringTransaction(
     if (error) throw error
 
     revalidatePath('/recurring-transactions')
+    revalidatePath('/movimientos')
     return { success: true, data: transaction as RecurringTransactionWithCategory }
   } catch (error) {
     console.error('Create recurring transaction error:', error)
@@ -88,6 +89,7 @@ export async function updateRecurringTransaction(
     if (error) throw error
 
     revalidatePath('/recurring-transactions')
+    revalidatePath('/movimientos')
     return { success: true, data: transaction as RecurringTransactionWithCategory }
   } catch (error) {
     console.error('Update recurring transaction error:', error)
@@ -106,6 +108,7 @@ export async function deleteRecurringTransaction(id: string, userId: string) {
     if (error) throw error
 
     revalidatePath('/recurring-transactions')
+    revalidatePath('/movimientos')
     return { success: true }
   } catch (error) {
     console.error('Delete recurring transaction error:', error)
@@ -126,6 +129,7 @@ export async function toggleRecurringTransaction(id: string, userId: string, isA
     if (error) throw error
 
     revalidatePath('/recurring-transactions')
+    revalidatePath('/movimientos')
     return { success: true, data: data as RecurringTransactionWithCategory }
   } catch (error) {
     console.error('Toggle recurring transaction error:', error)
@@ -138,6 +142,7 @@ export async function generateRecurringTransactions(userId: string) {
     const result = await generateRecurringForUser(userId)
     console.log('[generateRecurringTransactions] result:', JSON.stringify(result))
     revalidatePath('/recurring-transactions')
+    revalidatePath('/movimientos')
     if (result.errors.length > 0) {
       return {
         success: true,

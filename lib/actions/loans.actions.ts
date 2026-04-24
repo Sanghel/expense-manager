@@ -36,6 +36,7 @@ export async function createLoan(userId: string, input: LoanFormData) {
   }
 
   revalidatePath('/loans')
+  revalidatePath('/movimientos')
   revalidatePath('/dashboard')
   return { success: true, data }
 }
@@ -82,6 +83,7 @@ export async function updateLoan(userId: string, loanId: string, input: LoanForm
   if (error) return { success: false, error: error.message }
 
   revalidatePath('/loans')
+  revalidatePath('/movimientos')
   revalidatePath('/dashboard')
   return { success: true, data }
 }
@@ -115,6 +117,7 @@ export async function deleteLoan(userId: string, loanId: string) {
   if (error) return { success: false, error: error.message }
 
   revalidatePath('/loans')
+  revalidatePath('/movimientos')
   revalidatePath('/dashboard')
   return { success: true }
 }
@@ -154,6 +157,7 @@ export async function settleLoan(userId: string, loanId: string) {
   if (error) return { success: false, error: error.message }
 
   revalidatePath('/loans')
+  revalidatePath('/movimientos')
   revalidatePath('/dashboard')
   return { success: true }
 }

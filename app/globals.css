@@ -11,6 +11,14 @@ body {
   color: #ffffff;
 }
 
+/* Prevent iOS Safari auto-zoom on input focus.
+   iOS zooms in when an input's font-size is below 16px; after the
+   modal closes the zoom stays applied. Setting a 16px minimum prevents
+   the auto-zoom from triggering in the first place. */
+input, select, textarea {
+  font-size: max(16px, 1em);
+}
+
 /* Fix: dialog backdrop and positioner must not block pointer events once closed.
    Ark UI keeps these nodes in the DOM during the exit animation (unmountSuspended).
    If the keyframe animation never fires / completes, animationend never dispatches

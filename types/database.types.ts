@@ -164,6 +164,7 @@ export interface Loan {
   user_id: string
   person_name: string
   amount: number
+  paid_amount: number
   currency: Currency
   account_id: string | null
   type: LoanType

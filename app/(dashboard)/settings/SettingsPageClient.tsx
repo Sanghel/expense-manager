@@ -1,7 +1,9 @@
 'use client'
 
-import { Box, Heading, VStack, Text, Separator, Tabs } from '@chakra-ui/react'
+import { useTransition, useState, useEffect } from 'react'
+import { Box, Heading, VStack, Text, Separator, Tabs, Spinner } from '@chakra-ui/react'
 import { useRouter } from 'next/navigation'
+import { FiSliders, FiBriefcase, FiTag } from 'react-icons/fi'
 import { CurrencySelector } from '@/components/settings/CurrencySelector'
 import { ExchangeRatesForm } from '@/components/settings/ExchangeRatesForm'
 import { AccountsTab } from '@/components/settings/AccountsTab'
@@ -36,10 +38,22 @@ export function SettingsPageClient({
   initialCategories,
 }: Props) {
   const router = useRouter()
+  const [isPending, startTransition] = useTransition()
+  const [pendingTab, setPendingTab] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!isPending) setPendingTab(null)
+  }, [isPending])
 
   const handleTabChange = (tab: string) => {
-    router.push(`/settings?tab=${tab}`)
+    setPendingTab(tab)
+    startTransition(() => {
+      router.push(`/settings?tab=${tab}`)
+    })
   }
+
+  const tabIcon = (tab: string, Icon: React.ElementType) =>
+    pendingTab === tab && isPending ? <Spinner size="xs" /> : <Icon />
 
   return (
     <Box p={6}>
@@ -56,23 +70,35 @@ export function SettingsPageClient({
         <Tabs.List mb={6} borderBottomWidth="1px" borderColor="#2d2d35">
           <Tabs.Trigger
             value="general"
+            display="flex"
+            alignItems="center"
+            gap={2}
             color="#B0B0B0"
             _selected={{ color: 'white', borderBottomColor: '#6366f1' }}
           >
+            {tabIcon('general', FiSliders)}
             General
           </Tabs.Trigger>
           <Tabs.Trigger
             value="accounts"
+            display="flex"
+            alignItems="center"
+            gap={2}
             color="#B0B0B0"
             _selected={{ color: 'white', borderBottomColor: '#6366f1' }}
           >
+            {tabIcon('accounts', FiBriefcase)}
             Cuentas
           </Tabs.Trigger>
           <Tabs.Trigger
             value="categorias"
+            display="flex"
+            alignItems="center"
+            gap={2}
             color="#B0B0B0"
             _selected={{ color: 'white', borderBottomColor: '#6366f1' }}
           >
+            {tabIcon('categorias', FiTag)}
             Categorías
           </Tabs.Trigger>
         </Tabs.List>

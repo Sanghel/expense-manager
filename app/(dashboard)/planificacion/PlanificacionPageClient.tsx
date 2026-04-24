@@ -1,7 +1,9 @@
 'use client'
 
-import { Box, Heading, Tabs } from '@chakra-ui/react'
+import { useTransition, useState, useEffect } from 'react'
+import { Box, Heading, Tabs, Spinner } from '@chakra-ui/react'
 import { useRouter } from 'next/navigation'
+import { FiTarget, FiPieChart } from 'react-icons/fi'
 import { SavingsGoalsPageContent } from '@/components/savings/SavingsGoalsPageContent'
 import { BudgetsPageClient } from '../budgets/BudgetsPageClient'
 import type { Account, SavingsGoal, Category } from '@/types/database.types'
@@ -26,10 +28,22 @@ export function PlanificacionPageClient({
   accounts = [],
 }: Props) {
   const router = useRouter()
+  const [isPending, startTransition] = useTransition()
+  const [pendingTab, setPendingTab] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!isPending) setPendingTab(null)
+  }, [isPending])
 
   const handleTabChange = (tab: string) => {
-    router.push(`/planificacion?tab=${tab}`)
+    setPendingTab(tab)
+    startTransition(() => {
+      router.push(`/planificacion?tab=${tab}`)
+    })
   }
+
+  const tabIcon = (tab: string, Icon: React.ElementType) =>
+    pendingTab === tab && isPending ? <Spinner size="xs" /> : <Icon />
 
   return (
     <Box p={{ base: 4, md: 6 }}>
@@ -45,16 +59,24 @@ export function PlanificacionPageClient({
         <Tabs.List mb={6} borderBottomWidth="1px" borderColor="#2d2d35">
           <Tabs.Trigger
             value="metas"
+            display="flex"
+            alignItems="center"
+            gap={2}
             color="#B0B0B0"
             _selected={{ color: 'white', borderBottomColor: '#6366f1' }}
           >
+            {tabIcon('metas', FiTarget)}
             Metas de Ahorro
           </Tabs.Trigger>
           <Tabs.Trigger
             value="presupuestos"
+            display="flex"
+            alignItems="center"
+            gap={2}
             color="#B0B0B0"
             _selected={{ color: 'white', borderBottomColor: '#6366f1' }}
           >
+            {tabIcon('presupuestos', FiPieChart)}
             Presupuestos
           </Tabs.Trigger>
         </Tabs.List>

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { FiPlus } from 'react-icons/fi'
 import { Card } from '@/components/ui/Card'
 import { LoanForm } from '@/components/loans/LoanForm'
+import { LoanPaymentForm } from '@/components/loans/LoanPaymentForm'
 import { LoansTable } from '@/components/loans/LoansTable'
 import { deleteLoan, settleLoan } from '@/lib/actions/loans.actions'
 import { toaster } from '@/lib/toaster'
@@ -21,12 +22,19 @@ export function LoansPageClient({ userId, initialLoans, accounts }: Props) {
   const router = useRouter()
   const { open: isCreateOpen, onOpen: onCreateOpen, onClose: onCreateClose } = useDisclosure()
   const { open: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } = useDisclosure()
+  const { open: isPaymentOpen, onOpen: onPaymentOpen, onClose: onPaymentClose } = useDisclosure()
   const [editingLoan, setEditingLoan] = useState<LoanWithAccount | null>(null)
+  const [payingLoan, setPayingLoan] = useState<LoanWithAccount | null>(null)
 
   const handleEdit = useCallback((loan: LoanWithAccount) => {
     setEditingLoan(loan)
     onEditOpen()
   }, [onEditOpen])
+
+  const handlePayment = useCallback((loan: LoanWithAccount) => {
+    setPayingLoan(loan)
+    onPaymentOpen()
+  }, [onPaymentOpen])
 
   const handleSettle = useCallback(async (loan: LoanWithAccount) => {
     const result = await settleLoan(userId, loan.id)
@@ -57,6 +65,11 @@ export function LoansPageClient({ userId, initialLoans, accounts }: Props) {
     setEditingLoan(null)
   }, [onEditClose])
 
+  const handlePaymentClose = useCallback(() => {
+    onPaymentClose()
+    setPayingLoan(null)
+  }, [onPaymentClose])
+
   const activeLoans = initialLoans.filter((l) => l.status === 'active')
   const settledLoans = initialLoans.filter((l) => l.status === 'settled')
 
@@ -84,6 +97,7 @@ export function LoansPageClient({ userId, initialLoans, accounts }: Props) {
           onEdit={handleEdit}
           onSettle={handleSettle}
           onDelete={handleDelete}
+          onPayment={handlePayment}
         />
       </Card>
 
@@ -95,6 +109,7 @@ export function LoansPageClient({ userId, initialLoans, accounts }: Props) {
             onEdit={handleEdit}
             onSettle={handleSettle}
             onDelete={handleDelete}
+            onPayment={handlePayment}
           />
         </Card>
       )}
@@ -115,6 +130,16 @@ export function LoansPageClient({ userId, initialLoans, accounts }: Props) {
           accounts={accounts}
           loan={editingLoan}
           onSuccess={() => { router.refresh(); handleEditClose() }}
+        />
+      )}
+
+      {payingLoan && (
+        <LoanPaymentForm
+          isOpen={isPaymentOpen}
+          onClose={handlePaymentClose}
+          loan={payingLoan}
+          userId={userId}
+          onSuccess={() => router.refresh()}
         />
       )}
     </Box>

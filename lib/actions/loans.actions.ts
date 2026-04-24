@@ -122,6 +122,68 @@ export async function deleteLoan(userId: string, loanId: string) {
   return { success: true }
 }
 
+export async function addLoanPayment(
+  userId: string,
+  loanId: string,
+  paymentAmount: number
+) {
+  const { data: loan, error: fetchErr } = await insforgeAdmin.database
+    .from('loans')
+    .select('*')
+    .eq('id', loanId)
+    .eq('user_id', userId)
+    .single()
+
+  if (fetchErr || !loan) return { success: false, error: 'Préstamo no encontrado' }
+  if (loan.status === 'settled') return { success: false, error: 'El préstamo ya está saldado' }
+
+  const currentPaid = Number(loan.paid_amount ?? 0)
+  const newPaid = currentPaid + paymentAmount
+  const loanAmount = Number(loan.amount)
+
+  // Apply balance delta: lent = I got partial payment back (add); borrowed = I paid partial (subtract)
+  if (loan.account_id) {
+    await applyBalanceDelta(
+      loan.account_id,
+      paymentAmount,
+      loan.currency,
+      loan.type === 'lent' ? 'add' : 'subtract'
+    )
+  }
+
+  if (newPaid >= loanAmount) {
+    // Fully settled via partial payments
+    const { error } = await insforgeAdmin.database
+      .from('loans')
+      .update({
+        paid_amount: loanAmount,
+        status: 'settled',
+        settled_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', loanId)
+      .eq('user_id', userId)
+
+    if (error) return { success: false, error: error.message }
+  } else {
+    const { error } = await insforgeAdmin.database
+      .from('loans')
+      .update({
+        paid_amount: newPaid,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', loanId)
+      .eq('user_id', userId)
+
+    if (error) return { success: false, error: error.message }
+  }
+
+  revalidatePath('/loans')
+  revalidatePath('/movimientos')
+  revalidatePath('/dashboard')
+  return { success: true, settled: newPaid >= loanAmount }
+}
+
 export async function settleLoan(userId: string, loanId: string) {
   const { data: loan, error: fetchErr } = await insforgeAdmin.database
     .from('loans')

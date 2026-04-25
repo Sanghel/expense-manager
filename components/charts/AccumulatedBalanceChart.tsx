@@ -16,6 +16,7 @@ import { getTransactions } from '@/lib/actions/transactions.actions'
 import { Card } from '@/components/ui/Card'
 import type { TransactionWithCategory } from '@/types/database.types'
 import type { ReportFiltersState } from '@/components/ReportFilters'
+import { formatCurrency } from '@/lib/utils/currency'
 
 interface ChartDataPoint {
   date: string
@@ -125,7 +126,7 @@ export function AccumulatedBalanceChart({ userId, filters }: Props) {
           Balance Acumulado
         </Heading>
         <Text fontSize="2xl" fontWeight="bold" color={currentBalance >= 0 ? '#2ECC71' : '#E74C3C'}>
-          ${currentBalance.toFixed(2)}
+          {formatCurrency(currentBalance, 'COP')}
         </Text>
       </Box>
       <Box h="400px">
@@ -137,14 +138,16 @@ export function AccumulatedBalanceChart({ userId, filters }: Props) {
               tick={{ fontSize: 12 }}
               interval={Math.floor(chartData.length / 5)}
             />
-            <YAxis />
+            <YAxis tickFormatter={(value) => formatCurrency(Number(value), 'COP')} width={110} />
             <Tooltip
-              formatter={(value) => `$${Number(value).toFixed(2)}`}
+              formatter={(value) => [formatCurrency(Number(value), 'COP'), 'Balance']}
               contentStyle={{
-                backgroundColor: '#1a1a1a',
-                border: '1px solid #333',
-                borderRadius: '4px',
+                backgroundColor: '#1a1a23',
+                border: '1px solid #2d2d35',
+                borderRadius: '8px',
+                color: '#ffffff',
               }}
+              labelStyle={{ color: '#B0B0B0' }}
             />
             <Legend />
             <Area

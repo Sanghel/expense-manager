@@ -129,7 +129,7 @@ export function MonthlyComparisonChart({ userId, months = 12, filters }: Props) 
           <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
-            <YAxis />
+            <YAxis tickFormatter={(value) => formatCurrency(Number(value), 'COP')} width={110} />
             <Tooltip
               formatter={(value) => [formatCurrency(Number(value), 'COP'), '']}
               contentStyle={{

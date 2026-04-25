@@ -4,9 +4,9 @@ import { Box, Flex, Text, Icon, Spinner } from '@chakra-ui/react'
 import { usePathname } from 'next/navigation'
 import {
   FiHome,
-  FiDollarSign,
+  FiLayers,
   FiTarget,
-  FiRepeat,
+  FiBarChart2,
   FiMoreHorizontal,
 } from 'react-icons/fi'
 import { IconType } from 'react-icons'
@@ -14,9 +14,9 @@ import { useNavigation } from '@/hooks/useNavigation'
 
 const primaryItems: { href: string; label: string; icon: IconType }[] = [
   { href: '/dashboard', label: 'Dashboard', icon: FiHome },
-  { href: '/transactions', label: 'Transacciones', icon: FiDollarSign },
-  { href: '/savings-goals', label: 'Metas', icon: FiTarget },
-  { href: '/recurring-transactions', label: 'Recurrentes', icon: FiRepeat },
+  { href: '/movimientos', label: 'Movimientos', icon: FiLayers },
+  { href: '/planificacion', label: 'Planificación', icon: FiTarget },
+  { href: '/reports', label: 'Reportes', icon: FiBarChart2 },
 ]
 
 interface Props {

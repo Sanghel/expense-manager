@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Box, VStack, HStack, Text, Badge, Button, IconButton } from '@chakra-ui/react'
-import { FiEdit2, FiTrash2, FiCheckCircle } from 'react-icons/fi'
+import { FiEdit2, FiTrash2, FiCheckCircle, FiPlusCircle } from 'react-icons/fi'
 import { formatCurrency } from '@/lib/utils/currency'
 import { DataTable, type ColumnDef } from '@/components/ui/DataTable'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
@@ -13,13 +13,24 @@ interface Props {
   onEdit: (loan: LoanWithAccount) => void
   onSettle: (loan: LoanWithAccount) => void
   onDelete: (loan: LoanWithAccount) => void
+  onPayment: (loan: LoanWithAccount) => void
 }
 
 function settleLabel(loan: LoanWithAccount) {
   return loan.type === 'lent' ? '¡Ya me pagaron!' : '¡Ya pagué!'
 }
 
-export function LoansTable({ loans, onEdit, onSettle, onDelete }: Props) {
+function PaidProgress({ loan }: { loan: LoanWithAccount }) {
+  const paid = Number(loan.paid_amount ?? 0)
+  if (paid <= 0) return null
+  return (
+    <Text fontSize="xs" color="#B0B0B0" mt={1}>
+      Abonado: {formatCurrency(paid, loan.currency)} / {formatCurrency(Number(loan.amount), loan.currency)}
+    </Text>
+  )
+}
+
+export function LoansTable({ loans, onEdit, onSettle, onDelete, onPayment }: Props) {
   const [confirmLoan, setConfirmLoan] = useState<LoanWithAccount | null>(null)
 
   if (loans.length === 0) {
@@ -34,7 +45,12 @@ export function LoansTable({ loans, onEdit, onSettle, onDelete }: Props) {
     {
       key: 'person_name',
       header: 'Persona',
-      render: (l) => <Text fontWeight="500">{l.person_name}</Text>,
+      render: (l) => (
+        <Box>
+          <Text fontWeight="500">{l.person_name}</Text>
+          <PaidProgress loan={l} />
+        </Box>
+      ),
     },
     {
       key: 'type',
@@ -78,6 +94,17 @@ export function LoansTable({ loans, onEdit, onSettle, onDelete }: Props) {
         <HStack gap={1}>
           {l.status === 'active' && (
             <>
+              <Button
+                size="xs"
+                bg="#F97316"
+                color="white"
+                _hover={{ bg: '#EA580C' }}
+                onClick={() => onPayment(l)}
+                title="Registrar abono"
+              >
+                <FiPlusCircle />
+                <Text display={{ base: 'none', lg: 'inline' }} ml={1}>Abono</Text>
+              </Button>
               <Button
                 size="xs"
                 bg="#4F46E5"
@@ -138,7 +165,7 @@ export function LoansTable({ loans, onEdit, onSettle, onDelete }: Props) {
                 {formatCurrency(Number(loan.amount), loan.currency)}
               </Text>
             </HStack>
-            <HStack gap={2} mb={3} flexWrap="wrap">
+            <HStack gap={2} mb={1} flexWrap="wrap">
               <Badge colorPalette={loan.type === 'lent' ? 'blue' : 'orange'} fontSize="xs">
                 {loan.type === 'lent' ? 'Presté' : 'Me prestaron'}
               </Badge>
@@ -151,9 +178,21 @@ export function LoansTable({ loans, onEdit, onSettle, onDelete }: Props) {
                 <Text fontSize="xs" color="#808080">{loan.notes}</Text>
               )}
             </HStack>
-            <HStack gap={2}>
+            <PaidProgress loan={loan} />
+            <HStack gap={2} mt={3}>
               {loan.status === 'active' && (
                 <>
+                  <Button
+                    size="sm"
+                    bg="#F97316"
+                    color="white"
+                    _hover={{ bg: '#EA580C' }}
+                    flex={1}
+                    onClick={() => onPayment(loan)}
+                  >
+                    <FiPlusCircle />
+                    Abono
+                  </Button>
                   <Button
                     size="sm"
                     bg="#4F46E5"

@@ -83,6 +83,7 @@ export async function createBudget(userId: string, data: CreateBudgetInput) {
     if (error) throw error
 
     revalidatePath('/budgets')
+    revalidatePath('/planificacion')
     revalidatePath('/dashboard')
     return { success: true, data: budget }
   } catch (error) {
@@ -110,6 +111,7 @@ export async function updateBudget(
     if (error) throw error
 
     revalidatePath('/budgets')
+    revalidatePath('/planificacion')
     revalidatePath('/dashboard')
     return { success: true, data: budget }
   } catch (error) {
@@ -129,6 +131,7 @@ export async function deleteBudget(id: string, userId: string) {
     if (error) throw error
 
     revalidatePath('/budgets')
+    revalidatePath('/planificacion')
     revalidatePath('/dashboard')
     return { success: true }
   } catch (error) {

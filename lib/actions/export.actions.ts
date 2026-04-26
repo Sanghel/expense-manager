@@ -14,6 +14,7 @@ export async function exportTransactions(userId: string, format: 'csv' | 'json')
       .select('*, category:categories(*)')
       .eq('user_id', userId)
       .order('date', { ascending: false })
+      .order('created_at', { ascending: false })
 
     if (error) throw error
 

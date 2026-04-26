@@ -2,6 +2,7 @@
 
 import { Box, VStack, Button, Icon, Spinner } from '@chakra-ui/react'
 import { usePathname } from 'next/navigation'
+import { CraftedByFooter } from './CraftedByFooter'
 import {
   FiHome,
   FiBarChart2,
@@ -38,10 +39,11 @@ export function Sidebar() {
       h="full"
       p={4}
       flexShrink={0}
-      display={{ base: 'none', md: 'block' }}
+      display={{ base: 'none', md: 'flex' }}
+      flexDirection="column"
       overflowY="auto"
     >
-      <VStack gap={2} align="stretch">
+      <VStack gap={2} align="stretch" flex={1}>
         {navItems.map((item) => {
           const isActive = pathname === item.href
           const isLoading = loadingPath === item.href
@@ -62,6 +64,9 @@ export function Sidebar() {
           )
         })}
       </VStack>
+      <Box pt={4} pb={2} borderTopWidth="1px" borderColor="#2d2d35" mt={4}>
+        <CraftedByFooter />
+      </Box>
     </Box>
   )
 }

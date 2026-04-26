@@ -11,7 +11,9 @@ import {
   Button,
   Icon,
   Spinner,
+  Box,
 } from '@chakra-ui/react'
+import { CraftedByFooter } from './CraftedByFooter'
 import { usePathname } from 'next/navigation'
 import {
   FiHome,
@@ -56,8 +58,8 @@ export function MobileNav({ isOpen, onClose }: Props) {
           style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
         >
           <DrawerCloseTrigger color="white" top={3} left={3} />
-          <DrawerBody px={3} pt={12} pb={4}>
-            <VStack gap={1} align="stretch">
+          <DrawerBody px={3} pt={12} pb={4} display="flex" flexDirection="column">
+            <VStack gap={1} align="stretch" flex={1}>
               {navItems.map((item) => {
                 const isActive = pathname === item.href
                 const isLoading = loadingPath === item.href
@@ -78,6 +80,9 @@ export function MobileNav({ isOpen, onClose }: Props) {
                 )
               })}
             </VStack>
+            <Box pt={4} pb={2} borderTopWidth="1px" borderColor="#2d2d35" mt={4}>
+              <CraftedByFooter />
+            </Box>
           </DrawerBody>
         </DrawerContent>
       </DrawerPositioner>

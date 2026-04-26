@@ -60,6 +60,7 @@ export async function getRecurringTransactions(userId: string, limit = 50) {
       .select('*, category:categories(*)')
       .eq('user_id', userId)
       .order('start_date', { ascending: false })
+      .order('created_at', { ascending: false })
       .limit(limit)
 
     if (error) throw error

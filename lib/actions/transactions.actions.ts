@@ -53,6 +53,7 @@ export async function getTransactions(userId: string, limit = 50) {
       .select('*, category:categories(*)')
       .eq('user_id', userId)
       .order('date', { ascending: false })
+      .order('created_at', { ascending: false })
       .limit(limit)
 
     if (error) throw error

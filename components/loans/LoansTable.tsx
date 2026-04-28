@@ -199,6 +199,8 @@ export function LoansTable({ loans, onEdit, onSettle, onDelete, onPayment }: Pro
                     color="white"
                     _hover={{ bg: '#4338CA' }}
                     flex={1}
+                    minW={0}
+                    fontSize="xs"
                     onClick={() => onSettle(loan)}
                   >
                     <FiCheckCircle />

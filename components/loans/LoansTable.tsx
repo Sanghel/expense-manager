@@ -201,10 +201,13 @@ export function LoansTable({ loans, onEdit, onSettle, onDelete, onPayment }: Pro
                     flex={1}
                     minW={0}
                     fontSize="xs"
+                    overflow="hidden"
                     onClick={() => onSettle(loan)}
                   >
-                    <FiCheckCircle />
-                    {settleLabel(loan)}
+                    <FiCheckCircle style={{ flexShrink: 0 }} />
+                    <Text overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
+                      {settleLabel(loan)}
+                    </Text>
                   </Button>
                   <IconButton
                     aria-label="Editar"

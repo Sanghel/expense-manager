@@ -1,6 +1,6 @@
 'use client'
 
-import { VStack, Box, FieldRoot, FieldLabel, NativeSelectRoot, NativeSelectField } from '@chakra-ui/react'
+import { VStack, Box, SimpleGrid, FieldRoot, FieldLabel, NativeSelectRoot, NativeSelectField } from '@chakra-ui/react'
 import { useState, useEffect } from 'react'
 import { createTransaction } from '@/lib/actions/transactions.actions'
 import { toaster } from '@/lib/toaster'
@@ -86,19 +86,20 @@ export function TransactionForm({ isOpen, onClose, userId, categories, accounts 
             required
           />
 
-          <InputAmount
-            label="Monto"
-            value={formData.amount}
-            onChange={(v) => setFormData({ ...formData, amount: v })}
-            isRequired
-          />
-
-          <CurrencySelect
-            value={formData.currency}
-            onChange={(v) => setFormData({ ...formData, currency: v })}
-            showFullLabel
-            required
-          />
+          <SimpleGrid columns={{ base: 1, md: 2 }} gap={4} w="full">
+            <InputAmount
+              label="Monto"
+              value={formData.amount}
+              onChange={(v) => setFormData({ ...formData, amount: v })}
+              isRequired
+            />
+            <CurrencySelect
+              value={formData.currency}
+              onChange={(v) => setFormData({ ...formData, currency: v })}
+              showFullLabel
+              required
+            />
+          </SimpleGrid>
 
           <CategorySelect
             value={formData.category_id}
@@ -134,22 +135,23 @@ export function TransactionForm({ isOpen, onClose, userId, categories, accounts 
             />
           </Box>
 
-          <FormInput
-            label="Descripción"
-            value={formData.description}
-            onChange={(v) => setFormData({ ...formData, description: v })}
-            placeholder="Ej: Compra en supermercado"
-            required
-          />
-
-          <FormInput
-            label="Fecha"
-            value={formData.date}
-            onChange={(v) => setFormData({ ...formData, date: v })}
-            type="date"
-            required
-            disabled={lockedDate}
-          />
+          <SimpleGrid columns={{ base: 1, md: 2 }} gap={4} w="full">
+            <FormInput
+              label="Descripción"
+              value={formData.description}
+              onChange={(v) => setFormData({ ...formData, description: v })}
+              placeholder="Ej: Compra en supermercado"
+              required
+            />
+            <FormInput
+              label="Fecha"
+              value={formData.date}
+              onChange={(v) => setFormData({ ...formData, date: v })}
+              type="date"
+              required
+              disabled={lockedDate}
+            />
+          </SimpleGrid>
 
           <FormTextarea
             label="Notas (opcional)"

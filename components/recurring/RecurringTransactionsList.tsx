@@ -10,11 +10,18 @@ import { DataTable, type ColumnDef } from '@/components/ui/DataTable'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import type { RecurringTransactionWithCategory } from '@/types/database.types'
 
-const FREQUENCY_LABELS: Record<string, string> = {
-  daily: 'Diario',
-  weekly: 'Semanal',
-  monthly: 'Mensual',
-  yearly: 'Anual',
+const WEEKDAY_NAMES = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado']
+const MONTH_NAMES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
+
+function frequencyLabel(frequency: string, startDate: string): string {
+  const date = new Date(startDate + 'T12:00:00')
+  switch (frequency) {
+    case 'daily': return 'Diario'
+    case 'weekly': return `Semanal · cada ${WEEKDAY_NAMES[date.getDay()]}`
+    case 'monthly': return `Mensual · el ${date.getDate()} de cada mes`
+    case 'yearly': return `Anual · el ${date.getDate()} de ${MONTH_NAMES[date.getMonth()]}`
+    default: return frequency
+  }
 }
 
 interface Props {
@@ -65,7 +72,7 @@ export function RecurringTransactionsList({ userId, transactions, onEdit }: Prop
       ),
     },
     { key: 'amount', header: 'Monto', render: (t) => `${t.amount.toLocaleString()} ${t.currency}` },
-    { key: 'frequency', header: 'Frecuencia', render: (t) => FREQUENCY_LABELS[t.frequency] ?? t.frequency },
+    { key: 'frequency', header: 'Frecuencia', render: (t) => frequencyLabel(t.frequency, t.start_date) },
     {
       key: 'status',
       header: 'Estado',
@@ -110,7 +117,7 @@ export function RecurringTransactionsList({ userId, transactions, onEdit }: Prop
                     <HStack gap={2} flexWrap="wrap">
                       <Text fontSize="xs" color="#6b7280">{t.category.icon ?? '🏷️'} {t.category.name}</Text>
                       <Text fontSize="xs" color="#4b5563">·</Text>
-                      <Text fontSize="xs" color="#6b7280">{FREQUENCY_LABELS[t.frequency] ?? t.frequency}</Text>
+                      <Text fontSize="xs" color="#6b7280">{frequencyLabel(t.frequency, t.start_date)}</Text>
                     </HStack>
                     <HStack gap={2} mt={1}>
                       <Badge colorPalette={t.is_active ? 'green' : 'yellow'} variant="solid" fontSize="10px">

@@ -201,7 +201,7 @@ export function TransactionCalendar({ initialTransactions }: Props) {
                       </HStack>
                       <HStack justifyContent="space-between" fontSize="sm" color="fg.muted">
                         <Text>{txn.category.name}</Text>
-                        <Text>{txn.type}</Text>
+                        <Text>{{ expense: 'Gasto', income: 'Ingreso' }[txn.type] ?? txn.type}</Text>
                       </HStack>
                       {txn.notes && (
                         <Text fontSize="sm" mt="2" color="fg.muted">

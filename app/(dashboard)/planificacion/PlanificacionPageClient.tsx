@@ -46,7 +46,7 @@ export function PlanificacionPageClient({
     pendingTab === tab && isPending ? <Spinner size="xs" /> : <Icon />
 
   return (
-    <Box p={{ base: 4, md: 6 }}>
+    <Box>
       <Heading size="lg" mb={6} color="white">
         Planificación
       </Heading>

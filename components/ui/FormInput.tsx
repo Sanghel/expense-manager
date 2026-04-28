@@ -11,6 +11,7 @@ interface Props {
   required?: boolean
   step?: string
   min?: string
+  disabled?: boolean
 }
 
 export function FormInput({
@@ -22,6 +23,7 @@ export function FormInput({
   required,
   step,
   min,
+  disabled,
 }: Props) {
   return (
     <FieldRoot required={required}>
@@ -33,6 +35,9 @@ export function FormInput({
         placeholder={placeholder}
         step={step}
         min={min}
+        disabled={disabled}
+        opacity={disabled ? 0.6 : 1}
+        cursor={disabled ? 'not-allowed' : undefined}
       />
     </FieldRoot>
   )

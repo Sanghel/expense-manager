@@ -1,7 +1,7 @@
 'use client'
 
 import { VStack, Box, FieldRoot, FieldLabel, NativeSelectRoot, NativeSelectField } from '@chakra-ui/react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createTransaction } from '@/lib/actions/transactions.actions'
 import { toaster } from '@/lib/toaster'
 import { FormDialog } from '@/components/ui/FormDialog'
@@ -28,6 +28,8 @@ interface Props {
   categories: Category[]
   accounts?: Account[]
   onSuccess: () => void
+  initialDate?: string
+  lockedDate?: boolean
 }
 
 const defaultForm = {
@@ -41,9 +43,15 @@ const defaultForm = {
   notes: '',
 }
 
-export function TransactionForm({ isOpen, onClose, userId, categories, accounts = [], onSuccess }: Props) {
+export function TransactionForm({ isOpen, onClose, userId, categories, accounts = [], onSuccess, initialDate, lockedDate }: Props) {
   const [loading, setLoading] = useState(false)
-  const [formData, setFormData] = useState(defaultForm)
+  const [formData, setFormData] = useState({ ...defaultForm, date: initialDate ?? getLocalDateString() })
+
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({ ...defaultForm, date: initialDate ?? getLocalDateString() })
+    }
+  }, [isOpen, initialDate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -59,7 +67,7 @@ export function TransactionForm({ isOpen, onClose, userId, categories, accounts 
       toaster.create({ title: 'Transacción creada', type: 'success', duration: 3000 })
       onSuccess()
       onClose()
-      setFormData(defaultForm)
+      setFormData({ ...defaultForm, date: initialDate ?? getLocalDateString() })
     } else {
       toaster.create({ title: 'Error al crear', description: result.error, type: 'error', duration: 4000 })
     }
@@ -140,6 +148,7 @@ export function TransactionForm({ isOpen, onClose, userId, categories, accounts 
             onChange={(v) => setFormData({ ...formData, date: v })}
             type="date"
             required
+            disabled={lockedDate}
           />
 
           <FormTextarea

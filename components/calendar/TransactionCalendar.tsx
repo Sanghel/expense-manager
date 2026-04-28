@@ -15,31 +15,37 @@ import {
   DialogHeader,
   DialogTitle,
   DialogBody,
+  DialogFooter,
   DialogCloseTrigger,
   IconButton,
   Icon,
   useBreakpointValue,
 } from '@chakra-ui/react'
-import { FiX, FiChevronDown, FiChevronRight } from 'react-icons/fi'
+import { FiX, FiChevronDown, FiChevronRight, FiPlus } from 'react-icons/fi'
 import { useState } from 'react'
-import type { TransactionWithCategory } from '@/types/database.types'
+import type { TransactionWithCategory, Account, Category } from '@/types/database.types'
 import { formatCurrency } from '@/lib/utils/currency'
 import { getLocalDateString } from '@/lib/utils/dates'
+import { TransactionForm } from '@/components/transactions/TransactionForm'
 
 interface Props {
   userId: string
   initialTransactions: TransactionWithCategory[]
+  categories: Category[]
+  accounts: Account[]
+  onTransactionCreated: () => void
 }
 
 const WEEKDAYS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
 const MONTHS = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
 const TYPE_LABELS: Record<string, string> = { expense: 'Gasto', income: 'Ingreso' }
 
-export function TransactionCalendar({ initialTransactions }: Props) {
+export function TransactionCalendar({ userId, initialTransactions, categories, accounts, onTransactionCreated }: Props) {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [transactions] = useState<TransactionWithCategory[]>(initialTransactions)
-  const [selectedDay, setSelectedDay] = useState<TransactionWithCategory[] | null>(null)
+  const [selectedDay, setSelectedDay] = useState<{ date: string; txns: TransactionWithCategory[] } | null>(null)
   const [expandedDays, setExpandedDays] = useState<Set<number>>(new Set())
+  const [createForDate, setCreateForDate] = useState<string | null>(null)
   const isMobile = useBreakpointValue({ base: true, md: false })
 
   const getDaysInMonth = (date: Date) => {
@@ -55,6 +61,10 @@ export function TransactionCalendar({ initialTransactions }: Props) {
     return transactions.filter(t => t.date === dateStr)
   }
 
+  const getDateStringForDay = (day: number) => {
+    return getLocalDateString(new Date(currentDate.getFullYear(), currentDate.getMonth(), day))
+  }
+
   const handlePrevMonth = () => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))
     setExpandedDays(new Set())
@@ -66,7 +76,7 @@ export function TransactionCalendar({ initialTransactions }: Props) {
   }
 
   const handleDayClick = (day: number) => {
-    setSelectedDay(getTransactionsForDay(day))
+    setSelectedDay({ date: getDateStringForDay(day), txns: getTransactionsForDay(day) })
   }
 
   const toggleDayExpand = (day: number) => {
@@ -123,14 +133,14 @@ export function TransactionCalendar({ initialTransactions }: Props) {
                 p="2"
                 bg={hasTransactions ? '#1a1a27' : 'transparent'}
                 borderColor={hasTransactions ? '#4F46E5' : '#2d2d35'}
-                cursor={hasTransactions ? 'pointer' : 'default'}
-                onClick={() => hasTransactions && handleDayClick(day)}
-                _hover={hasTransactions ? { bg: '#252535' } : { bg: '#1a1a1a' }}
+                cursor="pointer"
+                onClick={() => handleDayClick(day)}
+                _hover={{ bg: hasTransactions ? '#252535' : '#1a1a1a' }}
                 transition="background 0.2s"
               >
                 <VStack alignItems="flex-start" gap="1" height="100%">
                   <Text fontWeight="bold" fontSize="sm">{day}</Text>
-                  {dayTransactions.length > 0 && (
+                  {hasTransactions && (
                     <VStack alignItems="flex-start" gap="0.5" width="100%" flex="1" overflowY="auto">
                       {dayTransactions.slice(0, 2).map(t => (
                         <Badge
@@ -256,6 +266,19 @@ export function TransactionCalendar({ initialTransactions }: Props) {
                       </Text>
                     </HStack>
                   ))}
+                  <Box pt={2} pb={1} borderTopWidth="1px" borderColor="#2d2d35">
+                    <Button
+                      size="sm"
+                      bg="#4F46E5"
+                      color="white"
+                      _hover={{ bg: '#4338CA' }}
+                      width="full"
+                      onClick={() => setCreateForDate(getDateStringForDay(day))}
+                    >
+                      <FiPlus />
+                      Nueva Transacción
+                    </Button>
+                  </Box>
                 </VStack>
               )}
             </Box>
@@ -282,7 +305,11 @@ export function TransactionCalendar({ initialTransactions }: Props) {
             <DialogContent tabIndex={-1} mx={{ base: 3, md: 0 }} style={{ marginTop: 'max(16px, env(safe-area-inset-top))' }}>
               <DialogHeader borderBottomWidth="1px" borderColor="#2d2d35" py={4}>
                 <HStack justify="space-between" align="center">
-                  <DialogTitle color="white">Transacciones del {selectedDay?.[0] && new Date(selectedDay[0].date).toLocaleDateString('es-ES')}</DialogTitle>
+                  <DialogTitle color="white">
+                    {selectedDay?.date
+                      ? new Date(selectedDay.date + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })
+                      : 'Transacciones del día'}
+                  </DialogTitle>
                   <DialogCloseTrigger asChild>
                     <IconButton
                       aria-label="Cerrar"
@@ -299,8 +326,8 @@ export function TransactionCalendar({ initialTransactions }: Props) {
               </DialogHeader>
               <DialogBody>
                 <VStack alignItems="flex-start" gap="2">
-                  {selectedDay && selectedDay.length > 0 ? (
-                    selectedDay.map(txn => (
+                  {selectedDay && selectedDay.txns.length > 0 ? (
+                    selectedDay.txns.map(txn => (
                       <Box
                         key={txn.id}
                         width="100%"
@@ -327,14 +354,44 @@ export function TransactionCalendar({ initialTransactions }: Props) {
                       </Box>
                     ))
                   ) : (
-                    <Text color="fg.muted">Sin transacciones</Text>
+                    <Text color="fg.muted">Sin transacciones para este día.</Text>
                   )}
                 </VStack>
               </DialogBody>
+              <DialogFooter borderTopWidth="1px" borderColor="#2d2d35" pt={4}>
+                <Button
+                  bg="#4F46E5"
+                  color="white"
+                  _hover={{ bg: '#4338CA' }}
+                  width="full"
+                  onClick={() => {
+                    if (selectedDay?.date) setCreateForDate(selectedDay.date)
+                    setSelectedDay(null)
+                  }}
+                >
+                  <FiPlus />
+                  Nueva Transacción
+                </Button>
+              </DialogFooter>
             </DialogContent>
           </DialogPositioner>
         </DialogRoot>
       )}
+
+      {/* Transaction creation form */}
+      <TransactionForm
+        isOpen={createForDate !== null}
+        onClose={() => setCreateForDate(null)}
+        userId={userId}
+        categories={categories}
+        accounts={accounts}
+        initialDate={createForDate ?? undefined}
+        lockedDate
+        onSuccess={() => {
+          setCreateForDate(null)
+          onTransactionCreated()
+        }}
+      />
     </>
   )
 }

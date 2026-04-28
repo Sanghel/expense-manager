@@ -163,7 +163,7 @@ export function TransactionCalendar({ initialTransactions }: Props) {
       <DialogRoot open={selectedDay !== null} onOpenChange={details => !details.open && setSelectedDay(null)} size="md" placement="center" lazyMount unmountOnExit closeOnInteractOutside={false}>
         <DialogBackdrop />
         <DialogPositioner>
-          <DialogContent tabIndex={-1} mx={{ base: 3, md: 0 }}>
+          <DialogContent tabIndex={-1} mx={{ base: 3, md: 0 }} style={{ marginTop: 'max(16px, env(safe-area-inset-top))' }}>
             <DialogHeader borderBottomWidth="1px" borderColor="#2d2d35" py={4}>
               <HStack justify="space-between" align="center">
                 <DialogTitle color="white">Transacciones del {selectedDay?.[0] && new Date(selectedDay[0].date).toLocaleDateString('es-ES')}</DialogTitle>

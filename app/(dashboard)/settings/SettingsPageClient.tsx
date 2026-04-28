@@ -1,7 +1,7 @@
 'use client'
 
 import { useTransition, useState, useEffect } from 'react'
-import { Box, Heading, VStack, Text, Separator, Tabs, Spinner } from '@chakra-ui/react'
+import { Box, Heading, VStack, Text, Separator, Tabs, Spinner, Icon } from '@chakra-ui/react'
 import { useRouter } from 'next/navigation'
 import { FiSliders, FiBriefcase, FiTag } from 'react-icons/fi'
 import { CurrencySelector } from '@/components/settings/CurrencySelector'
@@ -52,8 +52,8 @@ export function SettingsPageClient({
     })
   }
 
-  const tabIcon = (tab: string, Icon: React.ElementType) =>
-    pendingTab === tab && isPending ? <Spinner size="xs" /> : <Icon />
+  const tabIcon = (tab: string, IconComponent: React.ElementType) =>
+    pendingTab === tab && isPending ? <Spinner size="xs" /> : <Icon as={IconComponent} boxSize={4} />
 
   return (
     <Box>

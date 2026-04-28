@@ -1,7 +1,7 @@
 'use client'
 
 import { useTransition, useState, useEffect } from 'react'
-import { Box, Heading, Tabs, Spinner } from '@chakra-ui/react'
+import { Box, Heading, Tabs, Spinner, Icon } from '@chakra-ui/react'
 import { useRouter } from 'next/navigation'
 import { FiList, FiRepeat, FiCreditCard } from 'react-icons/fi'
 import { TransactionsPageClient } from '../transactions/TransactionsPageClient'
@@ -51,8 +51,8 @@ export function MovimientosPageClient({
     })
   }
 
-  const tabIcon = (tab: string, Icon: React.ElementType) =>
-    pendingTab === tab && isPending ? <Spinner size="xs" /> : <Icon />
+  const tabIcon = (tab: string, IconComponent: React.ElementType) =>
+    pendingTab === tab && isPending ? <Spinner size="xs" /> : <Icon as={IconComponent} boxSize={4} />
 
   return (
     <Box>

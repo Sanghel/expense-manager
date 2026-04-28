@@ -52,7 +52,7 @@ export function MovimientosPageClient({
   }
 
   const tabIcon = (tab: string, IconComponent: React.ElementType) =>
-    pendingTab === tab && isPending ? <Spinner size="xs" /> : <Icon as={IconComponent} boxSize={4} />
+    pendingTab === tab && isPending ? <Spinner size="xs" color="white" /> : <Icon as={IconComponent} boxSize={4} />
 
   return (
     <Box>

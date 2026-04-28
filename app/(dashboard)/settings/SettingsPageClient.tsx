@@ -56,7 +56,7 @@ export function SettingsPageClient({
     pendingTab === tab && isPending ? <Spinner size="xs" /> : <Icon />
 
   return (
-    <Box p={6}>
+    <Box>
       <Heading size="lg" mb={8} color="white">
         Configuración
       </Heading>

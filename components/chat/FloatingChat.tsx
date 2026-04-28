@@ -36,7 +36,7 @@ export function FloatingChat({ userId, categories, accounts = [] }: Props) {
             borderColor="#2d2d35"
             overflow="hidden"
             /* Desktop */
-            bottom={{ base: '130px', md: '88px' }}
+            bottom={{ base: 'calc(140px + env(safe-area-inset-bottom))', md: '88px' }}
             right={{ base: '12px', md: '24px' }}
             left={{ base: '12px', md: 'auto' }}
             w={{ base: 'auto', md: '380px' }}
@@ -55,7 +55,7 @@ export function FloatingChat({ userId, categories, accounts = [] }: Props) {
 
       <Box
         position="fixed"
-        bottom={{ base: '72px', md: '24px' }}
+        bottom={{ base: 'calc(80px + env(safe-area-inset-bottom))', md: '24px' }}
         right="16px"
         zIndex={1001}
       >

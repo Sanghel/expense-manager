@@ -6,7 +6,7 @@ import {
   FiHome,
   FiLayers,
   FiTarget,
-  FiBarChart2,
+  FiCalendar,
   FiMoreHorizontal,
 } from 'react-icons/fi'
 import { IconType } from 'react-icons'
@@ -16,7 +16,7 @@ const primaryItems: { href: string; label: string; icon: IconType }[] = [
   { href: '/dashboard', label: 'Dashboard', icon: FiHome },
   { href: '/movimientos', label: 'Movimientos', icon: FiLayers },
   { href: '/planificacion', label: 'Planificación', icon: FiTarget },
-  { href: '/reports', label: 'Reportes', icon: FiBarChart2 },
+  { href: '/calendar', label: 'Calendario', icon: FiCalendar },
 ]
 
 interface Props {

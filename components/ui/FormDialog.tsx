@@ -36,8 +36,14 @@ export function FormDialog({ isOpen, onClose, title, children, size = 'md' }: Pr
     >
       <DialogBackdrop />
       <DialogPositioner>
-        <DialogContent tabIndex={-1} mx={{ base: 3, md: 0 }} maxH="90vh" overflowY="auto" style={{ marginTop: 'max(16px, env(safe-area-inset-top))' }}>
-          <DialogHeader borderBottomWidth="1px" borderColor="#2d2d35" py={4}>
+        <DialogContent
+          tabIndex={-1}
+          mx={{ base: 3, md: 0 }}
+          maxH={{ base: '85vh', md: '90vh' }}
+          display="flex"
+          flexDirection="column"
+        >
+          <DialogHeader borderBottomWidth="1px" borderColor="#2d2d35" py={4} flexShrink={0}>
             <HStack justify="space-between" align="center">
               <DialogTitle color="white">{title}</DialogTitle>
               <DialogCloseTrigger asChild>
@@ -54,7 +60,7 @@ export function FormDialog({ isOpen, onClose, title, children, size = 'md' }: Pr
               </DialogCloseTrigger>
             </HStack>
           </DialogHeader>
-          <DialogBody pb={6}>
+          <DialogBody pb={6} flex="1" minH="0" overflowY="auto">
             {children}
           </DialogBody>
         </DialogContent>

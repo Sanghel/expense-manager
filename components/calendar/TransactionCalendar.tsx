@@ -302,8 +302,8 @@ export function TransactionCalendar({ userId, initialTransactions, categories, a
         <DialogRoot open={selectedDay !== null} onOpenChange={details => !details.open && setSelectedDay(null)} size="md" placement="center" lazyMount unmountOnExit closeOnInteractOutside={false}>
           <DialogBackdrop />
           <DialogPositioner>
-            <DialogContent tabIndex={-1} mx={{ base: 3, md: 0 }} style={{ marginTop: 'max(16px, env(safe-area-inset-top))' }}>
-              <DialogHeader borderBottomWidth="1px" borderColor="#2d2d35" py={4}>
+            <DialogContent tabIndex={-1} mx={{ base: 3, md: 0 }} maxH={{ base: '85vh', md: '90vh' }} display="flex" flexDirection="column">
+              <DialogHeader borderBottomWidth="1px" borderColor="#2d2d35" py={4} flexShrink={0}>
                 <HStack justify="space-between" align="center">
                   <DialogTitle color="white">
                     {selectedDay?.date
@@ -324,7 +324,7 @@ export function TransactionCalendar({ userId, initialTransactions, categories, a
                   </DialogCloseTrigger>
                 </HStack>
               </DialogHeader>
-              <DialogBody>
+              <DialogBody flex="1" minH="0" overflowY="auto">
                 <VStack alignItems="flex-start" gap="2">
                   {selectedDay && selectedDay.txns.length > 0 ? (
                     selectedDay.txns.map(txn => (

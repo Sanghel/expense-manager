@@ -4,7 +4,9 @@ import { redirect } from 'next/navigation'
 import { insforgeAdmin } from '@/lib/insforge-admin'
 import { CalendarPageContent } from '@/components/calendar/CalendarPageContent'
 import { getTransactions } from '@/lib/actions/transactions.actions'
-import type { TransactionWithCategory } from '@/types/database.types'
+import { getCategories } from '@/lib/actions/categories.actions'
+import { getAccounts } from '@/lib/actions/accounts.actions'
+import type { TransactionWithCategory, Account } from '@/types/database.types'
 
 export default async function CalendarPage() {
   const session = await getServerSession(authOptions)
@@ -24,8 +26,22 @@ export default async function CalendarPage() {
     redirect('/login')
   }
 
-  const transactionsResult = await getTransactions(user.id, 1000)
-  const transactions: TransactionWithCategory[] = transactionsResult.success ? (transactionsResult.data ?? []) : []
+  const [transactionsResult, categoriesResult, accountsResult] = await Promise.all([
+    getTransactions(user.id, 1000),
+    getCategories(user.id),
+    getAccounts(user.id),
+  ])
 
-  return <CalendarPageContent userId={user.id} initialTransactions={transactions} />
+  const transactions: TransactionWithCategory[] = transactionsResult.success ? (transactionsResult.data ?? []) : []
+  const categories = categoriesResult.success ? (categoriesResult.data ?? []) : []
+  const accounts = (accountsResult.success ? accountsResult.data : []) as Account[]
+
+  return (
+    <CalendarPageContent
+      userId={user.id}
+      initialTransactions={transactions}
+      categories={categories}
+      accounts={accounts}
+    />
+  )
 }

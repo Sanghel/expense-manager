@@ -1,6 +1,6 @@
 'use client'
 
-import { VStack, FieldRoot, FieldLabel, NativeSelectRoot, NativeSelectField } from '@chakra-ui/react'
+import { VStack } from '@chakra-ui/react'
 import { useState } from 'react'
 import { createLoan, updateLoan } from '@/lib/actions/loans.actions'
 import { toaster } from '@/lib/toaster'
@@ -9,6 +9,7 @@ import { FormInput } from '@/components/ui/FormInput'
 import { InputAmount } from '@/components/ui/InputAmount'
 import { RadioSelect } from '@/components/ui/RadioSelect'
 import { CurrencySelect } from '@/components/ui/CurrencySelect'
+import { AccountSelect } from '@/components/ui/AccountSelect'
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
 import type { Account, Currency, LoanWithAccount } from '@/types/database.types'
 
@@ -96,22 +97,12 @@ export function LoanForm({ isOpen, onClose, userId, accounts, onSuccess, loan }:
             onChange={(v) => setFormData((p) => ({ ...p, currency: v }))}
           />
           {accounts.length > 0 && (
-            <FieldRoot>
-              <FieldLabel>Cuenta</FieldLabel>
-              <NativeSelectRoot>
-                <NativeSelectField
-                  value={formData.account_id}
-                  onChange={(e) => setFormData((p) => ({ ...p, account_id: e.target.value }))}
-                >
-                  <option value="">Sin cuenta</option>
-                  {accounts.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.icon} {a.name} ({a.currency})
-                    </option>
-                  ))}
-                </NativeSelectField>
-              </NativeSelectRoot>
-            </FieldRoot>
+            <AccountSelect
+              value={formData.account_id}
+              onChange={(v) => setFormData((p) => ({ ...p, account_id: v }))}
+              accounts={accounts}
+              optional
+            />
           )}
           <FormInput
             label="Notas (opcional)"

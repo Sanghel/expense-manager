@@ -6,6 +6,7 @@ import { createSavingsGoal, updateSavingsGoal } from '@/lib/actions/savings.acti
 import { toaster } from '@/lib/toaster'
 import { FormDialog } from '@/components/ui/FormDialog'
 import { FormInput } from '@/components/ui/FormInput'
+import { DateInput } from '@/components/ui/DateInput'
 import { InputAmount } from '@/components/ui/InputAmount'
 import { CurrencySelect } from '@/components/ui/CurrencySelect'
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
@@ -106,11 +107,11 @@ export function SavingsGoalForm({ isOpen, onClose, userId, onSuccess, initialDat
             onChange={(v) => setForm({ ...form, currency: v })}
           />
 
-          <FormInput
-            label="Fecha Límite (Opcional)"
+          <DateInput
+            label="Fecha Límite"
             value={form.deadline}
             onChange={(v) => setForm({ ...form, deadline: v })}
-            type="date"
+            optional
           />
 
           <PrimaryButton type="submit" width="full" loading={loading}>

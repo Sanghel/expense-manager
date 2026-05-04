@@ -1,16 +1,18 @@
 'use client'
 
-import { VStack, Box, SimpleGrid, FieldRoot, FieldLabel, NativeSelectRoot, NativeSelectField } from '@chakra-ui/react'
+import { VStack, Box, SimpleGrid } from '@chakra-ui/react'
 import { useState, useEffect } from 'react'
 import { createTransaction } from '@/lib/actions/transactions.actions'
 import { toaster } from '@/lib/toaster'
 import { FormDialog } from '@/components/ui/FormDialog'
 import { FormInput } from '@/components/ui/FormInput'
+import { DateInput } from '@/components/ui/DateInput'
 import { InputAmount } from '@/components/ui/InputAmount'
 import { FormTextarea } from '@/components/ui/FormTextarea'
 import { RadioSelect } from '@/components/ui/RadioSelect'
 import { CurrencySelect } from '@/components/ui/CurrencySelect'
 import { CategorySelect } from '@/components/ui/CategorySelect'
+import { AccountSelect } from '@/components/ui/AccountSelect'
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
 import { CurrencyPreview } from './CurrencyPreview'
 import type { Account, Category, Currency } from '@/types/database.types'
@@ -110,22 +112,14 @@ export function TransactionForm({ isOpen, onClose, userId, categories, accounts 
           />
 
           {accounts.length > 0 && (
-            <FieldRoot>
-              <FieldLabel>Cuenta (opcional)</FieldLabel>
-              <NativeSelectRoot>
-                <NativeSelectField
-                  value={formData.account_id}
-                  onChange={(e) => setFormData({ ...formData, account_id: e.target.value })}
-                >
-                  <option value="">Sin cuenta específica</option>
-                  {accounts.map((acc) => (
-                    <option key={acc.id} value={acc.id}>
-                      {acc.icon ?? '💳'} {acc.name} ({acc.currency})
-                    </option>
-                  ))}
-                </NativeSelectField>
-              </NativeSelectRoot>
-            </FieldRoot>
+            <AccountSelect
+              value={formData.account_id}
+              onChange={(v) => setFormData({ ...formData, account_id: v })}
+              accounts={accounts}
+              label="Cuenta"
+              optional
+              placeholder="Sin cuenta específica"
+            />
           )}
 
           <Box w="full" minH="10">
@@ -143,11 +137,10 @@ export function TransactionForm({ isOpen, onClose, userId, categories, accounts 
               placeholder="Ej: Compra en supermercado"
               required
             />
-            <FormInput
+            <DateInput
               label="Fecha"
               value={formData.date}
               onChange={(v) => setFormData({ ...formData, date: v })}
-              type="date"
               required
               disabled={lockedDate}
             />

@@ -1,6 +1,6 @@
 {
   "name": "expense-manager",
-  "version": "1.6.0",
+  "version": "2.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",

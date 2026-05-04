@@ -1,17 +1,15 @@
 'use client'
 
-import { VStack, FieldRoot, FieldLabel, NativeSelectRoot, NativeSelectField } from '@chakra-ui/react'
+import { VStack } from '@chakra-ui/react'
 import { useState } from 'react'
 import { createAccountMovement } from '@/lib/actions/account_movements.actions'
 import { toaster } from '@/lib/toaster'
 import { FormDialog } from '@/components/ui/FormDialog'
 import { FormInput } from '@/components/ui/FormInput'
+import { DateInput } from '@/components/ui/DateInput'
 import { InputAmount } from '@/components/ui/InputAmount'
-const CURRENCY_OPTIONS: { value: string; label: string }[] = [
-  { value: 'COP', label: 'COP - Peso Colombiano' },
-  { value: 'USD', label: 'USD - Dólar' },
-  { value: 'VES', label: 'VES - Bolívar (Bs)' },
-]
+import { AccountSelect } from '@/components/ui/AccountSelect'
+import { CurrencySelect } from '@/components/ui/CurrencySelect'
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
 import type { Account, Currency } from '@/types/database.types'
 import { getLocalDateString } from '@/lib/utils/dates'
@@ -69,22 +67,14 @@ export function AccountMovementForm({ isOpen, onClose, userId, accounts, onSucce
     <FormDialog isOpen={isOpen} onClose={onClose} title="Nuevo Movimiento entre Cuentas">
       <form onSubmit={handleSubmit}>
         <VStack gap={4}>
-          <FieldRoot required>
-            <FieldLabel>Cuenta origen</FieldLabel>
-            <NativeSelectRoot>
-              <NativeSelectField
-                value={formData.from_account_id}
-                onChange={(e) => setFormData({ ...formData, from_account_id: e.target.value })}
-              >
-                <option value="">Seleccionar...</option>
-                {accounts.map((acc) => (
-                  <option key={acc.id} value={acc.id}>
-                    {acc.icon ?? '💳'} {acc.name} ({acc.currency})
-                  </option>
-                ))}
-              </NativeSelectField>
-            </NativeSelectRoot>
-          </FieldRoot>
+          <AccountSelect
+            value={formData.from_account_id}
+            onChange={(v) => setFormData({ ...formData, from_account_id: v })}
+            accounts={accounts}
+            label="Cuenta origen"
+            required
+            placeholder="Seleccionar..."
+          />
 
           <InputAmount
             label="Monto enviado"
@@ -93,38 +83,22 @@ export function AccountMovementForm({ isOpen, onClose, userId, accounts, onSucce
             isRequired
           />
 
-          <FieldRoot required>
-            <FieldLabel>Moneda origen</FieldLabel>
-            <NativeSelectRoot>
-              <NativeSelectField
-                value={formData.from_currency}
-                onChange={(e) => setFormData({ ...formData, from_currency: e.target.value as Currency })}
-              >
-                {CURRENCY_OPTIONS.map((c) => (
-                  <option key={c.value} value={c.value}>{c.label}</option>
-                ))}
-              </NativeSelectField>
-            </NativeSelectRoot>
-          </FieldRoot>
+          <CurrencySelect
+            value={formData.from_currency}
+            onChange={(v) => setFormData({ ...formData, from_currency: v })}
+            showFullLabel
+            required
+          />
 
-          <FieldRoot required>
-            <FieldLabel>Cuenta destino</FieldLabel>
-            <NativeSelectRoot>
-              <NativeSelectField
-                value={formData.to_account_id}
-                onChange={(e) => setFormData({ ...formData, to_account_id: e.target.value })}
-              >
-                <option value="">Seleccionar...</option>
-                {accounts
-                  .filter((acc) => acc.id !== formData.from_account_id)
-                  .map((acc) => (
-                    <option key={acc.id} value={acc.id}>
-                      {acc.icon ?? '💳'} {acc.name} ({acc.currency})
-                    </option>
-                  ))}
-              </NativeSelectField>
-            </NativeSelectRoot>
-          </FieldRoot>
+          <AccountSelect
+            value={formData.to_account_id}
+            onChange={(v) => setFormData({ ...formData, to_account_id: v })}
+            accounts={accounts}
+            label="Cuenta destino"
+            required
+            placeholder="Seleccionar..."
+            excludeId={formData.from_account_id}
+          />
 
           <InputAmount
             label="Monto recibido"
@@ -133,19 +107,12 @@ export function AccountMovementForm({ isOpen, onClose, userId, accounts, onSucce
             isRequired
           />
 
-          <FieldRoot required>
-            <FieldLabel>Moneda destino</FieldLabel>
-            <NativeSelectRoot>
-              <NativeSelectField
-                value={formData.to_currency}
-                onChange={(e) => setFormData({ ...formData, to_currency: e.target.value as Currency })}
-              >
-                {CURRENCY_OPTIONS.map((c) => (
-                  <option key={c.value} value={c.value}>{c.label}</option>
-                ))}
-              </NativeSelectField>
-            </NativeSelectRoot>
-          </FieldRoot>
+          <CurrencySelect
+            value={formData.to_currency}
+            onChange={(v) => setFormData({ ...formData, to_currency: v })}
+            showFullLabel
+            required
+          />
 
           <FormInput
             label="Descripción (opcional)"
@@ -154,11 +121,10 @@ export function AccountMovementForm({ isOpen, onClose, userId, accounts, onSucce
             placeholder="Ej: Cambio de dólares"
           />
 
-          <FormInput
+          <DateInput
             label="Fecha"
             value={formData.date}
             onChange={(v) => setFormData({ ...formData, date: v })}
-            type="date"
             required
           />
 

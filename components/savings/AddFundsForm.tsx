@@ -1,10 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { VStack, Button, Text, FieldRoot, FieldLabel, NativeSelectRoot, NativeSelectField } from '@chakra-ui/react'
+import { VStack, Button, Text } from '@chakra-ui/react'
 import { FormDialog } from '@/components/ui/FormDialog'
 import { InputAmount } from '@/components/ui/InputAmount'
 import { CurrencySelect } from '@/components/ui/CurrencySelect'
+import { AccountSelect } from '@/components/ui/AccountSelect'
 import { addFundsToGoal } from '@/lib/actions/savings.actions'
 import { toaster } from '@/lib/toaster'
 import type { Account, Currency, SavingsGoal } from '@/types/database.types'
@@ -76,22 +77,13 @@ export function AddFundsForm({ isOpen, onClose, goal, userId, accounts, onSucces
         </Text>
 
         {activeAccounts.length > 0 && (
-          <FieldRoot>
-            <FieldLabel>Cuenta de origen <Text as="span" color="#B0B0B0" fontSize="xs">(opcional)</Text></FieldLabel>
-            <NativeSelectRoot>
-              <NativeSelectField
-                value={accountId}
-                onChange={(e) => handleAccountChange(e.target.value)}
-              >
-                <option value="">Sin cuenta</option>
-                {activeAccounts.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.icon ?? ''} {a.name} — {a.currency}
-                  </option>
-                ))}
-              </NativeSelectField>
-            </NativeSelectRoot>
-          </FieldRoot>
+          <AccountSelect
+            value={accountId}
+            onChange={handleAccountChange}
+            accounts={activeAccounts}
+            label="Cuenta de origen"
+            optional
+          />
         )}
 
         <CurrencySelect

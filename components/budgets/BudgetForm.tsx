@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react'
 import { createBudget, updateBudget } from '@/lib/actions/budgets.actions'
 import { toaster } from '@/lib/toaster'
 import { FormDialog } from '@/components/ui/FormDialog'
-import { FormInput } from '@/components/ui/FormInput'
+import { DateInput } from '@/components/ui/DateInput'
 import { InputAmount } from '@/components/ui/InputAmount'
 import { RadioSelect } from '@/components/ui/RadioSelect'
 import { CurrencySelect } from '@/components/ui/CurrencySelect'
@@ -157,11 +157,10 @@ export function BudgetForm({ isOpen, onClose, userId, categories, onSuccess, edi
             required
           />
 
-          <FormInput
+          <DateInput
             label="Fecha de Inicio"
             value={formData.start_date}
             onChange={(v) => setFormData({ ...formData, start_date: v })}
-            type="date"
             required
           />
 

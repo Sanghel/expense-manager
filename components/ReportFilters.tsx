@@ -2,17 +2,18 @@
 
 import {
   Button,
+  Box,
   HStack,
   VStack,
   FieldRoot,
   FieldLabel,
-  Input,
   NativeSelectRoot,
   NativeSelectField,
   Text,
 } from '@chakra-ui/react'
 import { useEffect, useState } from 'react'
 import { getCategories } from '@/lib/actions/categories.actions'
+import { DateInput } from '@/components/ui/DateInput'
 import type { Category } from '@/types/database.types'
 
 export interface ReportFiltersState {
@@ -143,25 +144,21 @@ export function ReportFilters({ userId, onFilterChange }: Props) {
           </FieldRoot>
         )}
 
-        <FieldRoot w={{ base: 'full', sm: 'auto', md: '120px' }}>
-          <FieldLabel fontSize="sm">Desde</FieldLabel>
-          <Input
-            type="date"
+        <Box w={{ base: 'full', sm: 'auto', md: '140px' }}>
+          <DateInput
+            label="Desde"
             value={filters.startDate}
-            onChange={(e) => handleStartDateChange(e.target.value)}
-            size="sm"
+            onChange={handleStartDateChange}
           />
-        </FieldRoot>
+        </Box>
 
-        <FieldRoot w={{ base: 'full', sm: 'auto', md: '120px' }}>
-          <FieldLabel fontSize="sm">Hasta</FieldLabel>
-          <Input
-            type="date"
+        <Box w={{ base: 'full', sm: 'auto', md: '140px' }}>
+          <DateInput
+            label="Hasta"
             value={filters.endDate}
-            onChange={(e) => handleEndDateChange(e.target.value)}
-            size="sm"
+            onChange={handleEndDateChange}
           />
-        </FieldRoot>
+        </Box>
 
         <Button onClick={handleReset} size="sm" variant="ghost">
           Limpiar

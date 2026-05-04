@@ -1,15 +1,18 @@
 'use client'
 
-import { VStack, FieldRoot, FieldLabel, NativeSelectRoot, NativeSelectField } from '@chakra-ui/react'
+import { VStack } from '@chakra-ui/react'
 import { useState, useEffect } from 'react'
 import { createRecurringTransaction, updateRecurringTransaction } from '@/lib/actions/recurring.actions'
 import { toaster } from '@/lib/toaster'
 import { FormDialog } from '@/components/ui/FormDialog'
 import { FormInput } from '@/components/ui/FormInput'
+import { DateInput } from '@/components/ui/DateInput'
 import { InputAmount } from '@/components/ui/InputAmount'
 import { RadioSelect } from '@/components/ui/RadioSelect'
 import { CurrencySelect } from '@/components/ui/CurrencySelect'
 import { CategorySelect } from '@/components/ui/CategorySelect'
+import { AccountSelect } from '@/components/ui/AccountSelect'
+import { FrequencySelect } from '@/components/ui/FrequencySelect'
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
 import type { Account, Category, Currency, RecurringTransactionWithCategory } from '@/types/database.types'
 import { getLocalDateString } from '@/lib/utils/dates'
@@ -157,52 +160,33 @@ export function RecurringTransactionForm({
           />
 
           {accounts.length > 0 && (
-            <FieldRoot>
-              <FieldLabel>Cuenta asociada <span style={{ color: '#B0B0B0', fontSize: '0.85em' }}>(opcional)</span></FieldLabel>
-              <NativeSelectRoot>
-                <NativeSelectField
-                  value={form.account_id}
-                  onChange={(e) => setForm({ ...form, account_id: e.target.value })}
-                >
-                  <option value="">Sin cuenta</option>
-                  {accounts.map((acc) => (
-                    <option key={acc.id} value={acc.id}>
-                      {acc.name} ({acc.currency})
-                    </option>
-                  ))}
-                </NativeSelectField>
-              </NativeSelectRoot>
-            </FieldRoot>
+            <AccountSelect
+              value={form.account_id}
+              onChange={(v) => setForm({ ...form, account_id: v })}
+              accounts={accounts}
+              label="Cuenta asociada"
+              optional
+            />
           )}
 
-          <FieldRoot required>
-            <FieldLabel>Frecuencia</FieldLabel>
-            <NativeSelectRoot>
-              <NativeSelectField
-                value={form.frequency}
-                onChange={(e) => setForm({ ...form, frequency: e.target.value as typeof form.frequency })}
-              >
-                <option value="daily">Diario</option>
-                <option value="weekly">Semanal</option>
-                <option value="monthly">Mensual</option>
-                <option value="yearly">Anual</option>
-              </NativeSelectField>
-            </NativeSelectRoot>
-          </FieldRoot>
-
-          <FormInput
-            label="Fecha de Inicio"
-            value={form.start_date}
-            onChange={(v) => setForm({ ...form, start_date: v })}
-            type="date"
+          <FrequencySelect
+            value={form.frequency}
+            onChange={(v) => setForm({ ...form, frequency: v })}
             required
           />
 
-          <FormInput
-            label="Fecha de Fin (Opcional)"
+          <DateInput
+            label="Fecha de Inicio"
+            value={form.start_date}
+            onChange={(v) => setForm({ ...form, start_date: v })}
+            required
+          />
+
+          <DateInput
+            label="Fecha de Fin"
             value={form.end_date}
             onChange={(v) => setForm({ ...form, end_date: v })}
-            type="date"
+            optional
           />
 
           <PrimaryButton type="submit" width="full" loading={loading}>

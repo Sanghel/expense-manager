@@ -77,40 +77,53 @@ export function SearchableSelect({
         </FieldLabel>
       )}
 
+      {/* Container is always h="10" — dropdown is absolutely positioned and never affects modal height */}
       <Box ref={containerRef} w="full" position="relative">
-        {!isOpen ? (
-          <Flex
-            as="button"
-            onClick={open}
-            w="full"
-            textAlign="left"
-            px={3}
-            h="10"
-            borderRadius="md"
-            borderWidth="1px"
-            borderColor="#2d2d35"
-            bg="transparent"
-            color={selected ? 'white' : '#6B7280'}
-            alignItems="center"
-            justifyContent="space-between"
-            cursor="pointer"
-            _hover={{ borderColor: '#4F46E5' }}
-            transition="border-color 0.2s"
-            fontSize="sm"
-          >
-            <Box as="span" overflow="hidden" whiteSpace="nowrap" textOverflow="ellipsis" flex={1} textAlign="left">
-              {selected ? selected.label : placeholder}
-            </Box>
-            <Icon as={FiChevronDown} color="#6B7280" flexShrink={0} ml={2} />
-          </Flex>
-        ) : (
+        <Flex
+          as="button"
+          onClick={isOpen ? close : open}
+          w="full"
+          textAlign="left"
+          px={3}
+          h="10"
+          borderRadius="md"
+          borderWidth="1px"
+          borderColor={isOpen ? '#4F46E5' : '#2d2d35'}
+          bg="transparent"
+          color={selected ? 'white' : '#6B7280'}
+          alignItems="center"
+          justifyContent="space-between"
+          cursor="pointer"
+          _hover={{ borderColor: '#4F46E5' }}
+          transition="border-color 0.2s"
+          fontSize="sm"
+        >
+          <Box as="span" overflow="hidden" whiteSpace="nowrap" textOverflow="ellipsis" flex={1} textAlign="left">
+            {selected ? selected.label : placeholder}
+          </Box>
+          <Icon
+            as={FiChevronDown}
+            color="#6B7280"
+            flexShrink={0}
+            ml={2}
+            transform={isOpen ? 'rotate(180deg)' : 'none'}
+            transition="transform 0.2s"
+          />
+        </Flex>
+
+        {isOpen && (
           <Box
+            position="absolute"
+            top="calc(100% + 4px)"
+            left={0}
+            right={0}
+            zIndex={200}
+            bg="#18181d"
             borderWidth="1px"
             borderColor="#4F46E5"
             borderRadius="md"
+            boxShadow="0 8px 24px rgba(0,0,0,0.6)"
             overflow="hidden"
-            bg="#18181d"
-            boxShadow="0 4px 12px rgba(0,0,0,0.4)"
           >
             <Input
               ref={inputRef}

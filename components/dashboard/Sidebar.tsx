@@ -49,6 +49,7 @@ export function Sidebar() {
   return (
     <Box
       as="nav"
+      position="relative"
       w={isCollapsed ? '16' : '64'}
       transition="width 0.2s ease"
       bg="#18181d"
@@ -58,93 +59,82 @@ export function Sidebar() {
       flexShrink={0}
       display={{ base: 'none', md: 'flex' }}
       flexDirection="column"
-      overflowY="auto"
-      overflowX="hidden"
     >
-      {/* Sticky toggle button header */}
+      {/* Floating toggle button on right edge */}
       <Box
+        as="button"
+        onClick={toggle}
+        cursor="pointer"
         display="flex"
         alignItems="center"
-        justifyContent={isCollapsed ? 'center' : 'flex-end'}
-        px={3}
-        pt={3}
-        pb={3}
-        position="sticky"
-        top={0}
+        justifyContent="center"
+        position="absolute"
+        top="14px"
+        right="-11px"
+        w="22px"
+        h="22px"
+        borderRadius="full"
         bg="#18181d"
-        zIndex={1}
-        borderBottomWidth="1px"
+        color="#B0B0B0"
+        borderWidth="1px"
         borderColor="#2d2d35"
-        mb={2}
+        _hover={{ bg: '#26262f', color: 'white', borderColor: '#4F46E5' }}
+        transition="all 0.2s ease"
+        zIndex={10}
+        boxShadow="0 1px 4px rgba(0,0,0,0.5)"
+        title={isCollapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
+        aria-label={isCollapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
       >
-        <Box
-          as="button"
-          onClick={toggle}
-          cursor="pointer"
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          w="7"
-          h="7"
-          borderRadius="full"
-          bg="#1e1e27"
-          color="#B0B0B0"
-          borderWidth="1px"
-          borderColor="#2d2d35"
-          _hover={{ bg: '#26262f', color: 'white', borderColor: '#4F46E5' }}
-          transition="all 0.2s ease"
-          title={isCollapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
-          aria-label={isCollapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
-        >
-          <Icon as={isCollapsed ? FiChevronsRight : FiChevronsLeft} boxSize="3" />
-        </Box>
+        <Icon as={isCollapsed ? FiChevronsRight : FiChevronsLeft} boxSize="2.5" />
       </Box>
 
-      {/* Nav items */}
-      <Box px={isCollapsed ? 2 : 3} flex={1}>
-        <VStack gap={1} align="stretch">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href
-            const isLoading = loadingPath === item.href
-            return (
-              <Button
-                key={item.href}
-                justifyContent={isCollapsed ? 'center' : 'flex-start'}
-                gap={isCollapsed ? 0 : 2}
-                bg={isActive ? '#4F46E5' : 'transparent'}
-                color={isActive ? 'white' : '#B0B0B0'}
-                _hover={{ bg: isActive ? '#4338CA' : '#26262f' }}
-                transition="background-color 0.2s ease"
-                onClick={() => navigate(item.href)}
-                minW={0}
-                px={isCollapsed ? 0 : 3}
-                h="10"
-                borderRadius="lg"
-                overflow="hidden"
-                title={isCollapsed ? item.label : undefined}
-              >
-                {isLoading ? (
-                  <Spinner size="xs" color={isActive ? 'white' : '#B0B0B0'} />
-                ) : (
-                  <Icon as={item.icon} flexShrink={0} />
-                )}
-                {!isCollapsed && (
-                  <Box as="span" overflow="hidden" whiteSpace="nowrap" textOverflow="ellipsis">
-                    {item.label}
-                  </Box>
-                )}
-              </Button>
-            )
-          })}
-        </VStack>
-      </Box>
-
-      {/* Footer */}
-      {!isCollapsed && (
-        <Box px={3} pt={4} pb={4} borderTopWidth="1px" borderColor="#2d2d35" mt={4}>
-          <CraftedByFooter />
+      {/* Scrollable nav content */}
+      <Box flex={1} overflowY="auto" overflowX="hidden" display="flex" flexDirection="column" pt={3}>
+        <Box px={isCollapsed ? 2 : 3} flex={1}>
+          <VStack gap={1} align="stretch">
+            {navItems.map((item) => {
+              const isActive = pathname === item.href
+              const isLoading = loadingPath === item.href
+              return (
+                <Button
+                  key={item.href}
+                  justifyContent={isCollapsed ? 'center' : 'flex-start'}
+                  gap={isCollapsed ? 0 : 2}
+                  bg={isActive ? '#4F46E5' : 'transparent'}
+                  color={isActive ? 'white' : '#B0B0B0'}
+                  _hover={{ bg: isActive ? '#4338CA' : '#26262f' }}
+                  transition="background-color 0.2s ease"
+                  onClick={() => navigate(item.href)}
+                  minW={0}
+                  px={isCollapsed ? 0 : 3}
+                  h="10"
+                  borderRadius="lg"
+                  overflow="hidden"
+                  title={isCollapsed ? item.label : undefined}
+                >
+                  {isLoading ? (
+                    <Spinner size="xs" color={isActive ? 'white' : '#B0B0B0'} />
+                  ) : (
+                    <Icon as={item.icon} flexShrink={0} />
+                  )}
+                  {!isCollapsed && (
+                    <Box as="span" overflow="hidden" whiteSpace="nowrap" textOverflow="ellipsis">
+                      {item.label}
+                    </Box>
+                  )}
+                </Button>
+              )
+            })}
+          </VStack>
         </Box>
-      )}
+
+        {/* Footer */}
+        {!isCollapsed && (
+          <Box px={3} pt={4} pb={4} borderTopWidth="1px" borderColor="#2d2d35" mt={4}>
+            <CraftedByFooter />
+          </Box>
+        )}
+      </Box>
     </Box>
   )
 }

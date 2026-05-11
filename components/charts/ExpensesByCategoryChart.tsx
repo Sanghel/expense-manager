@@ -8,6 +8,7 @@ import {
   Cell,
   Legend,
   Tooltip,
+  Treemap,
   ResponsiveContainer,
 } from 'recharts'
 import { getTransactions } from '@/lib/actions/transactions.actions'
@@ -20,6 +21,7 @@ interface ChartDataPoint {
   name: string
   value: number
   currency: string
+  [key: string]: unknown
 }
 
 interface Props {
@@ -37,7 +39,7 @@ const INCOME_COLORS = [
 const EXPENSE_COLORS = [
   '#E74C3C', '#C0392B', '#E67E22', '#D35400',
   '#F39C12', '#F1C40F', '#E59866', '#DC7633',
-  '#CB4335', '#A93226', '#F4D03F', '#E8DAEF',
+  '#CB4335', '#A93226', '#F4D03F', '#CA6F1E',
 ]
 
 function getDominantCurrency(transactions: TransactionWithCategory[]): string {
@@ -48,8 +50,9 @@ function getDominantCurrency(transactions: TransactionWithCategory[]): string {
   return Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'COP'
 }
 
+// Tooltip para PieChart (ingresos)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function CustomTooltip({ active, payload }: any) {
+function PieTooltip({ active, payload }: any) {
   if (!active || !payload?.length) return null
   const { name, value, currency } = payload[0].payload as ChartDataPoint
   return (
@@ -57,6 +60,56 @@ function CustomTooltip({ active, payload }: any) {
       <Text fontSize="sm" color="#B0B0B0">{name}</Text>
       <Text fontSize="sm" fontWeight="bold" color="white">{formatCurrency(value, currency)}</Text>
     </Box>
+  )
+}
+
+// Bloque personalizado del Treemap
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function TreemapBlock(props: any) {
+  const { x, y, width, height, name, value, currency, index } = props
+  const color = EXPENSE_COLORS[index % EXPENSE_COLORS.length]
+  const total = props.root?.value ?? 1
+  const pct = ((value / total) * 100).toFixed(0)
+  const showLabel = width > 60 && height > 40
+
+  return (
+    <g>
+      <rect
+        x={x}
+        y={y}
+        width={width}
+        height={height}
+        fill={color}
+        stroke="#1a1a23"
+        strokeWidth={2}
+        rx={4}
+      />
+      {showLabel && (
+        <>
+          <text
+            x={x + width / 2}
+            y={y + height / 2 - 8}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fill="white"
+            fontSize={Math.min(13, width / 7)}
+            fontWeight="600"
+          >
+            {name}
+          </text>
+          <text
+            x={x + width / 2}
+            y={y + height / 2 + 10}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fill="rgba(255,255,255,0.75)"
+            fontSize={Math.min(11, width / 8)}
+          >
+            {pct}% · {formatCurrency(value, currency)}
+          </text>
+        </>
+      )}
+    </g>
   )
 }
 
@@ -89,7 +142,6 @@ export function ExpensesByCategoryChart({ userId, type = 'expense', filters }: P
           transactions = transactions.filter((t) => filters.categoryIds.includes(t.category_id || ''))
         }
 
-        // Agrupar por (categoría, moneda) para no mezclar divisas
         const dominated = getDominantCurrency(transactions)
         const sameCurrency = transactions.filter((t) => t.currency === dominated)
 
@@ -130,6 +182,27 @@ export function ExpensesByCategoryChart({ userId, type = 'expense', filters }: P
     )
   }
 
+  // Gastos: Treemap (mejor para muchas categorías)
+  if (type === 'expense') {
+    return (
+      <Card>
+        <Heading size="md" mb={1}>{title}</Heading>
+        <Text fontSize="xs" color="#B0B0B0" mb={4}>Solo moneda dominante: {currency}</Text>
+        <Box h={{ base: '320px', md: '440px' }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <Treemap
+              data={chartData}
+              dataKey="value"
+              aspectRatio={4 / 3}
+              content={<TreemapBlock />}
+            />
+          </ResponsiveContainer>
+        </Box>
+      </Card>
+    )
+  }
+
+  // Ingresos: PieChart (pocas categorías, se ve bien)
   return (
     <Card>
       <Heading size="md" mb={1}>{title}</Heading>
@@ -146,12 +219,11 @@ export function ExpensesByCategoryChart({ userId, type = 'expense', filters }: P
               outerRadius="40%"
               label={({ name, percent = 0 }) => `${name} ${(percent * 100).toFixed(0)}%`}
             >
-              {chartData.map((_, index) => {
-                const colorPalette = type === 'income' ? INCOME_COLORS : EXPENSE_COLORS
-                return <Cell key={`cell-${index}`} fill={colorPalette[index % colorPalette.length]} />
-              })}
+              {chartData.map((_, index) => (
+                <Cell key={`cell-${index}`} fill={INCOME_COLORS[index % INCOME_COLORS.length]} />
+              ))}
             </Pie>
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip content={<PieTooltip />} />
             <Legend />
           </PieChart>
         </ResponsiveContainer>

@@ -10,7 +10,6 @@ import {
   FiSettings,
   FiTarget,
   FiCalendar,
-  FiDownload,
   FiLayers,
   FiChevronsLeft,
   FiChevronsRight,
@@ -24,7 +23,6 @@ const navItems: { href: string; label: string; icon: IconType }[] = [
   { href: '/planificacion', label: 'Planificación', icon: FiTarget },
   { href: '/calendar', label: 'Calendario', icon: FiCalendar },
   { href: '/reports', label: 'Reportes', icon: FiBarChart2 },
-  { href: '/export-data', label: 'Exportar', icon: FiDownload },
   { href: '/settings', label: 'Configuración', icon: FiSettings },
 ]
 

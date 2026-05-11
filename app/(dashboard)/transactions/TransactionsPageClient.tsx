@@ -10,12 +10,13 @@ import {
 } from '@chakra-ui/react'
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiPlus } from 'react-icons/fi'
+import { FiPlus, FiDownload } from 'react-icons/fi'
 import { Card } from '@/components/ui/Card'
 import { TransactionForm } from '@/components/transactions/TransactionForm'
 import { TransactionEditForm } from '@/components/transactions/TransactionEditForm'
 import { TransactionsTable } from '@/components/transactions/TransactionsTable'
 import { TransactionsFilter, type FilterState } from '@/components/transactions/TransactionsFilter'
+import { ExportTransactionsModal } from '@/components/transactions/ExportTransactionsModal'
 import { useDebounce } from '@/hooks/useDebounce'
 import type { Account, Category, TransactionWithCategory } from '@/types/database.types'
 
@@ -39,6 +40,7 @@ export function TransactionsPageClient({ userId, categories, initialTransactions
   const router = useRouter()
   const { open: isCreateOpen, onOpen: onCreateOpen, onClose: onCreateClose } = useDisclosure()
   const { open: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } = useDisclosure()
+  const { open: isExportOpen, onOpen: onExportOpen, onClose: onExportClose } = useDisclosure()
 
   const [transactions, setTransactions] = useState<TransactionWithCategory[]>(initialTransactions)
 
@@ -91,11 +93,17 @@ export function TransactionsPageClient({ userId, categories, initialTransactions
     <Box>
       <HStack justify="space-between" mb={{ base: 4, md: 6 }}>
         <Heading size={{ base: 'md', md: 'lg' }} color="white">Transacciones</Heading>
-        <Button bg="#4F46E5" color="white" _hover={{ bg: '#4338CA' }} onClick={onCreateOpen} size={{ base: 'sm', md: 'md' }}>
-          <FiPlus />
-          <Text display={{ base: 'none', sm: 'inline' }}>Nueva Transacción</Text>
-          <Text display={{ base: 'inline', sm: 'none' }}>Nueva</Text>
-        </Button>
+        <HStack gap={2}>
+          <Button variant="outline" onClick={onExportOpen} size={{ base: 'sm', md: 'md' }}>
+            <FiDownload />
+            <Text display={{ base: 'none', sm: 'inline' }}>Exportar</Text>
+          </Button>
+          <Button bg="#4F46E5" color="white" _hover={{ bg: '#4338CA' }} onClick={onCreateOpen} size={{ base: 'sm', md: 'md' }}>
+            <FiPlus />
+            <Text display={{ base: 'none', sm: 'inline' }}>Nueva Transacción</Text>
+            <Text display={{ base: 'inline', sm: 'none' }}>Nueva</Text>
+          </Button>
+        </HStack>
       </HStack>
 
       <TransactionsFilter
@@ -144,6 +152,12 @@ export function TransactionsPageClient({ userId, categories, initialTransactions
         categories={categories}
         accounts={accounts}
         onSuccess={() => router.refresh()}
+      />
+
+      <ExportTransactionsModal
+        isOpen={isExportOpen}
+        onClose={onExportClose}
+        userId={userId}
       />
 
       {editingTransaction && (

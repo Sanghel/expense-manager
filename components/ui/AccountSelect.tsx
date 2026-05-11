@@ -1,6 +1,6 @@
 'use client'
 
-import { SearchableSelect } from '@/components/ui/SearchableSelect'
+import { FieldRoot, FieldLabel, NativeSelectRoot, NativeSelectField } from '@chakra-ui/react'
 import type { Account } from '@/types/database.types'
 
 interface Props {
@@ -26,20 +26,22 @@ export function AccountSelect({
 }: Props) {
   const filtered = excludeId ? accounts.filter((a) => a.id !== excludeId) : accounts
 
-  const options = filtered.map((acc) => ({
-    value: acc.id,
-    label: `${acc.icon ?? '💳'} ${acc.name} (${acc.currency})`,
-  }))
-
   return (
-    <SearchableSelect
-      label={label}
-      value={value}
-      onChange={onChange}
-      options={options}
-      placeholder={placeholder}
-      required={required}
-      optional={optional}
-    />
+    <FieldRoot required={required} w="full">
+      <FieldLabel>
+        {label}
+        {optional && <span style={{ color: '#888', fontWeight: 400, marginLeft: 4 }}>(opcional)</span>}
+      </FieldLabel>
+      <NativeSelectRoot>
+        <NativeSelectField value={value} onChange={(e) => onChange(e.target.value)}>
+          <option value="">{placeholder}</option>
+          {filtered.map((acc) => (
+            <option key={acc.id} value={acc.id}>
+              {acc.icon ?? '💳'} {acc.name} ({acc.currency})
+            </option>
+          ))}
+        </NativeSelectField>
+      </NativeSelectRoot>
+    </FieldRoot>
   )
 }

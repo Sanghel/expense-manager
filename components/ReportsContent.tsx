@@ -34,7 +34,7 @@ export function ReportsContent({ userId }: Props) {
         <ExpensesByCategoryChart userId={userId} type="expense" filters={filters} />
         <ExpensesByCategoryChart userId={userId} type="income" filters={filters} />
         <Box gridColumn={{ base: 'auto', md: '1 / -1' }}>
-          <MonthlyComparisonChart userId={userId} months={12} filters={filters} />
+          <MonthlyComparisonChart userId={userId} />
         </Box>
         <Box gridColumn={{ base: 'auto', md: '1 / -1' }}>
           <AccumulatedBalanceChart userId={userId} filters={filters} />

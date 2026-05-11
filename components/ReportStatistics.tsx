@@ -33,12 +33,17 @@ interface Props {
   filters?: ReportFiltersState
 }
 
+function getDominantCurrency(transactions: TransactionWithCategory[]): string {
+  const counts = transactions.reduce<Record<string, number>>((acc, t) => {
+    acc[t.currency] = (acc[t.currency] || 0) + 1
+    return acc
+  }, {})
+  return Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'COP'
+}
+
 export function ReportStatistics({ userId, filters }: Props) {
-  const [stats, setStats] = useState({
-    totalIncome: 0,
-    totalExpense: 0,
-    netBalance: 0,
-  })
+  const [stats, setStats] = useState({ totalIncome: 0, totalExpense: 0, netBalance: 0 })
+  const [currency, setCurrency] = useState('COP')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -48,41 +53,32 @@ export function ReportStatistics({ userId, filters }: Props) {
       if (result.success && result.data) {
         let transactions = result.data as TransactionWithCategory[]
 
-        // Aplicar filtros de fecha
         if (filters?.startDate) {
           transactions = transactions.filter((t) => t.date >= filters.startDate)
         }
         if (filters?.endDate) {
           transactions = transactions.filter((t) => t.date <= filters.endDate)
         }
-
-        // Aplicar filtro de tipo
         if (filters?.transactionType && filters.transactionType !== 'all') {
           transactions = transactions.filter((t) => t.type === filters.transactionType)
         }
-
-        // Aplicar filtro de categoría
         if (filters?.categoryIds && filters.categoryIds.length > 0) {
           transactions = transactions.filter((t) => filters.categoryIds.includes(t.category_id || ''))
         }
 
-        // Calcular estadísticas
+        const dominant = getDominantCurrency(transactions)
+        setCurrency(dominant)
+
+        const filtered = transactions.filter((t) => t.currency === dominant)
+
         let totalIncome = 0
         let totalExpense = 0
-
-        transactions.forEach((t) => {
-          if (t.type === 'income') {
-            totalIncome += Number(t.amount)
-          } else {
-            totalExpense += Number(t.amount)
-          }
+        filtered.forEach((t) => {
+          if (t.type === 'income') totalIncome += Number(t.amount)
+          else totalExpense += Number(t.amount)
         })
 
-        setStats({
-          totalIncome,
-          totalExpense,
-          netBalance: totalIncome - totalExpense,
-        })
+        setStats({ totalIncome, totalExpense, netBalance: totalIncome - totalExpense })
       }
       setLoading(false)
     }
@@ -90,28 +86,27 @@ export function ReportStatistics({ userId, filters }: Props) {
   }, [userId, filters])
 
   if (loading) {
-    return (
-      <Center py={10}>
-        <Spinner />
-      </Center>
-    )
+    return <Center py={10}><Spinner /></Center>
   }
 
   return (
     <SimpleGrid columns={{ base: 1, md: 3 }} gap={6} mb={8}>
       <StatCard
         label="Ingresos Totales"
-        value={formatCurrency(stats.totalIncome, 'COP')}
+        value={formatCurrency(stats.totalIncome, currency)}
+        helpText={`En ${currency}`}
         color="#2ECC71"
       />
       <StatCard
         label="Gastos Totales"
-        value={formatCurrency(stats.totalExpense, 'COP')}
+        value={formatCurrency(stats.totalExpense, currency)}
+        helpText={`En ${currency}`}
         color="#E74C3C"
       />
       <StatCard
         label="Balance Neto"
-        value={formatCurrency(Math.abs(stats.netBalance), 'COP')}
+        value={formatCurrency(Math.abs(stats.netBalance), currency)}
+        helpText={`En ${currency}`}
         color={stats.netBalance >= 0 ? '#2ECC71' : '#E74C3C'}
       />
     </SimpleGrid>

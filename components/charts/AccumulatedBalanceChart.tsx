@@ -14,9 +14,9 @@ import {
 } from 'recharts'
 import { getTransactions } from '@/lib/actions/transactions.actions'
 import { Card } from '@/components/ui/Card'
+import { formatCurrency } from '@/lib/utils/currency'
 import type { TransactionWithCategory } from '@/types/database.types'
 import type { ReportFiltersState } from '@/components/ReportFilters'
-import { formatCurrency } from '@/lib/utils/currency'
 
 interface ChartDataPoint {
   date: string
@@ -28,8 +28,17 @@ interface Props {
   filters?: ReportFiltersState
 }
 
+function getDominantCurrency(transactions: TransactionWithCategory[]): string {
+  const counts = transactions.reduce<Record<string, number>>((acc, t) => {
+    acc[t.currency] = (acc[t.currency] || 0) + 1
+    return acc
+  }, {})
+  return Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'COP'
+}
+
 export function AccumulatedBalanceChart({ userId, filters }: Props) {
   const [chartData, setChartData] = useState<ChartDataPoint[]>([])
+  const [currency, setCurrency] = useState('COP')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -39,56 +48,39 @@ export function AccumulatedBalanceChart({ userId, filters }: Props) {
       if (result.success && result.data) {
         let transactions = result.data as TransactionWithCategory[]
 
-        // Aplicar filtros de fecha
         if (filters?.startDate) {
           transactions = transactions.filter((t) => t.date >= filters.startDate)
         }
         if (filters?.endDate) {
           transactions = transactions.filter((t) => t.date <= filters.endDate)
         }
-
-        // Aplicar filtro de tipo
         if (filters?.transactionType && filters.transactionType !== 'all') {
           transactions = transactions.filter((t) => t.type === filters.transactionType)
         }
-
-        // Aplicar filtro de categoría
         if (filters?.categoryIds && filters.categoryIds.length > 0) {
           transactions = transactions.filter((t) => filters.categoryIds.includes(t.category_id || ''))
         }
 
-        // Ordenar por fecha
-        const sorted = [...transactions].sort((a, b) =>
-          a.date.localeCompare(b.date)
-        )
+        const dominant = getDominantCurrency(transactions)
+        setCurrency(dominant)
 
-        // Calcular balance acumulado
+        // Solo moneda dominante para el balance acumulado
+        const filtered = transactions.filter((t) => t.currency === dominant)
+        const sorted = [...filtered].sort((a, b) => a.date.localeCompare(b.date))
+
         let accumulatedBalance = 0
         const data: ChartDataPoint[] = sorted.map((t) => {
           const amount = Number(t.amount)
-
-          if (filters?.transactionType === 'all' || !filters?.transactionType) {
-            // Mostrar balance real: ingresos - gastos
-            if (t.type === 'income') {
-              accumulatedBalance += amount
-            } else {
-              accumulatedBalance -= amount
-            }
-          } else if (filters.transactionType === 'income') {
-            // Solo ingresos acumulados
+          if (filters?.transactionType === 'income') {
             accumulatedBalance += amount
-          } else if (filters.transactionType === 'expense') {
-            // Solo gastos acumulados (como negativo)
+          } else if (filters?.transactionType === 'expense') {
             accumulatedBalance -= amount
+          } else {
+            accumulatedBalance += t.type === 'income' ? amount : -amount
           }
-
-          return {
-            date: t.date,
-            balance: accumulatedBalance,
-          }
+          return { date: t.date, balance: accumulatedBalance }
         })
 
-        // Tomar últimas 30 transacciones para gráfico más legible
         setChartData(data.slice(-30))
       }
       setLoading(false)
@@ -99,9 +91,7 @@ export function AccumulatedBalanceChart({ userId, filters }: Props) {
   if (loading) {
     return (
       <Card>
-        <Center py={10}>
-          <Spinner />
-        </Center>
+        <Center py={10}><Spinner /></Center>
       </Card>
     )
   }
@@ -109,25 +99,22 @@ export function AccumulatedBalanceChart({ userId, filters }: Props) {
   if (chartData.length === 0) {
     return (
       <Card>
-        <Heading size="md" mb={4}>
-          Balance Acumulado
-        </Heading>
+        <Heading size="md" mb={4}>Balance Acumulado</Heading>
         <Text color="#B0B0B0">No hay datos para mostrar.</Text>
       </Card>
     )
   }
 
-  const currentBalance = chartData[chartData.length - 1]?.balance || 0
+  const currentBalance = chartData[chartData.length - 1]?.balance ?? 0
 
   return (
     <Card>
       <Box mb={4}>
-        <Heading size="md" mb={2}>
-          Balance Acumulado
-        </Heading>
+        <Heading size="md" mb={2}>Balance Acumulado</Heading>
         <Text fontSize="2xl" fontWeight="bold" color={currentBalance >= 0 ? '#2ECC71' : '#E74C3C'}>
-          {formatCurrency(currentBalance, 'COP')}
+          {formatCurrency(currentBalance, currency)}
         </Text>
+        <Text fontSize="xs" color="#B0B0B0">Solo moneda dominante: {currency}</Text>
       </Box>
       <Box h="400px">
         <ResponsiveContainer width="100%" height="100%">
@@ -138,9 +125,9 @@ export function AccumulatedBalanceChart({ userId, filters }: Props) {
               tick={{ fontSize: 12 }}
               interval={Math.floor(chartData.length / 5)}
             />
-            <YAxis tickFormatter={(value) => formatCurrency(Number(value), 'COP')} width={110} />
+            <YAxis tickFormatter={(value) => formatCurrency(Number(value), currency)} width={110} />
             <Tooltip
-              formatter={(value) => [formatCurrency(Number(value), 'COP'), 'Balance']}
+              formatter={(value) => [formatCurrency(Number(value), currency), 'Balance']}
               contentStyle={{
                 backgroundColor: '#1a1a23',
                 border: '1px solid #2d2d35',

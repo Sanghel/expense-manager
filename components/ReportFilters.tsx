@@ -149,6 +149,7 @@ export function ReportFilters({ userId, onFilterChange }: Props) {
             label="Desde"
             value={filters.startDate}
             onChange={handleStartDateChange}
+            showClear={false}
           />
         </Box>
 
@@ -157,6 +158,7 @@ export function ReportFilters({ userId, onFilterChange }: Props) {
             label="Hasta"
             value={filters.endDate}
             onChange={handleEndDateChange}
+            showClear={false}
           />
         </Box>
 

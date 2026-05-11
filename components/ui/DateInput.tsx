@@ -1,6 +1,6 @@
 'use client'
 
-import { FieldRoot, FieldLabel, Input, Flex, IconButton } from '@chakra-ui/react'
+import { FieldRoot, FieldLabel, Input, Box, IconButton } from '@chakra-ui/react'
 import { FiX } from 'react-icons/fi'
 
 interface Props {
@@ -10,16 +10,19 @@ interface Props {
   required?: boolean
   disabled?: boolean
   optional?: boolean
+  showClear?: boolean
 }
 
-export function DateInput({ label, value, onChange, required, disabled, optional }: Props) {
+export function DateInput({ label, value, onChange, required, disabled, optional, showClear = true }: Props) {
+  const showButton = showClear && value && !disabled
+
   return (
     <FieldRoot required={required} w="full">
       <FieldLabel>
         {label}
         {optional && <span style={{ color: '#B0B0B0', fontSize: '0.85em', marginLeft: '4px' }}>(opcional)</span>}
       </FieldLabel>
-      <Flex gap={1} w="full">
+      <Box position="relative" w="full">
         <Input
           type="date"
           value={value}
@@ -27,22 +30,29 @@ export function DateInput({ label, value, onChange, required, disabled, optional
           disabled={disabled}
           opacity={disabled ? 0.6 : 1}
           cursor={disabled ? 'not-allowed' : undefined}
-          flex={1}
+          pr={showButton ? '8' : undefined}
         />
-        {value && !disabled && (
+        {showButton && (
           <IconButton
             aria-label="Limpiar fecha"
             variant="ghost"
-            size="sm"
+            size="xs"
+            position="absolute"
+            right="1"
+            top="50%"
+            transform="translateY(-50%)"
+            zIndex={2}
             color="#B0B0B0"
             _hover={{ color: 'white', bg: '#26262f' }}
             onClick={() => onChange('')}
-            flexShrink={0}
+            minW="auto"
+            h="auto"
+            p="1"
           >
             <FiX />
           </IconButton>
         )}
-      </Flex>
+      </Box>
     </FieldRoot>
   )
 }

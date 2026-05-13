@@ -10,13 +10,14 @@ import {
 } from '@chakra-ui/react'
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiPlus, FiDownload } from 'react-icons/fi'
+import { FiPlus, FiDownload, FiUpload } from 'react-icons/fi'
 import { Card } from '@/components/ui/Card'
 import { TransactionForm } from '@/components/transactions/TransactionForm'
 import { TransactionEditForm } from '@/components/transactions/TransactionEditForm'
 import { TransactionsTable } from '@/components/transactions/TransactionsTable'
 import { TransactionsFilter, type FilterState } from '@/components/transactions/TransactionsFilter'
 import { ExportTransactionsModal } from '@/components/transactions/ExportTransactionsModal'
+import { ImportTransactionsModal } from '@/components/transactions/ImportTransactionsModal'
 import { useDebounce } from '@/hooks/useDebounce'
 import type { Account, Category, TransactionWithCategory } from '@/types/database.types'
 
@@ -41,6 +42,7 @@ export function TransactionsPageClient({ userId, categories, initialTransactions
   const { open: isCreateOpen, onOpen: onCreateOpen, onClose: onCreateClose } = useDisclosure()
   const { open: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } = useDisclosure()
   const { open: isExportOpen, onOpen: onExportOpen, onClose: onExportClose } = useDisclosure()
+  const { open: isImportOpen, onOpen: onImportOpen, onClose: onImportClose } = useDisclosure()
 
   const [transactions, setTransactions] = useState<TransactionWithCategory[]>(initialTransactions)
 
@@ -97,6 +99,10 @@ export function TransactionsPageClient({ userId, categories, initialTransactions
           <Button variant="outline" onClick={onExportOpen} size={{ base: 'sm', md: 'md' }}>
             <FiDownload />
             <Text display={{ base: 'none', sm: 'inline' }}>Exportar</Text>
+          </Button>
+          <Button variant="outline" onClick={onImportOpen} size={{ base: 'sm', md: 'md' }}>
+            <FiUpload />
+            <Text display={{ base: 'none', sm: 'inline' }}>Importar</Text>
           </Button>
           <Button bg="#4F46E5" color="white" _hover={{ bg: '#4338CA' }} onClick={onCreateOpen} size={{ base: 'sm', md: 'md' }}>
             <FiPlus />
@@ -158,6 +164,13 @@ export function TransactionsPageClient({ userId, categories, initialTransactions
         isOpen={isExportOpen}
         onClose={onExportClose}
         userId={userId}
+      />
+
+      <ImportTransactionsModal
+        isOpen={isImportOpen}
+        onClose={onImportClose}
+        userId={userId}
+        onSuccess={() => router.refresh()}
       />
 
       {editingTransaction && (

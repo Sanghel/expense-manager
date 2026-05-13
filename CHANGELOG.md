@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.3.0] — 2026-05-13
+
+### Added
+
+**Importación masiva de transacciones**
+- Botón "Importar" en la toolbar de la página de transacciones (junto a Exportar y Nueva Transacción)
+- Wizard de 3 pasos: subir archivo → revisar preview → resultado de importación
+- Soporte para archivos `.xlsx` y `.csv` con alias de columnas en español e inglés
+- Plantilla Excel descargable desde el propio modal con columnas predefinidas y filas de ejemplo
+- Validación por fila antes de insertar: detecta categorías/cuentas inexistentes, mismatch de tipo ingreso/gasto, campos requeridos faltantes y formatos inválidos
+- Preview con tabla de filas válidas (check verde) y erróneas (X roja con mensaje descriptivo)
+- Importación parcial: opción de importar solo las filas válidas ignorando las erróneas
+- Resumen final con conteo de transacciones importadas y lista de errores omitidos
+- Transacciones importadas quedan marcadas con `source: 'import'` en la base de datos
+- Cap de 500 filas por archivo con mensaje orientativo al usuario
+- Conversión automática de fechas seriales de Excel a formato `YYYY-MM-DD`
+
 ## [1.2.0] — 2026-04-18
 
 ### Added

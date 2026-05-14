@@ -153,14 +153,14 @@ export async function resolveImportRows(
 
 function buildDisplayData(raw: Record<string, unknown>) {
   return {
-    amount: String(raw.monto ?? raw.amount ?? ''),
-    currency: String(raw.moneda ?? raw.currency ?? ''),
-    type: String(raw.tipo ?? raw.type ?? ''),
-    category: String(raw.categoria ?? raw.category ?? ''),
-    account: String(raw.cuenta ?? raw.account ?? ''),
-    description: String(raw.descripcion ?? raw.description ?? ''),
-    date: String(raw.fecha ?? raw.date ?? ''),
-    notes: raw.notas != null ? String(raw.notas) : raw.notes != null ? String(raw.notes) : undefined,
+    amount: String(raw.amount ?? ''),
+    currency: String(raw.currency ?? ''),
+    type: String(raw.type ?? ''),
+    category: String(raw.category ?? ''),
+    account: String(raw.account ?? ''),
+    description: String(raw.description ?? ''),
+    date: String(raw.date ?? ''),
+    notes: raw.notes != null ? String(raw.notes) : undefined,
   }
 }
 

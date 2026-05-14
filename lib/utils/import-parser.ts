@@ -1,28 +1,18 @@
 import type { ParsedImportRow } from '@/types/import.types'
 
-const REQUIRED_COLUMNS = ['fecha', 'descripcion', 'categoria', 'tipo', 'monto', 'moneda']
+const REQUIRED_COLUMNS = ['date', 'description', 'category', 'type', 'amount', 'currency']
 const MAX_ROWS = 500
 
-// Column aliases to support both Spanish and English headers
+// Maps Spanish and English column headers → schema field names (English)
 const COLUMN_ALIASES: Record<string, string> = {
-  fecha: 'fecha',
-  date: 'fecha',
-  descripcion: 'descripcion',
-  descripción: 'descripcion',
-  description: 'descripcion',
-  categoria: 'categoria',
-  categoría: 'categoria',
-  category: 'categoria',
-  cuenta: 'cuenta',
-  account: 'cuenta',
-  tipo: 'tipo',
-  type: 'tipo',
-  monto: 'monto',
-  amount: 'monto',
-  moneda: 'moneda',
-  currency: 'moneda',
-  notas: 'notas',
-  notes: 'notas',
+  fecha: 'date',           date: 'date',
+  descripcion: 'description', descripción: 'description', description: 'description',
+  categoria: 'category',   categoría: 'category',        category: 'category',
+  cuenta: 'account',       account: 'account',
+  tipo: 'type',            type: 'type',
+  monto: 'amount',         amount: 'amount',
+  moneda: 'currency',      currency: 'currency',
+  notas: 'notes',          notes: 'notes',
 }
 
 export async function parseImportFile(
@@ -42,13 +32,13 @@ export async function parseImportFile(
 
     if (raw.length < 2) return { rows: [], error: 'El archivo no contiene filas de datos' }
 
-    // Normalize headers
+    // Normalize headers to lowercase and map via aliases → English schema keys
     const rawHeaders = (raw[0] as unknown[]).map((h) =>
       String(h).toLowerCase().trim().replace(/\s+/g, '_')
     )
     const headers = rawHeaders.map((h) => COLUMN_ALIASES[h] ?? h)
 
-    // Validate required columns
+    // Validate required columns (now in English)
     const missing = REQUIRED_COLUMNS.filter((col) => !headers.includes(col))
     if (missing.length > 0) {
       return {
@@ -74,27 +64,27 @@ export async function parseImportFile(
       // Skip completely empty rows
       if (cells.every((c) => c === '' || c === null || c === undefined)) continue
 
-      const raw: Record<string, unknown> = {}
+      const rowData: Record<string, unknown> = {}
       headers.forEach((header, idx) => {
-        raw[header] = cells[idx] ?? ''
+        rowData[header] = cells[idx] ?? ''
       })
 
       // Normalize date: Excel serial numbers → YYYY-MM-DD
-      if (typeof raw.fecha === 'number') {
-        const parsed = XLSX.SSF.parse_date_code(raw.fecha as number)
+      if (typeof rowData.date === 'number') {
+        const parsed = XLSX.SSF.parse_date_code(rowData.date as number)
         if (parsed) {
           const month = String(parsed.m).padStart(2, '0')
           const day = String(parsed.d).padStart(2, '0')
-          raw.fecha = `${parsed.y}-${month}-${day}`
+          rowData.date = `${parsed.y}-${month}-${day}`
         }
       }
 
-      // Normalize amount: ensure it's a number string for coerce
-      if (typeof raw.monto === 'string') {
-        raw.monto = raw.monto.replace(/[,\s]/g, '')
+      // Strip thousands separators from amount strings
+      if (typeof rowData.amount === 'string') {
+        rowData.amount = rowData.amount.replace(/[,\s]/g, '')
       }
 
-      rows.push({ rowIndex: i + 1, raw })
+      rows.push({ rowIndex: i + 1, raw: rowData })
     }
 
     if (rows.length === 0) {

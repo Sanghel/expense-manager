@@ -12,46 +12,58 @@ import type { CreateTransactionInput } from '@/lib/validations/transaction'
 
 export async function downloadImportTemplate() {
   try {
-    const XLSX = await import('xlsx')
+    const ExcelJS = await import('exceljs')
+    const workbook = new ExcelJS.Workbook()
+    const sheet = workbook.addWorksheet('Plantilla')
 
-    const headers = ['fecha', 'descripcion', 'categoria', 'cuenta', 'tipo', 'monto', 'moneda', 'notas']
-
-    const sampleRows = [
-      ['2026-05-01', 'Mercado semanal', 'Alimentación', 'Efectivo', 'Gasto', 150000, 'COP', 'Compras del mes'],
-      ['2026-05-05', 'Salario', 'Salario', 'Bancolombia', 'Ingreso', 3500, 'USD', ''],
+    // Column definitions with widths
+    sheet.columns = [
+      { header: 'fecha',       key: 'fecha',       width: 16 },
+      { header: 'descripcion', key: 'descripcion', width: 34 },
+      { header: 'categoria',   key: 'categoria',   width: 24 },
+      { header: 'cuenta',      key: 'cuenta',      width: 24 },
+      { header: 'tipo',        key: 'tipo',        width: 12 },
+      { header: 'monto',       key: 'monto',       width: 14 },
+      { header: 'moneda',      key: 'moneda',      width: 12 },
+      { header: 'notas',       key: 'notas',       width: 30 },
     ]
 
-    // Build worksheet manually to support cell styles
-    const wsData = [headers, ...sampleRows]
-    const ws = XLSX.utils.aoa_to_sheet(wsData)
+    // Style header row: indigo background + white bold text + centered
+    const headerRow = sheet.getRow(1)
+    headerRow.eachCell((cell) => {
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 }
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4F46E5' } }
+      cell.alignment = { horizontal: 'center', vertical: 'middle' }
+      cell.border = {
+        bottom: { style: 'medium', color: { argb: 'FF3730A3' } },
+      }
+    })
+    headerRow.height = 22
 
-    // Column widths
-    ws['!cols'] = [
-      { wch: 14 }, // fecha
-      { wch: 32 }, // descripcion
-      { wch: 22 }, // categoria
-      { wch: 22 }, // cuenta
-      { wch: 10 }, // tipo
-      { wch: 12 }, // monto
-      { wch: 10 }, // moneda
-      { wch: 28 }, // notas
+    // Sample data rows
+    const samples = [
+      { fecha: '2026-05-01', descripcion: 'Mercado semanal',   categoria: 'Alimentación', cuenta: 'Efectivo',    tipo: 'Gasto',   monto: 150000, moneda: 'COP', notas: 'Compras del mes' },
+      { fecha: '2026-05-05', descripcion: 'Salario',           categoria: 'Salario',      cuenta: 'Bancolombia', tipo: 'Ingreso', monto: 3500,   moneda: 'USD', notas: '' },
+      { fecha: '2026-05-10', descripcion: 'Transporte trabajo', categoria: 'Transporte',   cuenta: 'Efectivo',    tipo: 'Gasto',   monto: 15000,  moneda: 'COP', notas: '' },
     ]
 
-    // Header cell styles: bold + indigo background + white text
-    const headerStyle = {
-      font: { bold: true, color: { rgb: 'FFFFFF' } },
-      fill: { patternType: 'solid', fgColor: { rgb: '4F46E5' } },
-      alignment: { horizontal: 'center' },
-    }
-    headers.forEach((_, col) => {
-      const cellRef = XLSX.utils.encode_cell({ r: 0, c: col })
-      if (ws[cellRef]) ws[cellRef].s = headerStyle
+    samples.forEach((data, idx) => {
+      const row = sheet.addRow(data)
+      // Alternate row background for readability
+      const bg = idx % 2 === 0 ? 'FFF5F5FF' : 'FFFFFFFF'
+      row.eachCell((cell) => {
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bg } }
+        cell.alignment = { vertical: 'middle' }
+      })
+      row.height = 18
     })
 
-    const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, ws, 'Plantilla')
+    // Freeze the header row
+    sheet.views = [{ state: 'frozen', xSplit: 0, ySplit: 1 }]
 
-    const base64 = XLSX.write(wb, { type: 'base64', bookType: 'xlsx', cellStyles: true }) as string
+    // Export as base64
+    const buffer = await workbook.xlsx.writeBuffer()
+    const base64 = Buffer.from(buffer).toString('base64')
     return { success: true, data: base64, filename: 'plantilla-importacion.xlsx' }
   } catch (error) {
     console.error('Template generation error:', error)

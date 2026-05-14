@@ -14,34 +14,44 @@ export async function downloadImportTemplate() {
   try {
     const XLSX = await import('xlsx')
 
+    const headers = ['fecha', 'descripcion', 'categoria', 'cuenta', 'tipo', 'monto', 'moneda', 'notas']
+
     const sampleRows = [
-      {
-        fecha: '2026-05-01',
-        descripcion: 'Mercado semanal',
-        categoria: 'Alimentación',
-        cuenta: 'Efectivo',
-        tipo: 'Gasto',
-        monto: 150000,
-        moneda: 'COP',
-        notas: 'Compras del mes',
-      },
-      {
-        fecha: '2026-05-05',
-        descripcion: 'Salario',
-        categoria: 'Salario',
-        cuenta: 'Bancolombia',
-        tipo: 'Ingreso',
-        monto: 3500,
-        moneda: 'USD',
-        notas: '',
-      },
+      ['2026-05-01', 'Mercado semanal', 'Alimentación', 'Efectivo', 'Gasto', 150000, 'COP', 'Compras del mes'],
+      ['2026-05-05', 'Salario', 'Salario', 'Bancolombia', 'Ingreso', 3500, 'USD', ''],
     ]
 
-    const ws = XLSX.utils.json_to_sheet(sampleRows)
+    // Build worksheet manually to support cell styles
+    const wsData = [headers, ...sampleRows]
+    const ws = XLSX.utils.aoa_to_sheet(wsData)
+
+    // Column widths
+    ws['!cols'] = [
+      { wch: 14 }, // fecha
+      { wch: 32 }, // descripcion
+      { wch: 22 }, // categoria
+      { wch: 22 }, // cuenta
+      { wch: 10 }, // tipo
+      { wch: 12 }, // monto
+      { wch: 10 }, // moneda
+      { wch: 28 }, // notas
+    ]
+
+    // Header cell styles: bold + indigo background + white text
+    const headerStyle = {
+      font: { bold: true, color: { rgb: 'FFFFFF' } },
+      fill: { patternType: 'solid', fgColor: { rgb: '4F46E5' } },
+      alignment: { horizontal: 'center' },
+    }
+    headers.forEach((_, col) => {
+      const cellRef = XLSX.utils.encode_cell({ r: 0, c: col })
+      if (ws[cellRef]) ws[cellRef].s = headerStyle
+    })
+
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, 'Plantilla')
 
-    const base64 = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' }) as string
+    const base64 = XLSX.write(wb, { type: 'base64', bookType: 'xlsx', cellStyles: true }) as string
     return { success: true, data: base64, filename: 'plantilla-importacion.xlsx' }
   } catch (error) {
     console.error('Template generation error:', error)
@@ -153,14 +163,14 @@ export async function resolveImportRows(
 
 function buildDisplayData(raw: Record<string, unknown>) {
   return {
-    amount: String(raw.monto ?? raw.amount ?? ''),
-    currency: String(raw.moneda ?? raw.currency ?? ''),
-    type: String(raw.tipo ?? raw.type ?? ''),
-    category: String(raw.categoria ?? raw.category ?? ''),
-    account: String(raw.cuenta ?? raw.account ?? ''),
-    description: String(raw.descripcion ?? raw.description ?? ''),
-    date: String(raw.fecha ?? raw.date ?? ''),
-    notes: raw.notas != null ? String(raw.notas) : raw.notes != null ? String(raw.notes) : undefined,
+    amount: String(raw.amount ?? ''),
+    currency: String(raw.currency ?? ''),
+    type: String(raw.type ?? ''),
+    category: String(raw.category ?? ''),
+    account: String(raw.account ?? ''),
+    description: String(raw.description ?? ''),
+    date: String(raw.date ?? ''),
+    notes: raw.notes != null ? String(raw.notes) : undefined,
   }
 }
 

@@ -14,9 +14,9 @@ import {
   NativeSelectRoot,
   NativeSelectField,
 } from '@chakra-ui/react'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiSend, FiCheck, FiX, FiMessageSquare, FiXCircle } from 'react-icons/fi'
+import { FiSend, FiCheck, FiX, FiMessageSquare, FiXCircle, FiMic, FiMicOff } from 'react-icons/fi'
 import { categorizePurchase, type CategorizedTransaction } from '@/lib/actions/ai.actions'
 import { createTransaction } from '@/lib/actions/transactions.actions'
 import { toaster } from '@/lib/toaster'
@@ -64,7 +64,20 @@ export function ChatInterface({ userId, categories, accounts = [], onClose }: Pr
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [isRecording, setIsRecording] = useState(false)
+  const [isVoiceSupported, setIsVoiceSupported] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recognitionRef = useRef<any>(null)
+  const transcriptRef = useRef('')
+
+  // Verificar soporte de Web Speech API
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const w = window as any
+    const SpeechRecognitionAPI = w.SpeechRecognition || w.webkitSpeechRecognition
+    setIsVoiceSupported(!!SpeechRecognitionAPI)
+  }, [])
 
   // Cargar historial al montar
   useEffect(() => {
@@ -102,11 +115,11 @@ export function ChatInterface({ userId, categories, accounts = [], onClose }: Pr
     return newMsg
   }
 
-  const handleSend = async () => {
-    const text = input.trim()
+  const handleSend = useCallback(async (textOverride?: string) => {
+    const text = (textOverride ?? input).trim()
     if (!text || loading) return
 
-    setInput('')
+    if (!textOverride) setInput('')
     setLoading(true)
 
     addMessage({ role: 'user', text })
@@ -138,7 +151,72 @@ export function ChatInterface({ userId, categories, accounts = [], onClose }: Pr
     })
 
     setLoading(false)
-  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [input, loading, categories])
+
+  const toggleRecording = useCallback(() => {
+    if (isRecording) {
+      recognitionRef.current?.stop()
+      return
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const w = window as any
+    const SpeechRecognitionAPI = w.SpeechRecognition || w.webkitSpeechRecognition
+    if (!SpeechRecognitionAPI) return
+
+    transcriptRef.current = ''
+    const recognition = new SpeechRecognitionAPI()
+    recognition.lang = 'es-CO'
+    recognition.continuous = false
+    recognition.interimResults = true
+
+    recognition.onstart = () => setIsRecording(true)
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    recognition.onresult = (event: any) => {
+      const transcript = Array.from(event.results as unknown[])
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .map((r: any) => r[0].transcript as string)
+        .join('')
+      setInput(transcript)
+      transcriptRef.current = transcript
+    }
+
+    recognition.onend = () => {
+      setIsRecording(false)
+      const finalText = transcriptRef.current.trim()
+      transcriptRef.current = ''
+      if (finalText) {
+        setInput('')
+        handleSend(finalText)
+      }
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    recognition.onerror = (event: any) => {
+      setIsRecording(false)
+      transcriptRef.current = ''
+      if (event.error === 'not-allowed') {
+        toaster.create({
+          title: 'Permiso denegado',
+          description: 'Activa el micrófono en la configuración del navegador.',
+          type: 'error',
+          duration: 4000,
+        })
+      } else if (event.error !== 'aborted' && event.error !== 'no-speech') {
+        toaster.create({
+          title: 'Error de micrófono',
+          description: 'No se pudo capturar el audio. Intenta de nuevo.',
+          type: 'error',
+          duration: 3000,
+        })
+      }
+    }
+
+    recognitionRef.current = recognition
+    recognition.start()
+  }, [isRecording, handleSend])
 
   const updatePreviewAccount = (msgId: string, accountId: string | null) => {
     setMessages((prev) => {
@@ -198,6 +276,13 @@ export function ChatInterface({ userId, categories, accounts = [], onClose }: Pr
       handleSend()
     }
   }
+
+  // Limpiar reconocimiento al desmontar
+  useEffect(() => {
+    return () => {
+      recognitionRef.current?.abort()
+    }
+  }, [])
 
   const handleClearHistory = () => {
     localStorage.removeItem(STORAGE_KEY)
@@ -387,19 +472,48 @@ export function ChatInterface({ userId, categories, accounts = [], onClose }: Pr
 
       {/* Input */}
       <HStack w="full" p={4} borderTopWidth="1px" borderColor="#2d2d35" bg="#18181d" gap={2}>
+        {isVoiceSupported && (
+          <Button
+            size="md"
+            variant={isRecording ? 'solid' : 'outline'}
+            colorPalette={isRecording ? 'red' : 'gray'}
+            onClick={toggleRecording}
+            disabled={loading}
+            aria-label={isRecording ? 'Detener grabación' : 'Grabar por voz'}
+            flexShrink={0}
+            css={
+              isRecording
+                ? {
+                    animation: 'pulse 1.2s ease-in-out infinite',
+                    '@keyframes pulse': {
+                      '0%, 100%': { opacity: 1 },
+                      '50%': { opacity: 0.55 },
+                    },
+                  }
+                : undefined
+            }
+          >
+            <Icon as={isRecording ? FiMicOff : FiMic} />
+          </Button>
+        )}
         <Input
-          placeholder="Escribe tu gasto, ej: &quot;Pagué 80.000 en restaurante&quot;"
+          placeholder={
+            isRecording
+              ? 'Escuchando...'
+              : 'Escribe tu gasto, ej: "Pagué 80.000 en restaurante"'
+          }
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          disabled={loading}
+          disabled={loading || isRecording}
           flex="1"
           size="md"
+          borderColor={isRecording ? 'red.400' : undefined}
         />
         <Button
           colorPalette="brand"
-          onClick={handleSend}
-          disabled={!input.trim() || loading}
+          onClick={() => handleSend()}
+          disabled={!input.trim() || loading || isRecording}
           size="md"
         >
           <Icon as={FiSend} />

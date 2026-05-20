@@ -10,9 +10,10 @@ import { ReportStatistics } from '@/components/ReportStatistics'
 
 interface Props {
   userId: string
+  preferredCurrency: string
 }
 
-export function ReportsContent({ userId }: Props) {
+export function ReportsContent({ userId, preferredCurrency }: Props) {
   const [filters, setFilters] = useState<ReportFiltersState>({
     startDate: '',
     endDate: '',
@@ -31,8 +32,8 @@ export function ReportsContent({ userId }: Props) {
       <ReportStatistics userId={userId} filters={filters} />
 
       <SimpleGrid columns={{ base: 1, md: 2 }} gap={6}>
-        <ExpensesByCategoryChart userId={userId} type="expense" filters={filters} />
-        <ExpensesByCategoryChart userId={userId} type="income" filters={filters} />
+        <ExpensesByCategoryChart userId={userId} type="expense" filters={filters} preferredCurrency={preferredCurrency} />
+        <ExpensesByCategoryChart userId={userId} type="income" filters={filters} preferredCurrency={preferredCurrency} />
         <Box gridColumn={{ base: 'auto', md: '1 / -1' }}>
           <MonthlyComparisonChart userId={userId} />
         </Box>

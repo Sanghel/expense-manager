@@ -1,6 +1,6 @@
 'use client'
 
-import { VStack, Box, SimpleGrid, Button } from '@chakra-ui/react'
+import { VStack, Box, SimpleGrid, Button, Text } from '@chakra-ui/react'
 import { useState, useEffect } from 'react'
 import { FiPlus } from 'react-icons/fi'
 import { createTransaction } from '@/lib/actions/transactions.actions'
@@ -19,6 +19,7 @@ import { CurrencyPreview } from './CurrencyPreview'
 import { QuickCategoryForm } from '@/components/categories/QuickCategoryForm'
 import type { Account, Category, Currency } from '@/types/database.types'
 import { getLocalDateString } from '@/lib/utils/dates'
+import { formatCurrency } from '@/lib/utils/currency'
 
 const TYPE_OPTIONS = [
   { value: 'expense', label: 'Gasto' },
@@ -70,6 +71,13 @@ export function TransactionForm({ isOpen, onClose, userId, categories, accounts 
   }
 
   const accountLocksCurrency = !!formData.account_id
+
+  const selectedAccount = accounts.find((a) => a.id === formData.account_id)
+  const cardOverLimit =
+    formData.type === 'expense' &&
+    selectedAccount?.type === 'card' &&
+    formData.amount != null &&
+    formData.amount > (selectedAccount.balance ?? 0)
 
   const handleCategoryCreated = (newCategory: Category) => {
     setLocalCategories((prev) => [...prev, newCategory])
@@ -144,6 +152,14 @@ export function TransactionForm({ isOpen, onClose, userId, categories, accounts 
                 required
                 disabled={accountLocksCurrency}
               />
+            )}
+
+            {cardOverLimit && (
+              <Box w="full" bg="#7f1d1d" borderRadius="md" px={3} py={2}>
+                <Text fontSize="sm" color="#fca5a5">
+                  El monto excede el cupo disponible ({formatCurrency(selectedAccount!.balance, selectedAccount!.currency as any)})
+                </Text>
+              </Box>
             )}
 
             <Box w="full">

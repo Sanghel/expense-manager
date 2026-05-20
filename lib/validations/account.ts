@@ -2,9 +2,10 @@ import { z } from 'zod'
 
 export const createAccountSchema = z.object({
   name: z.string().min(1, 'El nombre es requerido'),
-  type: z.enum(['bank', 'digital', 'crypto', 'cash']),
+  type: z.enum(['bank', 'digital', 'crypto', 'cash', 'card']),
   currency: z.enum(['COP', 'USD', 'VES']),
   balance: z.number().default(0),
+  credit_limit: z.number().positive().nullable().optional(),
   color: z.string().nullable().optional(),
   icon: z.string().nullable().optional(),
 })

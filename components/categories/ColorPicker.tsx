@@ -24,6 +24,7 @@ const COLORS = [
 ]
 
 const PICKER_WIDTH = 200
+const PICKER_HEIGHT = 140
 
 interface Props {
   value: string
@@ -40,7 +41,11 @@ export function ColorPicker({ value, onChange }: Props) {
     if (!open && wrapperRef.current) {
       const rect = wrapperRef.current.getBoundingClientRect()
       const left = Math.min(rect.right - PICKER_WIDTH, window.innerWidth - PICKER_WIDTH - 8)
-      setPos({ top: rect.bottom + 4, left: Math.max(left, 8) })
+      const spaceBelow = window.innerHeight - rect.bottom
+      const top = spaceBelow >= PICKER_HEIGHT + 8
+        ? rect.bottom + 4
+        : rect.top - PICKER_HEIGHT - 4
+      setPos({ top, left: Math.max(left, 8) })
     }
     setOpen((v) => !v)
   }

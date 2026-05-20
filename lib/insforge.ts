@@ -1,15 +1,10 @@
 import { createClient } from '@insforge/sdk'
 
-if (!process.env.NEXT_PUBLIC_INSFORGE_URL) {
-  throw new Error('Missing env.NEXT_PUBLIC_INSFORGE_URL')
-}
-if (!process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY) {
-  throw new Error('Missing env.NEXT_PUBLIC_INSFORGE_ANON_KEY')
-}
-
+// Do NOT throw here at module level — Next.js evaluates imports during the
+// build's "Collecting page data" phase before runtime env vars are injected.
 export const insforge = createClient({
-  baseUrl: process.env.NEXT_PUBLIC_INSFORGE_URL,
-  anonKey: process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY,
+  baseUrl: process.env.NEXT_PUBLIC_INSFORGE_URL ?? '',
+  anonKey: process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY ?? '',
 })
 
 export async function testInsforgeConnection() {

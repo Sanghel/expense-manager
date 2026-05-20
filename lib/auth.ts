@@ -2,18 +2,13 @@ import { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
 import { insforge } from './insforge'
 
-if (!process.env.GOOGLE_CLIENT_ID) {
-  throw new Error('Missing GOOGLE_CLIENT_ID')
-}
-if (!process.env.GOOGLE_CLIENT_SECRET) {
-  throw new Error('Missing GOOGLE_CLIENT_SECRET')
-}
-
+// Do NOT throw here at module level — Next.js evaluates imports during the
+// build's "Collecting page data" phase before runtime env vars are injected.
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      clientId: process.env.GOOGLE_CLIENT_ID ?? '',
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? '',
       authorization: {
         params: {
           prompt: 'consent',

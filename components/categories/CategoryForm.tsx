@@ -10,10 +10,12 @@ import { RadioSelect } from '@/components/ui/RadioSelect'
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
 import { IconPicker } from './IconPicker'
 import { ColorPicker } from './ColorPicker'
+import type { CategoryType } from '@/types/database.types'
 
 const TYPE_OPTIONS = [
   { value: 'expense', label: 'Gasto' },
   { value: 'income', label: 'Ingreso' },
+  { value: 'both', label: 'Ambos' },
 ]
 
 interface Props {
@@ -21,18 +23,19 @@ interface Props {
   onClose: () => void
   userId: string
   onSuccess: () => void
+  defaultType?: CategoryType
 }
 
 const defaultForm = {
   name: '',
-  type: 'expense' as 'income' | 'expense',
+  type: 'expense' as CategoryType,
   icon: '',
   color: '#6366f1',
 }
 
-export function CategoryForm({ isOpen, onClose, userId, onSuccess }: Props) {
+export function CategoryForm({ isOpen, onClose, userId, onSuccess, defaultType }: Props) {
   const [loading, setLoading] = useState(false)
-  const [formData, setFormData] = useState(defaultForm)
+  const [formData, setFormData] = useState({ ...defaultForm, type: defaultType ?? 'expense' as CategoryType })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -44,7 +47,7 @@ export function CategoryForm({ isOpen, onClose, userId, onSuccess }: Props) {
       toaster.create({ title: 'Categoría creada', type: 'success', duration: 3000 })
       onSuccess()
       onClose()
-      setFormData(defaultForm)
+      setFormData({ ...defaultForm, type: defaultType ?? 'expense' })
     } else {
       toaster.create({ title: 'Error al crear', description: result.error, type: 'error', duration: 4000 })
     }
@@ -58,7 +61,7 @@ export function CategoryForm({ isOpen, onClose, userId, onSuccess }: Props) {
           <RadioSelect
             label="Tipo"
             value={formData.type}
-            onChange={(v) => setFormData({ ...formData, type: v as 'income' | 'expense' })}
+            onChange={(v) => setFormData({ ...formData, type: v as CategoryType })}
             options={TYPE_OPTIONS}
             required
           />

@@ -15,7 +15,6 @@ export async function getCategories(userId: string) {
     return { success: false, error: 'User ID is required' }
   }
   try {
-    // Obtener predefinidas (user_id null) + del usuario en dos queries
     const [{ data: predefined, error: e1 }, { data: userCats, error: e2 }] =
       await Promise.all([
         insforgeAdmin.database.from('categories').select('*').is('user_id', null).order('name'),
@@ -32,12 +31,31 @@ export async function getCategories(userId: string) {
   }
 }
 
+async function checkDuplicateName(userId: string, name: string, excludeId?: string) {
+  const { data } = await insforgeAdmin.database
+    .from('categories')
+    .select('id, name')
+    .eq('user_id', userId)
+
+  if (!data) return false
+
+  return data.some((cat) => {
+    if (excludeId && cat.id === excludeId) return false
+    return cat.name.toUpperCase() === name.toUpperCase()
+  })
+}
+
 export async function createCategory(
   userId: string,
   data: CreateCategoryInput
 ) {
   try {
     const validated = createCategorySchema.parse(data)
+
+    const isDuplicate = await checkDuplicateName(userId, validated.name)
+    if (isDuplicate) {
+      return { success: false, error: `Ya existe una categoría con el nombre "${validated.name}"` }
+    }
 
     const { data: category, error } = await insforgeAdmin.database
       .from('categories')
@@ -63,6 +81,13 @@ export async function updateCategory(
   try {
     const validated = updateCategorySchema.parse(data)
 
+    if (validated.name) {
+      const isDuplicate = await checkDuplicateName(userId, validated.name, id)
+      if (isDuplicate) {
+        return { success: false, error: `Ya existe una categoría con el nombre "${validated.name}"` }
+      }
+    }
+
     const { data: category, error } = await insforgeAdmin.database
       .from('categories')
       .update(validated)
@@ -83,7 +108,6 @@ export async function updateCategory(
 
 export async function deleteCategory(id: string, userId: string) {
   try {
-    // Verificar que no tenga transacciones asociadas
     const { data: txCount } = await insforgeAdmin.database
       .from('transactions')
       .select('id')

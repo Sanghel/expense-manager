@@ -1,5 +1,6 @@
 export type Currency = 'COP' | 'USD' | 'VES'
 export type TransactionType = 'income' | 'expense'
+export type CategoryType = 'income' | 'expense' | 'both'
 export type BudgetPeriod = 'monthly' | 'yearly'
 export type TransactionSource = 'manual' | 'conversational' | 'import'
 export type RecurrenceFrequency = 'daily' | 'weekly' | 'monthly' | 'yearly'
@@ -24,7 +25,7 @@ export interface Category {
   id: string
   user_id: string | null // null = predefined
   name: string
-  type: TransactionType
+  type: CategoryType
   icon: string | null
   color: string | null
   created_at: string

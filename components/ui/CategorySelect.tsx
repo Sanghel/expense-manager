@@ -12,7 +12,9 @@ interface Props {
 }
 
 export function CategorySelect({ value, onChange, categories, filterByType, required }: Props) {
-  const filtered = filterByType ? categories.filter((c) => c.type === filterByType) : categories
+  const filtered = filterByType
+    ? categories.filter((c) => c.type === filterByType || c.type === 'both')
+    : categories
 
   return (
     <FieldRoot required={required} w="full">

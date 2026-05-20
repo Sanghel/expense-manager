@@ -179,3 +179,14 @@ export interface Loan {
 export interface LoanWithAccount extends Loan {
   account: Pick<Account, 'id' | 'name' | 'currency' | 'icon'> | null
 }
+
+export interface LoanPayment {
+  id: string
+  loan_id: string
+  user_id: string
+  amount: number
+  currency: Currency
+  date: string
+  notes: string | null
+  created_at: string
+}

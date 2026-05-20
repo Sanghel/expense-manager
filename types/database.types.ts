@@ -191,3 +191,23 @@ export interface LoanPayment {
   notes: string | null
   created_at: string
 }
+
+export type ReminderFrequency = 'once' | 'weekly' | 'monthly' | 'yearly'
+
+export interface Reminder {
+  id: string
+  user_id: string
+  description: string
+  category_id: string | null
+  frequency: ReminderFrequency
+  day_of_week: number | null
+  day_of_month: number | null
+  month_of_year: number | null
+  specific_date: string | null
+  is_active: boolean
+  created_at: string
+}
+
+export interface ReminderWithCategory extends Reminder {
+  category: Category | null
+}

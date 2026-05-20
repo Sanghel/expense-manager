@@ -6,7 +6,9 @@ import { CalendarPageContent } from '@/components/calendar/CalendarPageContent'
 import { getTransactions } from '@/lib/actions/transactions.actions'
 import { getCategories } from '@/lib/actions/categories.actions'
 import { getAccounts } from '@/lib/actions/accounts.actions'
-import type { TransactionWithCategory, Account } from '@/types/database.types'
+import { getReminders } from '@/lib/actions/reminders.actions'
+import { getRecurringTransactions } from '@/lib/actions/recurring.actions'
+import type { TransactionWithCategory, Account, ReminderWithCategory, RecurringTransactionWithCategory } from '@/types/database.types'
 
 export default async function CalendarPage() {
   const session = await getServerSession(authOptions)
@@ -26,15 +28,19 @@ export default async function CalendarPage() {
     redirect('/login')
   }
 
-  const [transactionsResult, categoriesResult, accountsResult] = await Promise.all([
+  const [transactionsResult, categoriesResult, accountsResult, remindersResult, recurringResult] = await Promise.all([
     getTransactions(user.id, 1000),
     getCategories(user.id),
     getAccounts(user.id),
+    getReminders(user.id),
+    getRecurringTransactions(user.id, 200),
   ])
 
   const transactions: TransactionWithCategory[] = transactionsResult.success ? (transactionsResult.data ?? []) : []
   const categories = categoriesResult.success ? (categoriesResult.data ?? []) : []
   const accounts = (accountsResult.success ? accountsResult.data : []) as Account[]
+  const reminders = (remindersResult.success ? remindersResult.data : []) as ReminderWithCategory[]
+  const recurringTransactions = (recurringResult.success ? recurringResult.data : []) as RecurringTransactionWithCategory[]
 
   return (
     <CalendarPageContent
@@ -42,6 +48,8 @@ export default async function CalendarPage() {
       initialTransactions={transactions}
       categories={categories}
       accounts={accounts}
+      reminders={reminders}
+      recurringTransactions={recurringTransactions}
     />
   )
 }

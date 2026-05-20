@@ -1,30 +1,95 @@
 'use client'
 
-import { VStack, Heading } from '@chakra-ui/react'
+import { VStack, HStack, Heading, Box, Text, Button } from '@chakra-ui/react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { TransactionCalendar } from '@/components/calendar/TransactionCalendar'
-import type { TransactionWithCategory, Account, Category } from '@/types/database.types'
+import { RemindersCalendar } from '@/components/calendar/RemindersCalendar'
+import { RemindersList } from '@/components/reminders/RemindersList'
+import type { TransactionWithCategory, Account, Category, ReminderWithCategory, RecurringTransactionWithCategory } from '@/types/database.types'
 
 interface Props {
   userId: string
   initialTransactions: TransactionWithCategory[]
   categories: Category[]
   accounts: Account[]
+  reminders: ReminderWithCategory[]
+  recurringTransactions: RecurringTransactionWithCategory[]
 }
 
-export function CalendarPageContent({ userId, initialTransactions, categories, accounts }: Props) {
+type Tab = 'transactions' | 'scheduled'
+
+export function CalendarPageContent({ userId, initialTransactions, categories, accounts, reminders, recurringTransactions }: Props) {
   const router = useRouter()
+  const [activeTab, setActiveTab] = useState<Tab>('transactions')
 
   return (
-    <VStack alignItems="flex-start" gap={6}>
-      <Heading size="lg">Calendario de Transacciones</Heading>
-      <TransactionCalendar
-        userId={userId}
-        initialTransactions={initialTransactions}
-        categories={categories}
-        accounts={accounts}
-        onTransactionCreated={() => router.refresh()}
-      />
+    <VStack alignItems="flex-start" gap={6} w="full">
+      <Heading size="lg">Calendario</Heading>
+
+      {/* Tab bar */}
+      <HStack gap={0} borderWidth="1px" borderRadius="lg" borderColor="#2d2d35" overflow="hidden" w="fit-content">
+        <Button
+          size="sm"
+          variant="ghost"
+          px={5}
+          py={2}
+          borderRadius="0"
+          bg={activeTab === 'transactions' ? '#4F46E5' : 'transparent'}
+          color={activeTab === 'transactions' ? 'white' : '#B0B0B0'}
+          _hover={{ bg: activeTab === 'transactions' ? '#4338CA' : '#1a1a23' }}
+          onClick={() => setActiveTab('transactions')}
+        >
+          📅 Transacciones
+        </Button>
+        <Box w="1px" bg="#2d2d35" h="full" />
+        <Button
+          size="sm"
+          variant="ghost"
+          px={5}
+          py={2}
+          borderRadius="0"
+          bg={activeTab === 'scheduled' ? '#4F46E5' : 'transparent'}
+          color={activeTab === 'scheduled' ? 'white' : '#B0B0B0'}
+          _hover={{ bg: activeTab === 'scheduled' ? '#4338CA' : '#1a1a23' }}
+          onClick={() => setActiveTab('scheduled')}
+        >
+          🔔 Programado
+        </Button>
+      </HStack>
+
+      {activeTab === 'transactions' && (
+        <TransactionCalendar
+          userId={userId}
+          initialTransactions={initialTransactions}
+          categories={categories}
+          accounts={accounts}
+          onTransactionCreated={() => router.refresh()}
+        />
+      )}
+
+      {activeTab === 'scheduled' && (
+        <VStack gap={6} align="stretch" w="full">
+          <Text fontSize="sm" color="#B0B0B0">
+            Visualiza tus recordatorios y suscripciones recurrentes. Haz clic en un recordatorio del día de hoy para registrar la transacción.
+          </Text>
+
+          <RemindersCalendar
+            userId={userId}
+            reminders={reminders}
+            recurringTransactions={recurringTransactions}
+            categories={categories}
+            accounts={accounts}
+          />
+
+          <RemindersList
+            userId={userId}
+            reminders={reminders}
+            categories={categories}
+            onRefresh={() => router.refresh()}
+          />
+        </VStack>
+      )}
     </VStack>
   )
 }

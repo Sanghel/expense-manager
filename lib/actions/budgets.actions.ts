@@ -35,15 +35,42 @@ export async function getBudgets(userId: string) {
 
     const budgetsWithSpent = budgets.map((budget) => {
       const now = new Date()
+      const start = new Date(budget.start_date)
 
       let periodStart: Date, periodEnd: Date
 
       if (budget.period === 'monthly') {
-        periodStart = new Date(now.getFullYear(), now.getMonth(), 1)
-        periodEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59)
+        // Calculate how many full months have elapsed since start_date
+        let monthsElapsed =
+          (now.getFullYear() - start.getFullYear()) * 12 +
+          (now.getMonth() - start.getMonth())
+        // If today's day is before the start day, we're in the previous cycle
+        if (now.getDate() < start.getDate()) monthsElapsed--
+
+        if (monthsElapsed < 0) {
+          // Budget starts in the future — no active period yet
+          periodStart = start
+          periodEnd = new Date(start.getFullYear(), start.getMonth() + 1, start.getDate() - 1, 23, 59, 59)
+        } else {
+          periodStart = new Date(start.getFullYear(), start.getMonth() + monthsElapsed, start.getDate())
+          periodEnd = new Date(start.getFullYear(), start.getMonth() + monthsElapsed + 1, start.getDate() - 1, 23, 59, 59)
+        }
       } else {
-        periodStart = new Date(now.getFullYear(), 0, 1)
-        periodEnd = new Date(now.getFullYear(), 11, 31, 23, 59, 59)
+        // yearly
+        let yearsElapsed = now.getFullYear() - start.getFullYear()
+        const pastAnniversary =
+          now.getMonth() > start.getMonth() ||
+          (now.getMonth() === start.getMonth() && now.getDate() >= start.getDate())
+        if (!pastAnniversary) yearsElapsed--
+
+        if (yearsElapsed < 0) {
+          // Budget starts in the future
+          periodStart = start
+          periodEnd = new Date(start.getFullYear() + 1, start.getMonth(), start.getDate() - 1, 23, 59, 59)
+        } else {
+          periodStart = new Date(start.getFullYear() + yearsElapsed, start.getMonth(), start.getDate())
+          periodEnd = new Date(start.getFullYear() + yearsElapsed + 1, start.getMonth(), start.getDate() - 1, 23, 59, 59)
+        }
       }
 
       const spent = (transactions || [])
@@ -60,6 +87,8 @@ export async function getBudgets(userId: string) {
       return {
         ...budget,
         spent,
+        periodStart: periodStart.toISOString().split('T')[0],
+        periodEnd: periodEnd.toISOString().split('T')[0],
       }
     })
 

@@ -7,7 +7,7 @@ import { FiPlus } from 'react-icons/fi'
 import { Card } from '@/components/ui/Card'
 import { LoanForm } from '@/components/loans/LoanForm'
 import { LoanPaymentForm } from '@/components/loans/LoanPaymentForm'
-import { LoansTable } from '@/components/loans/LoansTable'
+import { LoanCards } from '@/components/loans/LoanCards'
 import { deleteLoan, settleLoan } from '@/lib/actions/loans.actions'
 import { toaster } from '@/lib/toaster'
 import type { Account, LoanWithAccount } from '@/types/database.types'
@@ -25,6 +25,8 @@ export function LoansPageClient({ userId, initialLoans, accounts }: Props) {
   const { open: isPaymentOpen, onOpen: onPaymentOpen, onClose: onPaymentClose } = useDisclosure()
   const [editingLoan, setEditingLoan] = useState<LoanWithAccount | null>(null)
   const [payingLoan, setPayingLoan] = useState<LoanWithAccount | null>(null)
+
+  const refresh = useCallback(() => router.refresh(), [router])
 
   const handleEdit = useCallback((loan: LoanWithAccount) => {
     setEditingLoan(loan)
@@ -44,21 +46,21 @@ export function LoansPageClient({ userId, initialLoans, accounts }: Props) {
         type: 'success',
         duration: 3000,
       })
-      router.refresh()
+      refresh()
     } else {
       toaster.create({ title: result.error ?? 'Error al saldar', type: 'error', duration: 4000 })
     }
-  }, [userId, router])
+  }, [userId, refresh])
 
   const handleDelete = useCallback(async (loan: LoanWithAccount) => {
     const result = await deleteLoan(userId, loan.id)
     if (result.success) {
       toaster.create({ title: 'Préstamo eliminado', type: 'success', duration: 3000 })
-      router.refresh()
+      refresh()
     } else {
       toaster.create({ title: result.error ?? 'Error al eliminar', type: 'error', duration: 4000 })
     }
-  }, [userId, router])
+  }, [userId, refresh])
 
   const handleEditClose = useCallback(() => {
     onEditClose()
@@ -92,24 +94,28 @@ export function LoansPageClient({ userId, initialLoans, accounts }: Props) {
 
       <Card mb={6}>
         <Heading size="sm" mb={4} color="white">Activos</Heading>
-        <LoansTable
+        <LoanCards
           loans={activeLoans}
+          userId={userId}
           onEdit={handleEdit}
           onSettle={handleSettle}
           onDelete={handleDelete}
           onPayment={handlePayment}
+          onRefresh={refresh}
         />
       </Card>
 
       {settledLoans.length > 0 && (
         <Card>
           <Heading size="sm" mb={4} color="#B0B0B0">Historial — Saldados</Heading>
-          <LoansTable
+          <LoanCards
             loans={settledLoans}
+            userId={userId}
             onEdit={handleEdit}
             onSettle={handleSettle}
             onDelete={handleDelete}
             onPayment={handlePayment}
+            onRefresh={refresh}
           />
         </Card>
       )}
@@ -119,7 +125,7 @@ export function LoansPageClient({ userId, initialLoans, accounts }: Props) {
         onClose={onCreateClose}
         userId={userId}
         accounts={accounts}
-        onSuccess={() => router.refresh()}
+        onSuccess={refresh}
       />
 
       {editingLoan && (
@@ -129,7 +135,7 @@ export function LoansPageClient({ userId, initialLoans, accounts }: Props) {
           userId={userId}
           accounts={accounts}
           loan={editingLoan}
-          onSuccess={() => { router.refresh(); handleEditClose() }}
+          onSuccess={() => { refresh(); handleEditClose() }}
         />
       )}
 
@@ -139,7 +145,7 @@ export function LoansPageClient({ userId, initialLoans, accounts }: Props) {
           onClose={handlePaymentClose}
           loan={payingLoan}
           userId={userId}
-          onSuccess={() => router.refresh()}
+          onSuccess={refresh}
         />
       )}
     </Box>

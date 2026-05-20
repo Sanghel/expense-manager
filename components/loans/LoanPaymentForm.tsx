@@ -4,9 +4,12 @@ import { useState } from 'react'
 import { VStack, Button, Text } from '@chakra-ui/react'
 import { FormDialog } from '@/components/ui/FormDialog'
 import { InputAmount } from '@/components/ui/InputAmount'
+import { DateInput } from '@/components/ui/DateInput'
+import { FormTextarea } from '@/components/ui/FormTextarea'
 import { addLoanPayment } from '@/lib/actions/loans.actions'
 import { toaster } from '@/lib/toaster'
 import { formatCurrency } from '@/lib/utils/currency'
+import { getLocalDateString } from '@/lib/utils/dates'
 import type { LoanWithAccount } from '@/types/database.types'
 
 interface Props {
@@ -19,6 +22,8 @@ interface Props {
 
 export function LoanPaymentForm({ isOpen, onClose, loan, userId, onSuccess }: Props) {
   const [amount, setAmount] = useState<number | undefined>(undefined)
+  const [date, setDate] = useState(getLocalDateString())
+  const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
 
   const remaining = Number(loan.amount) - Number(loan.paid_amount ?? 0)
@@ -39,13 +44,15 @@ export function LoanPaymentForm({ isOpen, onClose, loan, userId, onSuccess }: Pr
     }
 
     setLoading(true)
-    const result = await addLoanPayment(userId, loan.id, amount)
+    const result = await addLoanPayment(userId, loan.id, amount, date || undefined, notes || undefined)
     setLoading(false)
 
     if (result.success) {
       const msg = result.settled ? 'Préstamo saldado completamente' : 'Abono registrado'
       toaster.create({ title: msg, type: 'success', duration: 3000 })
       setAmount(undefined)
+      setDate(getLocalDateString())
+      setNotes('')
       onClose()
       onSuccess()
     } else {
@@ -61,7 +68,10 @@ export function LoanPaymentForm({ isOpen, onClose, loan, userId, onSuccess }: Pr
     >
       <VStack gap={4} align="stretch">
         <Text fontSize="sm" color="#B0B0B0">
-          Saldo pendiente: <Text as="span" color="white" fontWeight="600">{formatCurrency(remaining, loan.currency)}</Text>
+          Saldo pendiente:{' '}
+          <Text as="span" color="white" fontWeight="600">
+            {formatCurrency(remaining, loan.currency)}
+          </Text>
         </Text>
 
         <InputAmount
@@ -69,6 +79,20 @@ export function LoanPaymentForm({ isOpen, onClose, loan, userId, onSuccess }: Pr
           value={amount}
           onChange={setAmount}
           isRequired
+        />
+
+        <DateInput
+          label="Fecha del abono"
+          value={date}
+          onChange={setDate}
+          required
+        />
+
+        <FormTextarea
+          label="Notas (opcional)"
+          value={notes}
+          onChange={setNotes}
+          placeholder="Ej: Transferencia Bancolombia"
         />
 
         <Button

@@ -30,6 +30,7 @@ const ACCOUNT_TYPE_LABELS: Record<string, string> = {
   digital: 'Digital',
   crypto: 'Crypto',
   cash: 'Efectivo',
+  card: 'Tarjeta de Crédito',
 }
 
 interface Props {
@@ -45,6 +46,7 @@ export function AccountsTab({ userId, initialAccounts, initialMovements }: Props
   const [isAccountFormOpen, setIsAccountFormOpen] = useState(false)
   const [isMovementFormOpen, setIsMovementFormOpen] = useState(false)
   const [editingAccount, setEditingAccount] = useState<Account | null>(null)
+  const [preselectedToAccountId, setPreselectedToAccountId] = useState<string | undefined>(undefined)
   const [deletingAccountId, setDeletingAccountId] = useState<string | null>(null)
   const [deletingMovementId, setDeletingMovementId] = useState<string | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
@@ -215,9 +217,38 @@ export function AccountsTab({ userId, initialAccounts, initialMovements }: Props
                       </IconButton>
                     </HStack>
                   </HStack>
-                  <Text fontWeight="bold" fontSize="lg" color="white">
-                    {formatCurrency(acc.balance, acc.currency as any)}
-                  </Text>
+                  {acc.type === 'card' && acc.credit_limit != null ? (
+                    <VStack align="stretch" gap={1}>
+                      <HStack justify="space-between">
+                        <Text fontSize="xs" color="#B0B0B0">Cupo disponible</Text>
+                        <Text fontWeight="bold" fontSize="md" color="white">
+                          {formatCurrency(acc.balance, acc.currency as any)}
+                        </Text>
+                      </HStack>
+                      <HStack justify="space-between">
+                        <Text fontSize="xs" color="#B0B0B0">Cupo total</Text>
+                        <Text fontSize="sm" color="#B0B0B0">
+                          {formatCurrency(acc.credit_limit, acc.currency as any)}
+                        </Text>
+                      </HStack>
+                      <Button
+                        size="xs"
+                        variant="outline"
+                        colorPalette="purple"
+                        mt={1}
+                        onClick={() => {
+                          setPreselectedToAccountId(acc.id)
+                          setIsMovementFormOpen(true)
+                        }}
+                      >
+                        Pagar tarjeta
+                      </Button>
+                    </VStack>
+                  ) : (
+                    <Text fontWeight="bold" fontSize="lg" color="white">
+                      {formatCurrency(acc.balance, acc.currency as any)}
+                    </Text>
+                  )}
                 </VStack>
               </Box>
             ))}
@@ -268,10 +299,11 @@ export function AccountsTab({ userId, initialAccounts, initialMovements }: Props
 
       <AccountMovementForm
         isOpen={isMovementFormOpen}
-        onClose={() => setIsMovementFormOpen(false)}
+        onClose={() => { setIsMovementFormOpen(false); setPreselectedToAccountId(undefined) }}
         userId={userId}
         accounts={accounts}
         onSuccess={handleMovementSuccess}
+        preselectedToAccountId={preselectedToAccountId}
       />
 
       <ConfirmDialog

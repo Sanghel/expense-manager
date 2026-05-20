@@ -31,6 +31,11 @@ export async function createAccount(userId: string, data: CreateAccountInput) {
   try {
     const validated = createAccountSchema.parse(data)
 
+    // For card accounts, balance starts equal to credit_limit (available credit)
+    if (validated.type === 'card' && validated.credit_limit != null) {
+      validated.balance = validated.credit_limit
+    }
+
     const { data: account, error } = await insforgeAdmin.database
       .from('accounts')
       .insert([{ ...validated, user_id: userId }])

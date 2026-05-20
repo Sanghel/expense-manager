@@ -1,7 +1,7 @@
 'use client'
 
 import { VStack } from '@chakra-ui/react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createAccountMovement } from '@/lib/actions/account_movements.actions'
 import { toaster } from '@/lib/toaster'
 import { FormDialog } from '@/components/ui/FormDialog'
@@ -20,6 +20,7 @@ interface Props {
   userId: string
   accounts: Account[]
   onSuccess: () => void
+  preselectedToAccountId?: string
 }
 
 const defaultForm = {
@@ -33,9 +34,35 @@ const defaultForm = {
   date: getLocalDateString(),
 }
 
-export function AccountMovementForm({ isOpen, onClose, userId, accounts, onSuccess }: Props) {
+export function AccountMovementForm({ isOpen, onClose, userId, accounts, onSuccess, preselectedToAccountId }: Props) {
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState(defaultForm)
+
+  useEffect(() => {
+    if (isOpen) {
+      const toAccount = preselectedToAccountId
+        ? accounts.find((a) => a.id === preselectedToAccountId)
+        : undefined
+      setFormData({
+        ...defaultForm,
+        to_account_id: preselectedToAccountId ?? '',
+        to_currency: toAccount ? (toAccount.currency as Currency) : 'COP',
+        date: getLocalDateString(),
+      })
+    }
+  }, [isOpen, preselectedToAccountId, accounts])
+
+  const toAccount = accounts.find((a) => a.id === formData.to_account_id)
+  const isCardPayment = toAccount?.type === 'card'
+
+  const handleToAccountChange = (v: string) => {
+    const acc = accounts.find((a) => a.id === v)
+    setFormData((prev) => ({
+      ...prev,
+      to_account_id: v,
+      to_currency: acc ? (acc.currency as Currency) : prev.to_currency,
+    }))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -53,7 +80,7 @@ export function AccountMovementForm({ isOpen, onClose, userId, accounts, onSucce
     })
 
     if (result.success) {
-      toaster.create({ title: 'Movimiento registrado', type: 'success', duration: 3000 })
+      toaster.create({ title: isCardPayment ? 'Pago de tarjeta registrado' : 'Movimiento registrado', type: 'success', duration: 3000 })
       onSuccess()
       onClose()
       setFormData(defaultForm)
@@ -64,7 +91,7 @@ export function AccountMovementForm({ isOpen, onClose, userId, accounts, onSucce
   }
 
   return (
-    <FormDialog isOpen={isOpen} onClose={onClose} title="Nuevo Movimiento entre Cuentas">
+    <FormDialog isOpen={isOpen} onClose={onClose} title={isCardPayment ? 'Pago de Tarjeta' : 'Nuevo Movimiento entre Cuentas'}>
       <form onSubmit={handleSubmit}>
         <VStack gap={4}>
           <AccountSelect
@@ -74,6 +101,7 @@ export function AccountMovementForm({ isOpen, onClose, userId, accounts, onSucce
             label="Cuenta origen"
             required
             placeholder="Seleccionar..."
+            excludeId={formData.to_account_id}
           />
 
           <InputAmount
@@ -92,16 +120,16 @@ export function AccountMovementForm({ isOpen, onClose, userId, accounts, onSucce
 
           <AccountSelect
             value={formData.to_account_id}
-            onChange={(v) => setFormData({ ...formData, to_account_id: v })}
+            onChange={handleToAccountChange}
             accounts={accounts}
-            label="Cuenta destino"
+            label={isCardPayment ? 'Tarjeta a pagar' : 'Cuenta destino'}
             required
             placeholder="Seleccionar..."
             excludeId={formData.from_account_id}
           />
 
           <InputAmount
-            label="Monto recibido"
+            label={isCardPayment ? 'Monto del pago' : 'Monto recibido'}
             value={formData.to_amount}
             onChange={(v) => setFormData({ ...formData, to_amount: v })}
             isRequired
@@ -118,7 +146,7 @@ export function AccountMovementForm({ isOpen, onClose, userId, accounts, onSucce
             label="Descripción (opcional)"
             value={formData.description}
             onChange={(v) => setFormData({ ...formData, description: v })}
-            placeholder="Ej: Cambio de dólares"
+            placeholder={isCardPayment ? 'Ej: Pago mensual tarjeta' : 'Ej: Cambio de dólares'}
           />
 
           <DateInput
@@ -129,7 +157,7 @@ export function AccountMovementForm({ isOpen, onClose, userId, accounts, onSucce
           />
 
           <PrimaryButton type="submit" width="full" loading={loading}>
-            Registrar Movimiento
+            {isCardPayment ? 'Registrar Pago' : 'Registrar Movimiento'}
           </PrimaryButton>
         </VStack>
       </form>

@@ -1,7 +1,8 @@
 'use client'
 
-import { VStack, Box, SimpleGrid } from '@chakra-ui/react'
+import { VStack, Box, SimpleGrid, Button } from '@chakra-ui/react'
 import { useState, useEffect } from 'react'
+import { FiPlus } from 'react-icons/fi'
 import { updateTransaction } from '@/lib/actions/transactions.actions'
 import { toaster } from '@/lib/toaster'
 import { FormDialog } from '@/components/ui/FormDialog'
@@ -15,6 +16,7 @@ import { CategorySelect } from '@/components/ui/CategorySelect'
 import { AccountSelect } from '@/components/ui/AccountSelect'
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
 import { CurrencyPreview } from './CurrencyPreview'
+import { QuickCategoryForm } from '@/components/categories/QuickCategoryForm'
 import type { Account, Category, Currency, TransactionWithCategory } from '@/types/database.types'
 
 const TYPE_OPTIONS = [
@@ -34,6 +36,8 @@ interface Props {
 
 export function TransactionEditForm({ isOpen, onClose, userId, categories, accounts = [], transaction, onSuccess }: Props) {
   const [loading, setLoading] = useState(false)
+  const [localCategories, setLocalCategories] = useState<Category[]>(categories)
+  const [quickCategoryOpen, setQuickCategoryOpen] = useState(false)
   const [formData, setFormData] = useState({
     type: transaction.type,
     amount: Number(transaction.amount) as number | undefined,
@@ -56,7 +60,13 @@ export function TransactionEditForm({ isOpen, onClose, userId, categories, accou
       date: transaction.date,
       notes: transaction.notes ?? '',
     })
-  }, [transaction])
+    setLocalCategories(categories)
+  }, [transaction, categories])
+
+  const handleCategoryCreated = (newCategory: Category) => {
+    setLocalCategories((prev) => [...prev, newCategory])
+    setFormData((prev) => ({ ...prev, category_id: newCategory.id }))
+  }
 
   const handleAccountChange = (accountId: string) => {
     const account = accounts.find((a) => a.id === accountId)
@@ -90,6 +100,7 @@ export function TransactionEditForm({ isOpen, onClose, userId, categories, accou
   }
 
   return (
+    <>
     <FormDialog isOpen={isOpen} onClose={onClose} title="Editar Transacción" size="lg">
       <form onSubmit={handleSubmit}>
         <VStack gap={4}>
@@ -137,13 +148,27 @@ export function TransactionEditForm({ isOpen, onClose, userId, categories, accou
             />
           )}
 
-          <CategorySelect
-            value={formData.category_id}
-            onChange={(v) => setFormData({ ...formData, category_id: v })}
-            categories={categories}
-            filterByType={formData.type}
-            required
-          />
+          <Box w="full">
+            <CategorySelect
+              value={formData.category_id}
+              onChange={(v) => setFormData({ ...formData, category_id: v })}
+              categories={localCategories}
+              filterByType={formData.type}
+              required
+            />
+            <Button
+              variant="ghost"
+              size="xs"
+              color="#6366f1"
+              mt={1}
+              px={0}
+              _hover={{ color: '#818cf8', bg: 'transparent' }}
+              onClick={() => setQuickCategoryOpen(true)}
+            >
+              <FiPlus style={{ marginRight: 4 }} />
+              Nueva categoría
+            </Button>
+          </Box>
 
           <SimpleGrid columns={{ base: 1, md: 2 }} gap={4} w="full">
             <FormInput
@@ -179,5 +204,14 @@ export function TransactionEditForm({ isOpen, onClose, userId, categories, accou
         </VStack>
       </form>
     </FormDialog>
+
+    <QuickCategoryForm
+      isOpen={quickCategoryOpen}
+      onClose={() => setQuickCategoryOpen(false)}
+      userId={userId}
+      defaultType={formData.type}
+      onCreated={handleCategoryCreated}
+    />
+    </>
   )
 }

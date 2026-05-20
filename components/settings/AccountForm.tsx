@@ -19,6 +19,7 @@ const TYPE_OPTIONS = [
   { value: 'digital', label: 'Digital' },
   { value: 'crypto', label: 'Crypto' },
   { value: 'cash', label: 'Efectivo' },
+  { value: 'card', label: 'Tarjeta de Crédito' },
 ]
 
 interface Props {
@@ -31,9 +32,10 @@ interface Props {
 
 const defaultForm = {
   name: '',
-  type: 'bank' as 'bank' | 'digital' | 'crypto' | 'cash',
+  type: 'bank' as 'bank' | 'digital' | 'crypto' | 'cash' | 'card',
   currency: 'COP' as Currency,
   balance: 0 as number | undefined,
+  credit_limit: undefined as number | undefined,
   icon: '💳',
   color: '#6366f1',
 }
@@ -49,6 +51,7 @@ export function AccountForm({ isOpen, onClose, userId, editingAccount, onSuccess
         type: editingAccount.type,
         currency: editingAccount.currency as Currency,
         balance: Number(editingAccount.balance) as number | undefined,
+        credit_limit: editingAccount.credit_limit != null ? Number(editingAccount.credit_limit) : undefined,
         icon: editingAccount.icon ?? '💳',
         color: editingAccount.color ?? '#6366f1',
       })
@@ -61,11 +64,13 @@ export function AccountForm({ isOpen, onClose, userId, editingAccount, onSuccess
     e.preventDefault()
     setLoading(true)
 
+    const isCard = formData.type === 'card'
     const data = {
       name: formData.name,
       type: formData.type,
       currency: formData.currency,
-      balance: formData.balance ?? 0,
+      balance: isCard ? (formData.credit_limit ?? 0) : (formData.balance ?? 0),
+      credit_limit: isCard ? (formData.credit_limit ?? null) : null,
       icon: formData.icon || null,
       color: formData.color || null,
     }
@@ -87,6 +92,8 @@ export function AccountForm({ isOpen, onClose, userId, editingAccount, onSuccess
     }
     setLoading(false)
   }
+
+  const isCard = formData.type === 'card'
 
   return (
     <FormDialog
@@ -119,11 +126,20 @@ export function AccountForm({ isOpen, onClose, userId, editingAccount, onSuccess
             required
           />
 
-          <InputAmount
-            label={editingAccount ? 'Balance actual' : 'Balance inicial'}
-            value={formData.balance}
-            onChange={(v) => setFormData({ ...formData, balance: v })}
-          />
+          {isCard ? (
+            <InputAmount
+              label="Cupo total"
+              value={formData.credit_limit}
+              onChange={(v) => setFormData({ ...formData, credit_limit: v })}
+              isRequired
+            />
+          ) : (
+            <InputAmount
+              label={editingAccount ? 'Balance actual' : 'Balance inicial'}
+              value={formData.balance}
+              onChange={(v) => setFormData({ ...formData, balance: v })}
+            />
+          )}
 
           <HStack gap={4} w="full">
             <FieldRoot>

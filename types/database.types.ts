@@ -31,7 +31,7 @@ export interface Category {
   created_at: string
 }
 
-export type AccountType = 'bank' | 'digital' | 'crypto' | 'cash'
+export type AccountType = 'bank' | 'digital' | 'crypto' | 'cash' | 'card'
 
 export interface Account {
   id: string
@@ -40,6 +40,7 @@ export interface Account {
   type: AccountType
   currency: Currency
   balance: number
+  credit_limit: number | null
   color: string | null
   icon: string | null
   is_active: boolean

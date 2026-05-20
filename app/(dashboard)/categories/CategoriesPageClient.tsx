@@ -27,11 +27,52 @@ import { useRouter } from 'next/navigation'
 import { toaster } from '@/lib/toaster'
 import { CategoryForm } from '@/components/categories/CategoryForm'
 import { CategoryEditForm } from '@/components/categories/CategoryEditForm'
-import type { Category } from '@/types/database.types'
+import type { Category, CategoryType } from '@/types/database.types'
 
 interface Props {
   userId: string
   initialCategories: Category[]
+}
+
+const TYPE_BADGE: Record<CategoryType, { label: string; palette: string }> = {
+  expense: { label: 'Gasto', palette: 'red' },
+  income: { label: 'Ingreso', palette: 'green' },
+  both: { label: 'Ambos', palette: 'purple' },
+}
+
+function CategorySection({
+  title,
+  categories,
+  readOnly,
+  onEdit,
+  onDelete,
+}: {
+  title: string
+  categories: Category[]
+  readOnly?: boolean
+  onEdit?: (cat: Category) => void
+  onDelete?: (cat: Category) => void
+}) {
+  if (categories.length === 0) return null
+
+  return (
+    <Box>
+      <Text fontWeight="semibold" color="#B0B0B0" mb={3} fontSize="sm" textTransform="uppercase">
+        {title}
+      </Text>
+      <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 4 }} gap={3}>
+        {categories.map((cat) => (
+          <CategoryCard
+            key={cat.id}
+            category={cat}
+            readOnly={readOnly}
+            onEdit={onEdit ? () => onEdit(cat) : undefined}
+            onDelete={onDelete ? () => onDelete(cat) : undefined}
+          />
+        ))}
+      </SimpleGrid>
+    </Box>
+  )
 }
 
 export function CategoriesPageClient({ userId, initialCategories }: Props) {
@@ -84,6 +125,14 @@ export function CategoriesPageClient({ userId, initialCategories }: Props) {
   const predefined = categories.filter((c) => c.user_id === null)
   const userCategories = categories.filter((c) => c.user_id !== null)
 
+  const predExpense = predefined.filter((c) => c.type === 'expense')
+  const predIncome = predefined.filter((c) => c.type === 'income')
+  const predBoth = predefined.filter((c) => c.type === 'both')
+
+  const userExpense = userCategories.filter((c) => c.type === 'expense')
+  const userIncome = userCategories.filter((c) => c.type === 'income')
+  const userBoth = userCategories.filter((c) => c.type === 'both')
+
   return (
     <Box p={6}>
       <HStack justify="space-between" mb={6}>
@@ -94,41 +143,56 @@ export function CategoriesPageClient({ userId, initialCategories }: Props) {
         </Button>
       </HStack>
 
-      <VStack gap={8} align="stretch">
-        {/* Categorías predefinidas */}
+      <VStack gap={10} align="stretch">
+        {/* Gastos */}
         <Box>
-          <Text fontWeight="semibold" color="#B0B0B0" mb={3} fontSize="sm" textTransform="uppercase">
-            Predefinidas
-          </Text>
-          <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 4 }} gap={3}>
-            {predefined.map((cat) => (
-              <CategoryCard key={cat.id} category={cat} readOnly />
-            ))}
-          </SimpleGrid>
+          <Heading size="md" color="white" mb={4}>💸 Gastos</Heading>
+          <VStack gap={6} align="stretch">
+            <CategorySection title="Predefinidas" categories={predExpense} readOnly />
+            <CategorySection
+              title="Mis Categorías"
+              categories={userExpense}
+              onEdit={handleEditOpen}
+              onDelete={handleDeleteOpen}
+            />
+            {userExpense.length === 0 && predExpense.length === 0 && (
+              <Text color="#808080" fontSize="sm">Sin categorías de gasto.</Text>
+            )}
+          </VStack>
         </Box>
 
-        {/* Categorías del usuario */}
+        {/* Ingresos */}
         <Box>
-          <Text fontWeight="semibold" color="#B0B0B0" mb={3} fontSize="sm" textTransform="uppercase">
-            Mis Categorías
-          </Text>
-          {userCategories.length === 0 ? (
-            <Text color="#808080" fontSize="sm">
-              Aún no tienes categorías personalizadas. Crea una con el botón de arriba.
-            </Text>
-          ) : (
-            <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 4 }} gap={3}>
-              {userCategories.map((cat) => (
-                <CategoryCard
-                  key={cat.id}
-                  category={cat}
-                  onEdit={() => handleEditOpen(cat)}
-                  onDelete={() => handleDeleteOpen(cat)}
-                />
-              ))}
-            </SimpleGrid>
-          )}
+          <Heading size="md" color="white" mb={4}>💰 Ingresos</Heading>
+          <VStack gap={6} align="stretch">
+            <CategorySection title="Predefinidas" categories={predIncome} readOnly />
+            <CategorySection
+              title="Mis Categorías"
+              categories={userIncome}
+              onEdit={handleEditOpen}
+              onDelete={handleDeleteOpen}
+            />
+            {userIncome.length === 0 && predIncome.length === 0 && (
+              <Text color="#808080" fontSize="sm">Sin categorías de ingreso.</Text>
+            )}
+          </VStack>
         </Box>
+
+        {/* Ambos */}
+        {(predBoth.length > 0 || userBoth.length > 0) && (
+          <Box>
+            <Heading size="md" color="white" mb={4}>🔄 Gastos e Ingresos</Heading>
+            <VStack gap={6} align="stretch">
+              <CategorySection title="Predefinidas" categories={predBoth} readOnly />
+              <CategorySection
+                title="Mis Categorías"
+                categories={userBoth}
+                onEdit={handleEditOpen}
+                onDelete={handleDeleteOpen}
+              />
+            </VStack>
+          </Box>
+        )}
       </VStack>
 
       {/* Modales */}
@@ -149,7 +213,6 @@ export function CategoriesPageClient({ userId, initialCategories }: Props) {
         />
       )}
 
-      {/* Confirmación eliminar */}
       <DialogRoot
         open={deleteDisclosure.open}
         onOpenChange={({ open }) => !open && deleteDisclosure.onClose()}
@@ -160,29 +223,29 @@ export function CategoriesPageClient({ userId, initialCategories }: Props) {
       >
         <DialogBackdrop />
         <DialogPositioner>
-        <DialogContent tabIndex={-1}>
-          <DialogHeader>
-            <DialogTitle>Eliminar Categoría</DialogTitle>
-          </DialogHeader>
-          <DialogCloseTrigger />
-          <DialogBody pb={6}>
-            <Text mb={4}>
-              ¿Seguro que deseas eliminar{' '}
-              <Text as="span" fontWeight="bold">
-                {selectedCategory?.icon} {selectedCategory?.name}
+          <DialogContent tabIndex={-1}>
+            <DialogHeader>
+              <DialogTitle>Eliminar Categoría</DialogTitle>
+            </DialogHeader>
+            <DialogCloseTrigger />
+            <DialogBody pb={6}>
+              <Text mb={4}>
+                ¿Seguro que deseas eliminar{' '}
+                <Text as="span" fontWeight="bold">
+                  {selectedCategory?.icon} {selectedCategory?.name}
+                </Text>
+                ? Esta acción no se puede deshacer.
               </Text>
-              ? Esta acción no se puede deshacer.
-            </Text>
-            <HStack justify="flex-end">
-              <Button variant="outline" onClick={deleteDisclosure.onClose}>
-                Cancelar
-              </Button>
-              <Button colorPalette="red" loading={deleteLoading} onClick={handleDelete}>
-                Eliminar
-              </Button>
-            </HStack>
-          </DialogBody>
-        </DialogContent>
+              <HStack justify="flex-end">
+                <Button variant="outline" onClick={deleteDisclosure.onClose}>
+                  Cancelar
+                </Button>
+                <Button colorPalette="red" loading={deleteLoading} onClick={handleDelete}>
+                  Eliminar
+                </Button>
+              </HStack>
+            </DialogBody>
+          </DialogContent>
         </DialogPositioner>
       </DialogRoot>
     </Box>
@@ -200,6 +263,8 @@ function CategoryCard({
   onEdit?: () => void
   onDelete?: () => void
 }) {
+  const badge = TYPE_BADGE[category.type] ?? TYPE_BADGE.expense
+
   return (
     <Box
       borderWidth="1px"
@@ -229,12 +294,8 @@ function CategoryCard({
             <Text fontWeight="medium" fontSize="sm" color="white">
               {category.name}
             </Text>
-            <Badge
-              colorPalette={category.type === 'income' ? 'green' : 'red'}
-              size="sm"
-              mt={1}
-            >
-              {category.type === 'income' ? 'Ingreso' : 'Gasto'}
+            <Badge colorPalette={badge.palette} size="sm" mt={1}>
+              {badge.label}
             </Badge>
           </Box>
         </HStack>

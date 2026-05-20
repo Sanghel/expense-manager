@@ -1,13 +1,22 @@
 'use client'
 
-import { VStack, HStack, FieldRoot, FieldLabel, Input, Button, Badge } from '@chakra-ui/react'
+import { VStack, HStack, FieldRoot, FieldLabel } from '@chakra-ui/react'
 import { useState, useEffect } from 'react'
 import { updateCategory } from '@/lib/actions/categories.actions'
 import { toaster } from '@/lib/toaster'
 import { FormDialog } from '@/components/ui/FormDialog'
-import type { Category } from '@/types/database.types'
+import { FormInput } from '@/components/ui/FormInput'
+import { RadioSelect } from '@/components/ui/RadioSelect'
+import { PrimaryButton } from '@/components/ui/PrimaryButton'
+import type { Category, CategoryType } from '@/types/database.types'
 import { IconPicker } from './IconPicker'
 import { ColorPicker } from './ColorPicker'
+
+const TYPE_OPTIONS = [
+  { value: 'expense', label: 'Gasto' },
+  { value: 'income', label: 'Ingreso' },
+  { value: 'both', label: 'Ambos' },
+]
 
 interface Props {
   isOpen: boolean
@@ -21,6 +30,7 @@ export function CategoryEditForm({ isOpen, onClose, userId, category, onSuccess 
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     name: category.name,
+    type: category.type as CategoryType,
     icon: category.icon ?? '',
     color: category.color ?? '#6366f1',
   })
@@ -28,6 +38,7 @@ export function CategoryEditForm({ isOpen, onClose, userId, category, onSuccess 
   useEffect(() => {
     setFormData({
       name: category.name,
+      type: category.type as CategoryType,
       icon: category.icon ?? '',
       color: category.color ?? '#6366f1',
     })
@@ -53,20 +64,21 @@ export function CategoryEditForm({ isOpen, onClose, userId, category, onSuccess 
     <FormDialog isOpen={isOpen} onClose={onClose} title="Editar Categoría">
       <form onSubmit={handleSubmit}>
         <VStack gap={4}>
-          <HStack w="full">
-            <Badge colorPalette={category.type === 'income' ? 'green' : 'red'} size="sm">
-              {category.type === 'income' ? 'Ingreso' : 'Gasto'}
-            </Badge>
-          </HStack>
+          <RadioSelect
+            label="Tipo"
+            value={formData.type}
+            onChange={(v) => setFormData({ ...formData, type: v as CategoryType })}
+            options={TYPE_OPTIONS}
+            required
+          />
 
-          <FieldRoot required w="full">
-            <FieldLabel>Nombre</FieldLabel>
-            <Input
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="Ej: Transporte"
-            />
-          </FieldRoot>
+          <FormInput
+            label="Nombre"
+            value={formData.name}
+            onChange={(v) => setFormData({ ...formData, name: v })}
+            placeholder="Ej: Transporte"
+            required
+          />
 
           <HStack gap={4} w="full">
             <FieldRoot>
@@ -86,9 +98,9 @@ export function CategoryEditForm({ isOpen, onClose, userId, category, onSuccess 
             </FieldRoot>
           </HStack>
 
-          <Button type="submit" bg="#4F46E5" color="white" _hover={{ bg: '#4338CA' }} width="full" loading={loading}>
+          <PrimaryButton type="submit" width="full" loading={loading}>
             Guardar Cambios
-          </Button>
+          </PrimaryButton>
         </VStack>
       </form>
     </FormDialog>

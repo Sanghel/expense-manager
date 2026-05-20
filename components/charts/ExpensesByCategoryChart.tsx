@@ -3,127 +3,90 @@
 import { Box, Heading, Spinner, Center, Text } from '@chakra-ui/react'
 import { useEffect, useState } from 'react'
 import {
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
   Tooltip,
-  Treemap,
   ResponsiveContainer,
+  Cell,
 } from 'recharts'
 import { getTransactions } from '@/lib/actions/transactions.actions'
+import { getAllRatePairs } from '@/lib/actions/exchangeRates.actions'
 import { Card } from '@/components/ui/Card'
 import { formatCurrency } from '@/lib/utils/currency'
-import type { TransactionWithCategory } from '@/types/database.types'
+import type { Currency, TransactionWithCategory } from '@/types/database.types'
 import type { ReportFiltersState } from '@/components/ReportFilters'
 
 interface ChartDataPoint {
   name: string
+  icon: string
   value: number
-  currency: string
-  [key: string]: unknown
+  color: string
+  percent: number
 }
 
 interface Props {
   userId: string
   type?: 'expense' | 'income'
   filters?: ReportFiltersState
+  preferredCurrency?: string
 }
 
-const INCOME_COLORS = [
-  '#2ECC71', '#27AE60', '#16A085', '#1ABC9C',
-  '#3498DB', '#2980B9', '#8E44AD', '#9B59B6',
-  '#48C9B0', '#17A589', '#6C5CE7', '#74B9FF',
-]
+type RateMap = Record<string, number>
 
-const EXPENSE_COLORS = [
-  '#E74C3C', '#C0392B', '#E67E22', '#D35400',
-  '#F39C12', '#F1C40F', '#E59866', '#DC7633',
-  '#CB4335', '#A93226', '#F4D03F', '#CA6F1E',
-]
-
-function getDominantCurrency(transactions: TransactionWithCategory[]): string {
-  const counts = transactions.reduce<Record<string, number>>((acc, t) => {
-    acc[t.currency] = (acc[t.currency] || 0) + 1
-    return acc
-  }, {})
-  return Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'COP'
+function buildRateMap(rates: Array<{ from_currency: string; to_currency: string; rate: number }>): RateMap {
+  const map: RateMap = {}
+  for (const r of rates) {
+    map[`${r.from_currency}_${r.to_currency}`] = r.rate
+  }
+  return map
 }
 
-// Tooltip para PieChart (ingresos)
+function convertAmount(amount: number, from: string, to: string, rateMap: RateMap): number {
+  if (from === to) return amount
+  const rate = rateMap[`${from}_${to}`]
+  return rate ? amount * rate : amount
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function PieTooltip({ active, payload }: any) {
+function BarTooltip({ active, payload, currency }: any) {
   if (!active || !payload?.length) return null
-  const { name, value, currency } = payload[0].payload as ChartDataPoint
+  const d = payload[0].payload as ChartDataPoint
   return (
-    <Box bg="#1a1a23" border="1px solid #2d2d35" borderRadius="8px" px={3} py={2}>
-      <Text fontSize="sm" color="#B0B0B0">{name}</Text>
-      <Text fontSize="sm" fontWeight="bold" color="white">{formatCurrency(value, currency)}</Text>
+    <Box bg="#1a1a23" border="1px solid #2d2d35" borderRadius="8px" px={3} py={2} minW="140px">
+      <Text fontSize="sm" color="#B0B0B0">{d.icon} {d.name}</Text>
+      <Text fontSize="sm" fontWeight="bold" color="white">{formatCurrency(d.value, currency)}</Text>
+      <Text fontSize="xs" color="#B0B0B0">{d.percent.toFixed(1)}% del total</Text>
     </Box>
   )
 }
 
-// Bloque personalizado del Treemap
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function TreemapBlock(props: any) {
-  const { x, y, width, height, name, value, currency, index } = props
-  const color = EXPENSE_COLORS[index % EXPENSE_COLORS.length]
-  const total = props.root?.value ?? 1
-  const pct = ((value / total) * 100).toFixed(0)
-  const showLabel = width > 60 && height > 40
-
+function CustomYAxisTick({ x, y, payload }: any) {
+  const label: string = payload.value ?? ''
+  const maxLen = 14
+  const display = label.length > maxLen ? label.slice(0, maxLen) + '…' : label
   return (
-    <g>
-      <rect
-        x={x}
-        y={y}
-        width={width}
-        height={height}
-        fill={color}
-        stroke="#1a1a23"
-        strokeWidth={2}
-        rx={4}
-      />
-      {showLabel && (
-        <>
-          <text
-            x={x + width / 2}
-            y={y + height / 2 - 8}
-            textAnchor="middle"
-            dominantBaseline="middle"
-            fill="white"
-            fontSize={Math.min(13, width / 7)}
-            fontWeight="600"
-          >
-            {name}
-          </text>
-          <text
-            x={x + width / 2}
-            y={y + height / 2 + 10}
-            textAnchor="middle"
-            dominantBaseline="middle"
-            fill="rgba(255,255,255,0.75)"
-            fontSize={Math.min(11, width / 8)}
-          >
-            {pct}% · {formatCurrency(value, currency)}
-          </text>
-        </>
-      )}
-    </g>
+    <text x={x} y={y} dy={4} textAnchor="end" fill="#B0B0B0" fontSize={12}>
+      {display}
+    </text>
   )
 }
 
-export function ExpensesByCategoryChart({ userId, type = 'expense', filters }: Props) {
+export function ExpensesByCategoryChart({ userId, type = 'expense', filters, preferredCurrency = 'COP' }: Props) {
   const [chartData, setChartData] = useState<ChartDataPoint[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function fetchData() {
-      const result = await getTransactions(userId, 500)
+      const [txResult, ratesResult] = await Promise.all([
+        getTransactions(userId, 500),
+        getAllRatePairs(),
+      ])
 
-      if (result.success && result.data) {
-        let transactions = result.data as TransactionWithCategory[]
-
+      if (txResult.success && txResult.data) {
+        let transactions = txResult.data as TransactionWithCategory[]
         transactions = transactions.filter((t) => t.type === type)
 
         if (filters?.transactionType && filters.transactionType !== 'all' && filters.transactionType !== type) {
@@ -142,28 +105,50 @@ export function ExpensesByCategoryChart({ userId, type = 'expense', filters }: P
           transactions = transactions.filter((t) => filters.categoryIds.includes(t.category_id || ''))
         }
 
-        const dominated = getDominantCurrency(transactions)
-        const sameCurrency = transactions.filter((t) => t.currency === dominated)
+        const rateMap = ratesResult.success && ratesResult.data
+          ? buildRateMap(ratesResult.data as Array<{ from_currency: string; to_currency: string; rate: number }>)
+          : {}
 
-        const grouped = sameCurrency.reduce<Record<string, number>>((acc, t) => {
+        // Group by category converting to preferred currency
+        const grouped: Record<string, { value: number; color: string; icon: string }> = {}
+
+        for (const t of transactions) {
           const categoryName = t.category?.name || 'Sin categoría'
-          acc[categoryName] = (acc[categoryName] || 0) + Number(t.amount)
-          return acc
-        }, {})
+          const converted = convertAmount(Number(t.amount), t.currency as Currency, preferredCurrency as Currency, rateMap)
 
-        const data = Object.entries(grouped)
-          .map(([name, value]) => ({ name, value, currency: dominated }))
+          if (!grouped[categoryName]) {
+            grouped[categoryName] = {
+              value: 0,
+              color: t.category?.color || '#6366f1',
+              icon: t.category?.icon || '🏷️',
+            }
+          }
+          grouped[categoryName].value += converted
+        }
+
+        const total = Object.values(grouped).reduce((s, v) => s + v.value, 0)
+
+        const data: ChartDataPoint[] = Object.entries(grouped)
+          .map(([name, { value, color, icon }]) => ({
+            name,
+            icon,
+            value: Math.round(value * 100) / 100,
+            color: color || '#6366f1',
+            percent: total > 0 ? (value / total) * 100 : 0,
+          }))
           .sort((a, b) => b.value - a.value)
+          .slice(0, 12)
 
         setChartData(data)
       }
       setLoading(false)
     }
     fetchData()
-  }, [userId, type, filters])
+  }, [userId, type, filters, preferredCurrency])
 
   const title = type === 'expense' ? 'Gastos por Categoría' : 'Ingresos por Categoría'
-  const currency = chartData[0]?.currency ?? 'COP'
+  const barHeight = 32
+  const chartHeight = Math.max(200, chartData.length * barHeight + 40)
 
   if (loading) {
     return (
@@ -182,50 +167,39 @@ export function ExpensesByCategoryChart({ userId, type = 'expense', filters }: P
     )
   }
 
-  // Gastos: Treemap (mejor para muchas categorías)
-  if (type === 'expense') {
-    return (
-      <Card>
-        <Heading size="md" mb={1}>{title}</Heading>
-        <Text fontSize="xs" color="#B0B0B0" mb={4}>Solo moneda dominante: {currency}</Text>
-        <Box h={{ base: '320px', md: '440px' }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <Treemap
-              data={chartData}
-              dataKey="value"
-              aspectRatio={4 / 3}
-              content={<TreemapBlock />}
-            />
-          </ResponsiveContainer>
-        </Box>
-      </Card>
-    )
-  }
-
-  // Ingresos: PieChart (pocas categorías, se ve bien)
   return (
     <Card>
       <Heading size="md" mb={1}>{title}</Heading>
-      <Text fontSize="xs" color="#B0B0B0" mb={4}>Solo moneda dominante: {currency}</Text>
-      <Box h={{ base: '280px', md: '400px' }}>
+      <Text fontSize="xs" color="#B0B0B0" mb={4}>En {preferredCurrency}</Text>
+      <Box h={`${chartHeight}px`}>
         <ResponsiveContainer width="100%" height="100%">
-          <PieChart margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
-            <Pie
-              data={chartData}
-              dataKey="value"
-              nameKey="name"
-              cx="50%"
-              cy="50%"
-              outerRadius="40%"
-              label={({ name, percent = 0 }) => `${name} ${(percent * 100).toFixed(0)}%`}
-            >
-              {chartData.map((_, index) => (
-                <Cell key={`cell-${index}`} fill={INCOME_COLORS[index % INCOME_COLORS.length]} />
+          <BarChart
+            data={chartData}
+            layout="vertical"
+            margin={{ top: 4, right: 16, left: 8, bottom: 4 }}
+          >
+            <XAxis
+              type="number"
+              tickFormatter={(v) => formatCurrency(v, preferredCurrency as Currency)}
+              tick={{ fill: '#B0B0B0', fontSize: 11 }}
+              tickLine={false}
+              axisLine={false}
+            />
+            <YAxis
+              type="category"
+              dataKey="name"
+              width={110}
+              tick={<CustomYAxisTick />}
+              tickLine={false}
+              axisLine={false}
+            />
+            <Tooltip content={<BarTooltip currency={preferredCurrency} />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
+            <Bar dataKey="value" radius={[0, 4, 4, 0]} maxBarSize={24}>
+              {chartData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
-            </Pie>
-            <Tooltip content={<PieTooltip />} />
-            <Legend />
-          </PieChart>
+            </Bar>
+          </BarChart>
         </ResponsiveContainer>
       </Box>
     </Card>

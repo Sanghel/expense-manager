@@ -58,6 +58,17 @@ export function TransactionEditForm({ isOpen, onClose, userId, categories, accou
     })
   }, [transaction])
 
+  const handleAccountChange = (accountId: string) => {
+    const account = accounts.find((a) => a.id === accountId)
+    setFormData((prev) => ({
+      ...prev,
+      account_id: accountId,
+      currency: account ? (account.currency as Currency) : prev.currency,
+    }))
+  }
+
+  const accountLocksCurrency = !!formData.account_id
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -97,13 +108,34 @@ export function TransactionEditForm({ isOpen, onClose, userId, categories, accou
               onChange={(v) => setFormData({ ...formData, amount: v })}
               isRequired
             />
+            {accounts.length > 0 ? (
+              <AccountSelect
+                value={formData.account_id}
+                onChange={handleAccountChange}
+                accounts={accounts}
+                label="Cuenta"
+                optional
+                placeholder="Sin cuenta específica"
+              />
+            ) : (
+              <CurrencySelect
+                value={formData.currency}
+                onChange={(v) => setFormData({ ...formData, currency: v })}
+                showFullLabel
+                required
+              />
+            )}
+          </SimpleGrid>
+
+          {accounts.length > 0 && (
             <CurrencySelect
               value={formData.currency}
               onChange={(v) => setFormData({ ...formData, currency: v })}
               showFullLabel
               required
+              disabled={accountLocksCurrency}
             />
-          </SimpleGrid>
+          )}
 
           <CategorySelect
             value={formData.category_id}
@@ -112,24 +144,6 @@ export function TransactionEditForm({ isOpen, onClose, userId, categories, accou
             filterByType={formData.type}
             required
           />
-
-          {accounts.length > 0 && (
-            <AccountSelect
-              value={formData.account_id}
-              onChange={(v) => setFormData({ ...formData, account_id: v })}
-              accounts={accounts}
-              label="Cuenta"
-              optional
-              placeholder="Sin cuenta específica"
-            />
-          )}
-
-          <Box w="full" minH="10">
-            <CurrencyPreview
-              amount={formData.amount ?? 0}
-              fromCurrency={formData.currency}
-            />
-          </Box>
 
           <SimpleGrid columns={{ base: 1, md: 2 }} gap={4} w="full">
             <FormInput
@@ -145,6 +159,13 @@ export function TransactionEditForm({ isOpen, onClose, userId, categories, accou
               required
             />
           </SimpleGrid>
+
+          <Box w="full" minH="10">
+            <CurrencyPreview
+              amount={formData.amount ?? 0}
+              fromCurrency={formData.currency}
+            />
+          </Box>
 
           <FormTextarea
             label="Notas (opcional)"

@@ -14,6 +14,7 @@ const ICONS = [
 ]
 
 const PICKER_WIDTH = 288
+const PICKER_HEIGHT = 280
 
 interface Props {
   value: string
@@ -33,7 +34,11 @@ export function IconPicker({ value, onChange }: Props) {
     if (!open && wrapperRef.current) {
       const rect = wrapperRef.current.getBoundingClientRect()
       const left = Math.min(rect.left, window.innerWidth - PICKER_WIDTH - 12)
-      setPos({ top: rect.bottom + 4, left: Math.max(left, 8) })
+      const spaceBelow = window.innerHeight - rect.bottom
+      const top = spaceBelow >= PICKER_HEIGHT + 8
+        ? rect.bottom + 4
+        : rect.top - PICKER_HEIGHT - 4
+      setPos({ top, left: Math.max(left, 8) })
     }
     setOpen((v) => !v)
   }

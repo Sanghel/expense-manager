@@ -151,15 +151,38 @@ export function TransactionForm({ isOpen, onClose, userId, categories, accounts 
               )}
             </SimpleGrid>
 
-            {accounts.length > 0 && (
-              <CurrencySelect
-                value={formData.currency}
-                onChange={(v) => setFormData({ ...formData, currency: v })}
-                showFullLabel
-                required
-                disabled={accountLocksCurrency}
-              />
-            )}
+            <SimpleGrid columns={{ base: 1, md: 2 }} gap={4} w="full" alignItems="start">
+              {accounts.length > 0 && (
+                <CurrencySelect
+                  value={formData.currency}
+                  onChange={(v) => setFormData({ ...formData, currency: v })}
+                  showFullLabel
+                  required
+                  disabled={accountLocksCurrency}
+                />
+              )}
+              <Box w="full" gridColumn={accounts.length > 0 ? undefined : { base: 'auto', md: '1 / -1' }}>
+                <CategorySelect
+                  value={formData.category_id}
+                  onChange={(v) => setFormData({ ...formData, category_id: v })}
+                  categories={localCategories}
+                  filterByType={formData.type}
+                  required
+                />
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  color="#6366f1"
+                  mt={1}
+                  px={0}
+                  _hover={{ color: '#818cf8', bg: 'transparent' }}
+                  onClick={() => setQuickCategoryOpen(true)}
+                >
+                  <FiPlus style={{ marginRight: 4 }} />
+                  Nueva categoría
+                </Button>
+              </Box>
+            </SimpleGrid>
 
             {cardOverLimit && (
               <Box w="full" bg="#7f1d1d" borderRadius="md" px={3} py={2}>
@@ -168,28 +191,6 @@ export function TransactionForm({ isOpen, onClose, userId, categories, accounts 
                 </Text>
               </Box>
             )}
-
-            <Box w="full">
-              <CategorySelect
-                value={formData.category_id}
-                onChange={(v) => setFormData({ ...formData, category_id: v })}
-                categories={localCategories}
-                filterByType={formData.type}
-                required
-              />
-              <Button
-                variant="ghost"
-                size="xs"
-                color="#6366f1"
-                mt={1}
-                px={0}
-                _hover={{ color: '#818cf8', bg: 'transparent' }}
-                onClick={() => setQuickCategoryOpen(true)}
-              >
-                <FiPlus style={{ marginRight: 4 }} />
-                Nueva categoría
-              </Button>
-            </Box>
 
             <SimpleGrid columns={{ base: 1, md: 2 }} gap={4} w="full">
               <FormInput

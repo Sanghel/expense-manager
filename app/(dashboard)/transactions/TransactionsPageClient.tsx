@@ -18,6 +18,7 @@ import { TransactionsTable } from '@/components/transactions/TransactionsTable'
 import { TransactionsFilter, type FilterState } from '@/components/transactions/TransactionsFilter'
 import { ExportTransactionsModal } from '@/components/transactions/ExportTransactionsModal'
 import { ImportTransactionsModal } from '@/components/transactions/ImportTransactionsModal'
+import { GmailSyncButton } from '@/components/transactions/GmailSyncButton'
 import { useDebounce } from '@/hooks/useDebounce'
 import type { Account, Category, TransactionWithCategory } from '@/types/database.types'
 
@@ -96,6 +97,7 @@ export function TransactionsPageClient({ userId, categories, initialTransactions
       <HStack justify="space-between" mb={{ base: 4, md: 6 }}>
         <Heading size={{ base: 'md', md: 'lg' }} color="white">Transacciones</Heading>
         <HStack gap={2}>
+          <GmailSyncButton />
           <Button variant="outline" onClick={onExportOpen} size={{ base: 'sm', md: 'md' }}>
             <FiDownload />
             <Text display={{ base: 'none', sm: 'inline' }}>Exportar</Text>

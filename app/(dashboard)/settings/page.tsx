@@ -52,6 +52,12 @@ export default async function SettingsPage({
     redirect('/login')
   }
 
+  const gmailStatus = {
+    connected: !!user.gmail_refresh_token,
+    connectedAt: user.gmail_connected_at,
+    lastSyncedAt: user.gmail_last_synced_at,
+  }
+
   let initialCategories: Category[] = []
   if (tab === 'categorias') {
     const result = await getCategories(userRow.id)
@@ -67,6 +73,7 @@ export default async function SettingsPage({
       initialMovements={movements}
       activeTab={tab}
       initialCategories={initialCategories}
+      gmailStatus={gmailStatus}
     />
   )
 }

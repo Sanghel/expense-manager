@@ -1,28 +1,11 @@
+import type { ParsedTransaction, ParseInput, Parser } from './types'
 import type { Currency, TransactionType } from '@/types/database.types'
-
-export interface ParsedBancolombiaTx {
-  type: TransactionType
-  amount: number
-  currency: Currency
-  lastFour: string | null
-  merchant: string | null
-  date: string // ISO date (YYYY-MM-DD)
-  description: string
-  confidence: number
-  matchedRule: string
-}
-
-export interface ParseInput {
-  subject: string
-  bodyText: string
-  bodyHtml: string
-  receivedAt: Date // fallback when the email body has no explicit date
-}
 
 const BANCOLOMBIA_SENDERS = [
   'notificacionesbancolombia@bancolombia.com.co',
   'alertasynotificaciones@notificacionesbancolombia.com',
   'alertasynotificaciones@bancolombia.com.co',
+  'alertasynotificaciones@an.notificacionesbancolombia.com',
 ]
 
 export function isBancolombiaSender(fromHeader: string): boolean {
@@ -30,29 +13,15 @@ export function isBancolombiaSender(fromHeader: string): boolean {
   return BANCOLOMBIA_SENDERS.some((s) => lower.includes(s))
 }
 
-/**
- * Bancolombia montos vienen como "$1.234.567,89" (COP) o "$1,234.56" (USD).
- * COP usa punto como separador de miles y coma decimal; USD lo contrario.
- * Heurística: si hay coma y luego 2 dígitos al final ⇒ decimal coma (COP).
- *             si hay punto y luego 2 dígitos al final ⇒ decimal punto (USD).
- *             solo separadores de miles ⇒ entero.
- */
 function parseAmount(raw: string): number | null {
   const cleaned = raw.replace(/\s/g, '').replace(/^\$/, '')
   if (!cleaned) return null
-
   const commaDecimal = /,\d{2}$/.test(cleaned)
   const dotDecimal = /\.\d{2}$/.test(cleaned)
-
   let normalized: string
-  if (commaDecimal) {
-    normalized = cleaned.replace(/\./g, '').replace(',', '.')
-  } else if (dotDecimal && cleaned.split('.').length === 2) {
-    normalized = cleaned.replace(/,/g, '')
-  } else {
-    normalized = cleaned.replace(/[.,]/g, '')
-  }
-
+  if (commaDecimal) normalized = cleaned.replace(/\./g, '').replace(',', '.')
+  else if (dotDecimal && cleaned.split('.').length === 2) normalized = cleaned.replace(/,/g, '')
+  else normalized = cleaned.replace(/[.,]/g, '')
   const num = Number(normalized)
   return Number.isFinite(num) && num > 0 ? num : null
 }
@@ -71,7 +40,6 @@ function htmlToText(html: string): string {
 }
 
 function detectCurrency(text: string): Currency {
-  // Bancolombia rara vez envía USD/VES en estos correos; default COP.
   if (/\bUSD\b|US\$/i.test(text)) return 'USD'
   return 'COP'
 }
@@ -94,7 +62,36 @@ const RULES: Array<{
   pattern: RegExp
   build: (m: RegExpMatchArray) => RuleResult
 }> = [
-  // Compra con tarjeta: "Bancolombia te informa Compra por $X en COMERCIO ... T.Cred *NNNN"
+  {
+    name: 'compra_tarjeta_v2',
+    pattern:
+      /compraste\s+\$?\s*([\d.,]+)\s+en\s+([A-Z0-9 .,&'\-/]+?)\s+con\s+tu\s+t\.?\s*(?:deb|cred)\s*\*?(\d{4})/i,
+    build: (m) => ({
+      type: 'expense',
+      amountRaw: m[1],
+      merchant: m[2].trim().replace(/\s+/g, ' '),
+      lastFour: m[3],
+      description: `Compra en ${m[2].trim().replace(/\s+/g, ' ')}`,
+      matchedRule: 'compra_tarjeta_v2',
+    }),
+  },
+  {
+    name: 'transferencia_a_cuenta',
+    pattern:
+      /transferiste\s+\$?\s*([\d.,]+)\s+desde\s+(?:tu\s+)?cuenta\s+\*?(\d{4,})\s+a\s+(?:la\s+)?cuenta\s+\*?(\d+)/i,
+    build: (m) => {
+      const lastFour = m[2].slice(-4)
+      const destAccount = `*${m[3].slice(-4)}`
+      return {
+        type: 'expense',
+        amountRaw: m[1],
+        merchant: destAccount,
+        lastFour,
+        description: `Transferencia a cuenta ${destAccount}`,
+        matchedRule: 'transferencia_a_cuenta',
+      }
+    },
+  },
   {
     name: 'compra_tarjeta',
     pattern:
@@ -113,7 +110,6 @@ const RULES: Array<{
       }
     },
   },
-  // Transferencia enviada: "Transferiste $X a NOMBRE desde cta *NNNN"
   {
     name: 'transferencia_enviada',
     pattern:
@@ -132,7 +128,6 @@ const RULES: Array<{
       }
     },
   },
-  // Pago PSE / servicios: "Realizaste un pago por $X a EMPRESA"
   {
     name: 'pago_servicio',
     pattern:
@@ -151,7 +146,6 @@ const RULES: Array<{
       }
     },
   },
-  // Recepción / consignación: "Recibiste una transferencia por $X de NOMBRE en cuenta *NNNN"
   {
     name: 'recepcion',
     pattern:
@@ -172,33 +166,26 @@ const RULES: Array<{
   },
 ]
 
-export function parseBancolombia(input: ParseInput): ParsedBancolombiaTx | null {
+export const parseBancolombia: Parser = (input: ParseInput): ParsedTransaction[] => {
   const subject = (input.subject ?? '').replace(/\s+/g, ' ').trim()
   const bodyFromText = (input.bodyText ?? '').replace(/\s+/g, ' ').trim()
   const bodyFromHtml = input.bodyHtml ? htmlToText(input.bodyHtml) : ''
   const haystack = [subject, bodyFromText, bodyFromHtml].filter(Boolean).join(' \n ')
-
-  if (!haystack) return null
+  if (!haystack) return []
 
   for (const rule of RULES) {
     const match = haystack.match(rule.pattern)
     if (!match) continue
-
     const result = rule.build(match)
     const amount = parseAmount(result.amountRaw)
     if (!amount) continue
-
     const currency = detectCurrency(haystack)
     const date = todayIsoFrom(input.receivedAt)
-
-    // Confianza: monto + tipo + merchant + last_four ⇒ 0.95
-    // sin last_four ⇒ 0.6 (queda en drafts hasta que usuario asigne cuenta)
     let confidence = 0.6
     if (result.lastFour) confidence += 0.3
     if (result.merchant && result.merchant.length >= 3) confidence += 0.05
     confidence = Math.min(confidence, 0.95)
-
-    return {
+    return [{
       type: result.type,
       amount,
       currency,
@@ -208,8 +195,9 @@ export function parseBancolombia(input: ParseInput): ParsedBancolombiaTx | null 
       description: result.description,
       confidence,
       matchedRule: result.matchedRule,
-    }
+      source: 'bancolombia',
+    }]
   }
 
-  return null
+  return []
 }

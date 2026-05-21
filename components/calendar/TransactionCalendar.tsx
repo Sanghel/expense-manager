@@ -252,7 +252,7 @@ export function TransactionCalendar({ userId, initialTransactions, categories, a
                       <VStack align="flex-start" gap={0}>
                         <Text fontSize="sm" color="white">{t.description}</Text>
                         <HStack gap={1}>
-                          <Text fontSize="xs" color="#808080">{t.category.name}</Text>
+                          <Text fontSize="xs" color="#808080">{t.category?.name ?? 'Sin categoría'}</Text>
                           <Text fontSize="xs" color="#808080">·</Text>
                           <Text fontSize="xs" color="#808080">{TYPE_LABELS[t.type] ?? t.type}</Text>
                         </HStack>
@@ -343,7 +343,7 @@ export function TransactionCalendar({ userId, initialTransactions, categories, a
                           </Text>
                         </HStack>
                         <HStack justifyContent="space-between" fontSize="sm" color="fg.muted">
-                          <Text>{txn.category.name}</Text>
+                          <Text>{txn.category?.name ?? 'Sin categoría'}</Text>
                           <Text>{TYPE_LABELS[txn.type] ?? txn.type}</Text>
                         </HStack>
                         {txn.notes && (

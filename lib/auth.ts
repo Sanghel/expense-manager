@@ -122,7 +122,7 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session }) {
       if (session.user?.email) {
-        const { data: user } = await insforge.database
+        const { data: user } = await insforgeAdmin.database
           .from('users')
           .select('id')
           .eq('email', session.user.email)

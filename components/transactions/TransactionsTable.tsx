@@ -53,7 +53,7 @@ export function TransactionsTable({ transactions, userId, onUpdate, onEdit }: Pr
     {
       key: 'category',
       header: 'Categoría',
-      render: (t) => <>{t.category.icon} {t.category.name}</>,
+      render: (t) => <>{t.category?.icon ?? '🏷️'} {t.category?.name ?? 'Sin categoría'}</>,
     },
     {
       key: 'type',

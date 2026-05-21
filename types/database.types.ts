@@ -216,33 +216,8 @@ export interface ReminderWithCategory extends Reminder {
   category: Category | null
 }
 
-export type TransactionDraftStatus = 'pending' | 'confirmed' | 'rejected'
-
-export interface TransactionDraft {
-  id: string
-  user_id: string
-  gmail_message_id: string
-  amount: number | null
-  currency: Currency | null
-  type: TransactionType | null
-  category_id: string | null
-  account_id: string | null
-  description: string | null
-  date: string | null
-  notes: string | null
-  raw_subject: string | null
-  raw_snippet: string | null
-  raw_from: string | null
-  confidence: number
-  parse_reason: string | null
-  status: TransactionDraftStatus
-  created_at: string
-  resolved_at: string | null
-}
-
 export type ProcessedEmailOutcome =
   | 'auto_registered'
-  | 'drafted'
   | 'skipped'
   | 'error'
 
@@ -251,7 +226,6 @@ export interface ProcessedEmail {
   user_id: string
   outcome: ProcessedEmailOutcome
   transaction_id: string | null
-  draft_id: string | null
   error_message: string | null
   processed_at: string
 }

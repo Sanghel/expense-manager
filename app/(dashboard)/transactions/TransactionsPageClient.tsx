@@ -97,7 +97,7 @@ export function TransactionsPageClient({ userId, categories, initialTransactions
       <HStack justify="space-between" mb={{ base: 4, md: 6 }}>
         <Heading size={{ base: 'md', md: 'lg' }} color="white">Transacciones</Heading>
         <HStack gap={2}>
-          <GmailSyncButton />
+          <GmailSyncButton userId={userId} categories={categories} accounts={accounts} />
           <Button variant="outline" onClick={onExportOpen} size={{ base: 'sm', md: 'md' }}>
             <FiDownload />
             <Text display={{ base: 'none', sm: 'inline' }}>Exportar</Text>

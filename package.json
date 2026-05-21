@@ -12,6 +12,8 @@
     "type-check": "tsc --noEmit",
     "test:crons": "npx tsx scripts/test-crons.ts",
     "test:bancolombia-parser": "npx tsx scripts/test-bancolombia-parser.ts",
+    "test:binance-parser": "npx tsx scripts/test-binance-parser.ts",
+    "test:mercantil-parser": "npx tsx scripts/test-mercantil-parser.ts",
     "generate-icons": "npx tsx scripts/generate-pwa-icons.ts"
   },
   "dependencies": {

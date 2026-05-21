@@ -29,8 +29,8 @@ const columns: ColumnDef<TransactionWithCategory>[] = [
     render: (t) => (
       <Badge colorPalette={t.type === 'income' ? 'green' : 'red'}>
         <HStack gap={1}>
-          <Text>{t.category.icon ?? '🏷️'}</Text>
-          <Text>{t.category.name}</Text>
+          <Text>{t.category?.icon ?? '🏷️'}</Text>
+          <Text>{t.category?.name ?? 'Sin categoría'}</Text>
         </HStack>
       </Badge>
     ),

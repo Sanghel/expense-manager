@@ -71,7 +71,7 @@ export function CalendarPageContent({ userId, initialTransactions, categories, a
       {activeTab === 'scheduled' && (
         <VStack gap={6} align="stretch" w="full">
           <Text fontSize="sm" color="#B0B0B0">
-            Visualiza tus recordatorios y suscripciones recurrentes. Haz clic en un recordatorio del día de hoy para registrar la transacción.
+            Haz clic en un día para ver detalles, registrar un pago de un recordatorio o crear uno nuevo.
           </Text>
 
           <RemindersCalendar
@@ -80,6 +80,7 @@ export function CalendarPageContent({ userId, initialTransactions, categories, a
             recurringTransactions={recurringTransactions}
             categories={categories}
             accounts={accounts}
+            onRefresh={() => router.refresh()}
           />
 
           <RemindersList

@@ -1,8 +1,8 @@
 'use client'
 
-import { VStack, HStack, Box, Text, Badge, IconButton, Button } from '@chakra-ui/react'
+import { VStack, HStack, Box, Text, Badge, IconButton } from '@chakra-ui/react'
 import { useState } from 'react'
-import { FiEdit2, FiTrash2, FiPlus } from 'react-icons/fi'
+import { FiEdit2, FiTrash2 } from 'react-icons/fi'
 import { deleteReminder } from '@/lib/actions/reminders.actions'
 import { toaster } from '@/lib/toaster'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
@@ -63,19 +63,7 @@ export function RemindersList({ userId, reminders, categories, onRefresh }: Prop
 
   return (
     <VStack gap={4} align="stretch">
-      <HStack justify="space-between">
-        <Text fontWeight="semibold" color="white">Mis Recordatorios</Text>
-        <Button
-          size="sm"
-          bg="#4F46E5"
-          color="white"
-          _hover={{ bg: '#4338CA' }}
-          onClick={() => { setEditingReminder(null); setIsFormOpen(true) }}
-        >
-          <FiPlus />
-          Nuevo
-        </Button>
-      </HStack>
+      <Text fontWeight="semibold" color="white">Mis Recordatorios</Text>
 
       {reminders.length === 0 ? (
         <Text color="#B0B0B0" fontSize="sm">No tienes recordatorios. Crea uno para verlo en el calendario.</Text>

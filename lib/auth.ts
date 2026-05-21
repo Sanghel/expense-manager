@@ -1,6 +1,8 @@
 import { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
 import { insforge } from './insforge'
+import { insforgeAdmin } from './insforge-admin'
+import { encryptToken } from './gmail/tokens'
 
 if (!process.env.GOOGLE_CLIENT_ID) {
   throw new Error('Missing GOOGLE_CLIENT_ID')
@@ -8,6 +10,8 @@ if (!process.env.GOOGLE_CLIENT_ID) {
 if (!process.env.GOOGLE_CLIENT_SECRET) {
   throw new Error('Missing GOOGLE_CLIENT_SECRET')
 }
+
+const GMAIL_SCOPE = 'https://www.googleapis.com/auth/gmail.readonly'
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -19,12 +23,13 @@ export const authOptions: NextAuthOptions = {
           prompt: 'consent',
           access_type: 'offline',
           response_type: 'code',
+          scope: `openid email profile ${GMAIL_SCOPE}`,
         },
       },
     }),
   ],
   callbacks: {
-    async signIn({ user }) {
+    async signIn({ user, account }) {
       if (!user.email) {
         console.log('❌ SignIn rejected: No email')
         return false
@@ -78,6 +83,33 @@ export const authOptions: NextAuthOptions = {
           } else {
             console.error('Error inserting user:', insertError)
             return false
+          }
+        }
+
+        // Persistir refresh_token de Gmail si Google lo envió (solo viene en el
+        // primer consent o cuando se fuerza prompt=consent). Cifrado en reposo.
+        const grantedScope = account?.scope ?? ''
+        if (
+          account?.provider === 'google' &&
+          account.refresh_token &&
+          grantedScope.includes(GMAIL_SCOPE)
+        ) {
+          try {
+            const encrypted = encryptToken(account.refresh_token)
+            const { error: tokenError } = await insforgeAdmin.database
+              .from('users')
+              .update({
+                gmail_refresh_token: encrypted,
+                gmail_connected_at: new Date().toISOString(),
+              })
+              .eq('email', user.email)
+            if (tokenError) {
+              console.error('Error storing gmail refresh token:', tokenError)
+            } else {
+              console.log('🔐 Gmail refresh token stored for', user.email)
+            }
+          } catch (err) {
+            console.error('encryptToken failed:', err)
           }
         }
 

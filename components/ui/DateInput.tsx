@@ -1,8 +1,8 @@
 'use client'
 
 import { FieldRoot, FieldLabel, Input, Box, IconButton } from '@chakra-ui/react'
-import { FiX } from 'react-icons/fi'
-import { useState, useEffect } from 'react'
+import { FiX, FiCalendar } from 'react-icons/fi'
+import { useState, useEffect, useRef } from 'react'
 
 function isoToDisplay(iso: string): string {
   if (!iso || iso.length < 10) return ''
@@ -39,6 +39,7 @@ interface Props {
 
 export function DateInput({ label, value, onChange, required, disabled, optional, showClear = true }: Props) {
   const [displayValue, setDisplayValue] = useState(() => isoToDisplay(value))
+  const hiddenDateRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     setDisplayValue(isoToDisplay(value))
@@ -60,7 +61,26 @@ export function DateInput({ label, value, onChange, required, disabled, optional
     onChange('')
   }
 
-  const showButton = showClear && displayValue && !disabled
+  const handlePickerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const iso = e.target.value
+    if (iso) {
+      setDisplayValue(isoToDisplay(iso))
+      onChange(iso)
+    }
+  }
+
+  const openPicker = () => {
+    const input = hiddenDateRef.current
+    if (!input) return
+    if (typeof input.showPicker === 'function') {
+      input.showPicker()
+    } else {
+      input.click()
+    }
+  }
+
+  const showClearBtn = showClear && displayValue && !disabled
+  const rightPadding = showClearBtn ? '16' : '10'
 
   return (
     <FieldRoot required={required} w="full">
@@ -77,10 +97,47 @@ export function DateInput({ label, value, onChange, required, disabled, optional
           disabled={disabled}
           opacity={disabled ? 0.6 : 1}
           cursor={disabled ? 'not-allowed' : undefined}
-          pr={showButton ? '8' : undefined}
+          pr={rightPadding}
           maxLength={10}
         />
-        {showButton && (
+        <input
+          ref={hiddenDateRef}
+          type="date"
+          value={value || ''}
+          onChange={handlePickerChange}
+          disabled={disabled}
+          aria-hidden="true"
+          tabIndex={-1}
+          style={{
+            position: 'absolute',
+            right: 0,
+            top: 0,
+            width: 1,
+            height: 1,
+            opacity: 0,
+            pointerEvents: 'none',
+          }}
+        />
+        <IconButton
+          aria-label="Abrir calendario"
+          variant="ghost"
+          size="xs"
+          position="absolute"
+          right={showClearBtn ? '8' : '1'}
+          top="50%"
+          transform="translateY(-50%)"
+          zIndex={2}
+          color="#B0B0B0"
+          _hover={{ color: 'white', bg: '#26262f' }}
+          onClick={openPicker}
+          disabled={disabled}
+          minW="auto"
+          h="auto"
+          p="1"
+        >
+          <FiCalendar />
+        </IconButton>
+        {showClearBtn && (
           <IconButton
             aria-label="Limpiar fecha"
             variant="ghost"

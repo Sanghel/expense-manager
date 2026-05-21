@@ -64,6 +64,7 @@ export function ChatInterface({ userId, categories, accounts = [], onClose }: Pr
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [confirmingId, setConfirmingId] = useState<string | null>(null)
   const [isRecording, setIsRecording] = useState(false)
   const [isVoiceSupported, setIsVoiceSupported] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -229,33 +230,37 @@ export function ChatInterface({ userId, categories, accounts = [], onClose }: Pr
   }
 
   const handleConfirm = async (msg: ChatMessage) => {
-    if (!msg.preview) return
+    if (!msg.preview || confirmingId) return
 
-    const result = await createTransaction(userId, {
-      amount: msg.preview.amount,
-      currency: msg.preview.currency,
-      type: msg.preview.type,
-      category_id: msg.preview.category_id,
-      account_id: msg.preview.account_id ?? null,
-      description: msg.preview.description,
-      date: msg.preview.date,
-      notes: undefined,
-    })
-
-    if (result.success) {
-      toaster.create({ title: 'Transacción guardada', type: 'success', duration: 3000 })
-      router.refresh()
-      // Marcar el mensaje como confirmado (sin preview)
-      setMessages((prev) => {
-        const updated = prev.map((m) =>
-          m.id === msg.id ? { ...m, preview: undefined, text: `✅ ${m.text}` } : m
-        )
-        saveHistory(updated)
-        return updated
+    setConfirmingId(msg.id)
+    try {
+      const result = await createTransaction(userId, {
+        amount: msg.preview.amount,
+        currency: msg.preview.currency,
+        type: msg.preview.type,
+        category_id: msg.preview.category_id,
+        account_id: msg.preview.account_id ?? null,
+        description: msg.preview.description,
+        date: msg.preview.date,
+        notes: undefined,
       })
-      addMessage({ role: 'system', text: '¡Listo! La transacción fue registrada correctamente.' })
-    } else {
-      toaster.create({ title: 'Error al guardar', description: result.error, type: 'error', duration: 4000 })
+
+      if (result.success) {
+        toaster.create({ title: 'Transacción guardada', type: 'success', duration: 3000 })
+        router.refresh()
+        setMessages((prev) => {
+          const updated = prev.map((m) =>
+            m.id === msg.id ? { ...m, preview: undefined, text: `✅ ${m.text}` } : m
+          )
+          saveHistory(updated)
+          return updated
+        })
+        addMessage({ role: 'system', text: '¡Listo! La transacción fue registrada correctamente.' })
+      } else {
+        toaster.create({ title: 'Error al guardar', description: result.error, type: 'error', duration: 4000 })
+      }
+    } finally {
+      setConfirmingId(null)
     }
   }
 
@@ -425,6 +430,9 @@ export function ChatInterface({ userId, categories, accounts = [], onClose }: Pr
                           colorPalette="green"
                           flex="1"
                           onClick={() => handleConfirm(msg)}
+                          loading={confirmingId === msg.id}
+                          loadingText="Registrando..."
+                          disabled={confirmingId !== null}
                         >
                           <Icon as={FiCheck} />
                           Confirmar
@@ -435,6 +443,7 @@ export function ChatInterface({ userId, categories, accounts = [], onClose }: Pr
                           colorPalette="red"
                           flex="1"
                           onClick={() => handleDiscard(msg.id)}
+                          disabled={confirmingId !== null}
                         >
                           <Icon as={FiX} />
                           Descartar

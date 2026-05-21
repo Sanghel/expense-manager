@@ -28,6 +28,7 @@ interface Props {
   initialRecurring: RecurringTransactionWithCategory[] | null
   initialLoans: LoanWithAccount[] | null
   initialReminders: ReminderWithCategory[] | null
+  todaysTransactions: { description: string; category_id: string | null }[]
 }
 
 export function MovimientosPageClient({
@@ -39,6 +40,7 @@ export function MovimientosPageClient({
   initialRecurring,
   initialLoans,
   initialReminders,
+  todaysTransactions,
 }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -167,6 +169,7 @@ export function MovimientosPageClient({
               categories={categories}
               accounts={accounts}
               initialReminders={initialReminders}
+              todaysTransactions={todaysTransactions}
             />
           )}
         </Tabs.Content>

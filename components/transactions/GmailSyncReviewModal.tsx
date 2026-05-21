@@ -6,14 +6,13 @@ import {
 import { useState, useMemo } from 'react'
 import { FiEdit2, FiTrash2, FiCheck, FiX } from 'react-icons/fi'
 import { FormDialog } from '@/components/ui/FormDialog'
-import { CategorySelect } from '@/components/ui/CategorySelect'
-import { AccountSelect } from '@/components/ui/AccountSelect'
 import { TransactionEditForm } from './TransactionEditForm'
 import { commitGmailTransactions } from '@/lib/actions/gmail.actions'
 import { toaster } from '@/lib/toaster'
 import { formatCurrency } from '@/lib/utils/currency'
 import type { Account, Category, Currency, TransactionType, TransactionWithCategory } from '@/types/database.types'
 import type { ParsedItem } from '@/lib/gmail/process'
+import type { ParserSource } from '@/lib/gmail/parsers'
 
 interface ReviewItem {
   parsed: ParsedItem
@@ -30,17 +29,35 @@ interface ReviewItem {
   excluded: boolean
 }
 
-function initialEdited(p: ParsedItem): ReviewItem['edited'] {
+const SOURCE_STYLES: Record<ParserSource, { bg: string; color: string; label: string }> = {
+  bancolombia: { bg: '#FDDA24', color: '#000000', label: 'Bancolombia' },
+  binance: { bg: '#F0B90B', color: '#000000', label: 'Binance' },
+  mercantil: { bg: '#003B7A', color: '#FFFFFF', label: 'Mercantil' },
+}
+
+function findAccountByLastFour(accounts: Account[], lastFour: string | null): string | null {
+  if (!lastFour) return null
+  const match = accounts.find((a) => a.last_four === lastFour && a.is_active)
+  return match?.id ?? null
+}
+
+function initialEdited(p: ParsedItem, accounts: Account[]): ReviewItem['edited'] {
   return {
     type: p.type,
     amount: p.amount,
     currency: p.currency,
     category_id: '',
-    account_id: null,
+    account_id: findAccountByLastFour(accounts, p.lastFour),
     description: p.description,
     date: p.date,
     notes: '',
   }
+}
+
+function formatDateDDMMYYYY(iso: string): string {
+  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  if (!m) return iso
+  return `${m[3]}/${m[2]}/${m[1]}`
 }
 
 interface Props {
@@ -55,7 +72,7 @@ interface Props {
 
 export function GmailSyncReviewModal({ isOpen, onClose, userId, items, categories, accounts, onDone }: Props) {
   const [reviews, setReviews] = useState<ReviewItem[]>(
-    items.map((p) => ({ parsed: p, edited: initialEdited(p), excluded: false }))
+    items.map((p) => ({ parsed: p, edited: initialEdited(p, accounts), excluded: false }))
   )
   const [editing, setEditing] = useState<number | null>(null)
   const [saving, setSaving] = useState(false)
@@ -65,6 +82,19 @@ export function GmailSyncReviewModal({ isOpen, onClose, userId, items, categorie
     () => activeReviews.some((r) => !r.edited.category_id),
     [activeReviews]
   )
+
+  const categoryLabel = (id: string): string => {
+    if (!id) return '—'
+    const c = categories.find((x) => x.id === id)
+    if (!c) return '—'
+    return `${c.icon ?? ''} ${c.name}`.trim()
+  }
+
+  const accountLabel = (id: string | null): string => {
+    if (!id) return '—'
+    const a = accounts.find((x) => x.id === id)
+    return a?.name ?? '—'
+  }
 
   const updateRow = (idx: number, patch: Partial<ReviewItem['edited']>) => {
     setReviews((prev) => prev.map((r, i) => i === idx ? { ...r, edited: { ...r.edited, ...patch } } : r))
@@ -134,7 +164,7 @@ export function GmailSyncReviewModal({ isOpen, onClose, userId, items, categorie
       <FormDialog isOpen={isOpen} onClose={handleDiscard} title={`Revisar ${reviews.length} transacciones detectadas`} size="xl">
         <VStack align="stretch" gap={4}>
           <Text fontSize="sm" color="#B0B0B0">
-            Edita categoría, cuenta y otros campos antes de guardar. Las transacciones no se registran hasta que confirmes.
+            Edita categoría, cuenta y otros campos con el botón ✏️ antes de guardar. Las transacciones no se registran hasta que confirmes.
           </Text>
 
           {/* Desktop: tabla */}
@@ -152,66 +182,70 @@ export function GmailSyncReviewModal({ isOpen, onClose, userId, items, categorie
                 </Table.Row>
               </Table.Header>
               <Table.Body>
-                {reviews.map((r, idx) => (
-                  <Table.Row key={idx} opacity={r.excluded ? 0.4 : 1}>
-                    <Table.Cell>{r.edited.date}</Table.Cell>
-                    <Table.Cell><Badge>{r.parsed.source}</Badge></Table.Cell>
-                    <Table.Cell maxW="200px" truncate>{r.edited.description}</Table.Cell>
-                    <Table.Cell>{formatCurrency(r.edited.amount, r.edited.currency)}</Table.Cell>
-                    <Table.Cell>
-                      <CategorySelect
-                        value={r.edited.category_id}
-                        onChange={(v) => updateRow(idx, { category_id: v })}
-                        categories={categories}
-                        filterByType={r.edited.type}
-                        required
-                      />
-                    </Table.Cell>
-                    <Table.Cell>
-                      <AccountSelect
-                        value={r.edited.account_id ?? ''}
-                        onChange={(v) => updateRow(idx, { account_id: v || null })}
-                        accounts={accounts}
-                        optional
-                        placeholder="—"
-                      />
-                    </Table.Cell>
-                    <Table.Cell>
-                      <HStack gap={1}>
-                        <IconButton aria-label="Editar" size="xs" variant="ghost" onClick={() => setEditing(idx)}><FiEdit2 /></IconButton>
-                        <IconButton aria-label={r.excluded ? 'Incluir' : 'Excluir'} size="xs" variant="ghost" color={r.excluded ? '#4ade80' : '#ef4444'} onClick={() => toggleExclude(idx)}>
-                          {r.excluded ? <FiCheck /> : <FiTrash2 />}
-                        </IconButton>
-                      </HStack>
-                    </Table.Cell>
-                  </Table.Row>
-                ))}
+                {reviews.map((r, idx) => {
+                  const style = SOURCE_STYLES[r.parsed.source]
+                  return (
+                    <Table.Row key={idx} opacity={r.excluded ? 0.4 : 1}>
+                      <Table.Cell>{formatDateDDMMYYYY(r.edited.date)}</Table.Cell>
+                      <Table.Cell>
+                        <Badge bg={style.bg} color={style.color}>{style.label}</Badge>
+                      </Table.Cell>
+                      <Table.Cell maxW="200px" truncate>{r.edited.description}</Table.Cell>
+                      <Table.Cell>{formatCurrency(r.edited.amount, r.edited.currency)}</Table.Cell>
+                      <Table.Cell>
+                        <Text color={r.edited.category_id ? 'white' : '#ef4444'}>
+                          {categoryLabel(r.edited.category_id)}
+                        </Text>
+                      </Table.Cell>
+                      <Table.Cell>{accountLabel(r.edited.account_id)}</Table.Cell>
+                      <Table.Cell>
+                        <HStack gap={1}>
+                          <IconButton aria-label="Editar" size="xs" variant="ghost" onClick={() => setEditing(idx)}><FiEdit2 /></IconButton>
+                          <IconButton aria-label={r.excluded ? 'Incluir' : 'Excluir'} size="xs" variant="ghost" color={r.excluded ? '#4ade80' : '#ef4444'} onClick={() => toggleExclude(idx)}>
+                            {r.excluded ? <FiCheck /> : <FiTrash2 />}
+                          </IconButton>
+                        </HStack>
+                      </Table.Cell>
+                    </Table.Row>
+                  )
+                })}
               </Table.Body>
             </Table.Root>
           </Box>
 
           {/* Mobile: cards */}
           <VStack display={{ base: 'flex', md: 'none' }} gap={3} align="stretch">
-            {reviews.map((r, idx) => (
-              <Box key={idx} borderWidth="1px" borderColor="#2d2d35" borderRadius="md" p={3} bg="#18181d" opacity={r.excluded ? 0.4 : 1}>
-                <Stack gap={2}>
-                  <HStack justify="space-between">
-                    <Badge>{r.parsed.source}</Badge>
-                    <Text fontWeight="600">{formatCurrency(r.edited.amount, r.edited.currency)}</Text>
-                  </HStack>
-                  <Text fontSize="sm">{r.edited.description}</Text>
-                  <Text fontSize="xs" color="#B0B0B0">{r.edited.date}</Text>
-                  <CategorySelect value={r.edited.category_id} onChange={(v) => updateRow(idx, { category_id: v })} categories={categories} filterByType={r.edited.type} required />
-                  <AccountSelect value={r.edited.account_id ?? ''} onChange={(v) => updateRow(idx, { account_id: v || null })} accounts={accounts} optional placeholder="Sin cuenta" />
-                  <HStack justify="flex-end" gap={2}>
-                    <Button size="sm" variant="outline" onClick={() => setEditing(idx)}><FiEdit2 /> Editar</Button>
-                    <Button size="sm" variant="outline" colorPalette={r.excluded ? 'green' : 'red'} onClick={() => toggleExclude(idx)}>
-                      {r.excluded ? <><FiCheck /> Incluir</> : <><FiX /> Excluir</>}
-                    </Button>
-                  </HStack>
-                </Stack>
-              </Box>
-            ))}
+            {reviews.map((r, idx) => {
+              const style = SOURCE_STYLES[r.parsed.source]
+              return (
+                <Box key={idx} borderWidth="1px" borderColor="#2d2d35" borderRadius="md" p={3} bg="#18181d" opacity={r.excluded ? 0.4 : 1}>
+                  <Stack gap={2}>
+                    <HStack justify="space-between">
+                      <Badge bg={style.bg} color={style.color}>{style.label}</Badge>
+                      <Text fontWeight="600">{formatCurrency(r.edited.amount, r.edited.currency)}</Text>
+                    </HStack>
+                    <Text fontSize="sm">{r.edited.description}</Text>
+                    <Text fontSize="xs" color="#B0B0B0">{formatDateDDMMYYYY(r.edited.date)}</Text>
+                    <HStack gap={2}>
+                      <Text fontSize="xs" color="#B0B0B0" minW="70px">Categoría:</Text>
+                      <Text fontSize="sm" color={r.edited.category_id ? 'white' : '#ef4444'}>
+                        {categoryLabel(r.edited.category_id)}
+                      </Text>
+                    </HStack>
+                    <HStack gap={2}>
+                      <Text fontSize="xs" color="#B0B0B0" minW="70px">Cuenta:</Text>
+                      <Text fontSize="sm">{accountLabel(r.edited.account_id)}</Text>
+                    </HStack>
+                    <HStack justify="flex-end" gap={2}>
+                      <Button size="sm" variant="outline" onClick={() => setEditing(idx)}><FiEdit2 /> Editar</Button>
+                      <Button size="sm" variant="outline" colorPalette={r.excluded ? 'green' : 'red'} onClick={() => toggleExclude(idx)}>
+                        {r.excluded ? <><FiCheck /> Incluir</> : <><FiX /> Excluir</>}
+                      </Button>
+                    </HStack>
+                  </Stack>
+                </Box>
+              )
+            })}
           </VStack>
 
           <HStack justify="space-between" pt={4} borderTopWidth="1px" borderColor="#2d2d35">

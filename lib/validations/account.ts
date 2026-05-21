@@ -8,6 +8,11 @@ export const createAccountSchema = z.object({
   credit_limit: z.number().positive().nullable().optional(),
   color: z.string().nullable().optional(),
   icon: z.string().nullable().optional(),
+  last_four: z
+    .string()
+    .regex(/^[0-9]{4}$/, 'Deben ser 4 dígitos')
+    .nullable()
+    .optional(),
 })
 
 export const updateAccountSchema = createAccountSchema.partial()

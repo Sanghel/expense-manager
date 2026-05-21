@@ -7,6 +7,7 @@ import { FiSliders, FiBriefcase, FiTag } from 'react-icons/fi'
 import { CurrencySelector } from '@/components/settings/CurrencySelector'
 import { ExchangeRatesForm } from '@/components/settings/ExchangeRatesForm'
 import { AccountsTab } from '@/components/settings/AccountsTab'
+import { GmailConnectionPanel } from '@/components/settings/GmailConnectionPanel'
 import { CategoriesPageClient } from '../categories/CategoriesPageClient'
 import type {
   Currency,
@@ -26,6 +27,11 @@ interface Props {
   initialMovements: AccountMovementWithAccounts[]
   activeTab: Tab
   initialCategories: Category[]
+  gmailStatus: {
+    connected: boolean
+    connectedAt: string | null
+    lastSyncedAt: string | null
+  }
 }
 
 export function SettingsPageClient({
@@ -36,6 +42,7 @@ export function SettingsPageClient({
   initialMovements,
   activeTab,
   initialCategories,
+  gmailStatus,
 }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -127,6 +134,14 @@ export function SettingsPageClient({
               </Text>
               <ExchangeRatesForm initialRates={initialRates} />
             </Box>
+
+            <Separator />
+
+            <GmailConnectionPanel
+              connected={gmailStatus.connected}
+              connectedAt={gmailStatus.connectedAt}
+              lastSyncedAt={gmailStatus.lastSyncedAt}
+            />
           </VStack>
         </Tabs.Content>
 

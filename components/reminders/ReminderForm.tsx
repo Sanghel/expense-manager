@@ -46,6 +46,7 @@ interface Props {
   categories: Category[]
   editingReminder?: Reminder | null
   onSuccess: () => void
+  prefillDate?: string
 }
 
 const defaultForm = {
@@ -58,7 +59,7 @@ const defaultForm = {
   specific_date: getLocalDateString(),
 }
 
-export function ReminderForm({ isOpen, onClose, userId, categories, editingReminder, onSuccess }: Props) {
+export function ReminderForm({ isOpen, onClose, userId, categories, editingReminder, onSuccess, prefillDate }: Props) {
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState(defaultForm)
 
@@ -73,10 +74,20 @@ export function ReminderForm({ isOpen, onClose, userId, categories, editingRemin
         month_of_year: editingReminder.month_of_year ?? 1,
         specific_date: editingReminder.specific_date ?? getLocalDateString(),
       })
+    } else if (prefillDate) {
+      const d = new Date(prefillDate + 'T12:00:00')
+      setFormData({
+        ...defaultForm,
+        frequency: 'once',
+        specific_date: prefillDate,
+        day_of_week: d.getDay(),
+        day_of_month: d.getDate(),
+        month_of_year: d.getMonth() + 1,
+      })
     } else {
       setFormData(defaultForm)
     }
-  }, [editingReminder, isOpen])
+  }, [editingReminder, isOpen, prefillDate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

@@ -25,6 +25,8 @@ export interface ParseResult {
 
 export interface CommitInput extends ParsedTransaction {
   gmailMessageId: string
+  category_id: string | null
+  account_id?: string | null
 }
 
 export interface CommitResult {
@@ -129,7 +131,13 @@ export async function commitParsedTransactions(userId: string, items: CommitInpu
 
   for (const item of items) {
     try {
-      const account = item.lastFour ? await findAccountByLastFour(userId, item.lastFour) : null
+      let accountId: string | null
+      if (item.account_id !== undefined) {
+        accountId = item.account_id
+      } else {
+        const account = item.lastFour ? await findAccountByLastFour(userId, item.lastFour) : null
+        accountId = account?.id ?? null
+      }
 
       const { data: created, error: insertError } = await insforgeAdmin.database
         .from('transactions')
@@ -139,8 +147,8 @@ export async function commitParsedTransactions(userId: string, items: CommitInpu
             amount: item.amount,
             currency: item.currency,
             type: item.type,
-            category_id: null,
-            account_id: account?.id ?? null,
+            category_id: item.category_id,
+            account_id: accountId,
             description: item.description,
             date: item.date,
             source: 'gmail',
@@ -154,9 +162,19 @@ export async function commitParsedTransactions(userId: string, items: CommitInpu
         throw new Error(`insert tx failed: ${JSON.stringify(insertError)}`)
       }
 
-      if (account) {
+      if (accountId) {
+        const { data: acc } = await insforgeAdmin.database
+          .from('accounts')
+          .select('currency')
+          .eq('id', accountId)
+          .maybeSingle()
         const direction = item.type === 'income' ? 'add' : 'subtract'
-        await applyBalanceDelta(account.id, item.amount, item.currency, direction)
+        await applyBalanceDelta(
+          accountId,
+          item.amount,
+          (acc?.currency ?? item.currency) as typeof item.currency,
+          direction
+        )
       }
 
       await insforgeAdmin.database.from('processed_emails').insert([
@@ -184,6 +202,7 @@ export async function commitParsedTransactions(userId: string, items: CommitInpu
 
 export async function autoCommitGmailForUser(userId: string): Promise<{ parse: ParseResult; commit: CommitResult }> {
   const parse = await parseGmailForUser(userId)
-  const commit = await commitParsedTransactions(userId, parse.items)
+  const commitItems: CommitInput[] = parse.items.map((it) => ({ ...it, category_id: null }))
+  const commit = await commitParsedTransactions(userId, commitItems)
   return { parse, commit }
 }

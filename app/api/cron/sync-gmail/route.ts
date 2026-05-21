@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { insforgeAdmin } from '@/lib/insforge-admin'
-import { syncGmailForUser } from '@/lib/gmail/process'
+import { autoCommitGmailForUser } from '@/lib/gmail/process'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,9 +10,8 @@ export async function GET(req: NextRequest) {
 
   const authHeader = req.headers.get('authorization')
   const cronSecret = process.env.CRON_SECRET
-
   if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    console.error('[cron:sync-gmail] Unauthorized — invalid or missing CRON_SECRET')
+    console.error('[cron:sync-gmail] Unauthorized')
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -21,58 +20,45 @@ export async function GET(req: NextRequest) {
       .from('users')
       .select('id, email')
       .not('gmail_refresh_token', 'is', null)
+    if (error) throw error
 
-    if (error) {
-      console.error('[cron:sync-gmail] DB fetch users error:', JSON.stringify(error))
-      throw error
-    }
-
-    const connectedUsers = (users ?? []) as Array<{ id: string; email: string }>
-    console.log(`[cron:sync-gmail] connectedUsers=${connectedUsers.length}`)
-
+    const connected = (users ?? []) as Array<{ id: string; email: string }>
     let totalScanned = 0
-    let totalAuto = 0
-    let totalDrafted = 0
+    let totalCreated = 0
     let totalSkipped = 0
     const allErrors: string[] = []
 
-    for (const user of connectedUsers) {
-      console.log(`[cron:sync-gmail] processing userId=${user.id} email=${user.email}`)
+    for (const user of connected) {
       try {
-        const result = await syncGmailForUser(user.id)
-        totalScanned += result.scanned
-        totalAuto += result.autoRegistered
-        totalDrafted += result.drafted
-        totalSkipped += result.skipped
-        if (result.errors > 0) {
-          console.error(`[cron:sync-gmail] userId=${user.id} errors=`, result.errorMessages)
-          allErrors.push(...result.errorMessages.map((e) => `${user.id}: ${e}`))
-        }
+        const { parse, commit } = await autoCommitGmailForUser(user.id)
+        totalScanned += parse.scanned
+        totalCreated += commit.created
+        totalSkipped += parse.skipped
+        allErrors.push(...parse.errorMessages.map((e) => `${user.id}: parse: ${e}`))
+        allErrors.push(...commit.errors.map((e) => `${user.id}: commit: ${e}`))
         console.log(
-          `[cron:sync-gmail] userId=${user.id} scanned=${result.scanned} auto=${result.autoRegistered} drafted=${result.drafted} skipped=${result.skipped}`
+          `[cron:sync-gmail] user=${user.id} scanned=${parse.scanned} created=${commit.created} skipped=${parse.skipped}`
         )
       } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err)
-        console.error(`[cron:sync-gmail] userId=${user.id} fatal=`, msg)
-        allErrors.push(`${user.id}: ${msg}`)
+        const m = err instanceof Error ? err.message : String(err)
+        console.error(`[cron:sync-gmail] user=${user.id} fatal=`, m)
+        allErrors.push(`${user.id}: fatal: ${m}`)
       }
     }
 
     console.log(
-      `[cron:sync-gmail] done users=${connectedUsers.length} scanned=${totalScanned} auto=${totalAuto} drafted=${totalDrafted} skipped=${totalSkipped} errors=${allErrors.length}`
+      `[cron:sync-gmail] done users=${connected.length} scanned=${totalScanned} created=${totalCreated} skipped=${totalSkipped} errors=${allErrors.length}`
     )
-
     return NextResponse.json({
       ok: true,
-      usersProcessed: connectedUsers.length,
+      usersProcessed: connected.length,
       scanned: totalScanned,
-      autoRegistered: totalAuto,
-      drafted: totalDrafted,
+      created: totalCreated,
       skipped: totalSkipped,
       errors: allErrors.length > 0 ? allErrors : undefined,
     })
   } catch (error) {
-    console.error(`[cron:sync-gmail] unhandled error=`, error)
+    console.error('[cron:sync-gmail] unhandled', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

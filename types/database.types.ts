@@ -77,7 +77,7 @@ export interface Transaction {
   amount: number
   currency: Currency
   type: TransactionType
-  category_id: string
+  category_id: string | null
   account_id: string | null
   description: string
   date: string // ISO date

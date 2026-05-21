@@ -31,6 +31,11 @@ ALTER TABLE transactions
   ADD CONSTRAINT transactions_source_check
   CHECK (source IN ('manual', 'conversational', 'import', 'gmail'));
 
+-- Allow gmail-sourced transactions to land without a category. The user can
+-- categorize them later from the transactions list. Manual transactions still
+-- require a category at the form/validation layer.
+ALTER TABLE transactions ALTER COLUMN category_id DROP NOT NULL;
+
 -- 4. transaction_drafts: pending review queue --------------------------------
 CREATE TABLE IF NOT EXISTS transaction_drafts (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

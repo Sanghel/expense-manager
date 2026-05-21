@@ -1,5 +1,34 @@
 # Changelog
 
+## [3.3.0] — 2026-05-21
+
+### Added
+
+**Integración Gmail → auto-registro de transacciones de Bancolombia**
+
+- **Auto-registro de transacciones**: los correos de Bancolombia (compras con tarjeta de crédito/débito, transferencias enviadas, pagos PSE/servicios y consignaciones recibidas) se registran automáticamente como transacciones cuando la confianza del parser es alta y la cuenta queda identificada por los últimos 4 dígitos.
+- **Cola "Pendientes"** (`/pendientes`): los correos con confianza baja o sin cuenta matcheable quedan como borradores editables. El usuario revisa monto, categoría, cuenta, descripción y fecha, y confirma o rechaza.
+- **Botón "Sincronizar correos"** en la toolbar de `/transactions` que dispara el sync on-demand y muestra un toast con scanned / auto / pendientes / omitidos / errores.
+- **Sección Gmail en Settings**: conectar/desconectar Gmail, ver estado de la conexión, última sincronización, y disparar sync manual.
+- **Cron de respaldo** (`/api/cron/sync-gmail`) cada 6 horas itera usuarios con Gmail conectado y ejecuta el mismo pipeline; idempotencia garantizada vía `processed_emails.gmail_message_id UNIQUE`.
+- **Campo "Últimos 4 dígitos"** en el formulario de cuentas, opcional, para asociar correos a la cuenta correcta.
+- **OAuth Gmail multiusuario**: NextAuth pide el scope `gmail.readonly` en el consent; el refresh_token se persiste cifrado con AES-256-GCM (`GMAIL_TOKEN_ENCRYPTION_KEY`) en `users.gmail_refresh_token`.
+- **Parser Bancolombia** (`lib/gmail/parsers/bancolombia.ts`) con 4 reglas regex (compra tarjeta, transferencia enviada, pago servicio, recepción) y score de confianza basado en monto + last_four + merchant. Cubierto por fixtures en `scripts/test-bancolombia-parser.ts` (`npm run test:bancolombia-parser`).
+
+### Changed
+
+- `createTransaction` ahora acepta un parámetro opcional `source` (default `'manual'`) para que pipelines externos (gmail, futuros adaptadores) puedan tagear sus inserts sin tocar el contrato.
+- `transactions.category_id` ahora es nullable a nivel DB y tipo. Las transacciones auto-registradas desde Gmail entran sin categoría (el usuario la asigna después); las manuales siguen exigiéndola en el formulario.
+
+### Database
+
+- Nueva migración `supabase/seeds/gmail-integration-v3.3.sql`: columnas `gmail_*` en `users`, `last_four` en `accounts`, tablas `transaction_drafts` y `processed_emails`, `'gmail'` añadido al CHECK de `transactions.source` y `category_id` relajado a nullable.
+
+### Operational
+
+- Nuevas env vars requeridas: `GMAIL_TOKEN_ENCRYPTION_KEY` (clave para cifrar refresh tokens en reposo).
+- Gmail API debe habilitarse en Google Cloud Console y el scope `gmail.readonly` debe añadirse al OAuth consent screen del mismo Client ID.
+
 ## [3.2.0] — 2026-05-21
 
 ### Fixed

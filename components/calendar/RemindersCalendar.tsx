@@ -26,6 +26,7 @@ import { FiPlus, FiX } from 'react-icons/fi'
 import type { ReminderWithCategory, RecurringTransactionWithCategory, Account, Category } from '@/types/database.types'
 import { formatCurrency } from '@/lib/utils/currency'
 import { getLocalDateString } from '@/lib/utils/dates'
+import { reminderMatchesDate } from '@/lib/reminders/matches-date'
 import { TransactionForm } from '@/components/transactions/TransactionForm'
 import { ReminderForm } from '@/components/reminders/ReminderForm'
 import { RecurringTransactionForm } from '@/components/recurring/RecurringTransactionForm'
@@ -58,23 +59,7 @@ function getItemsForDay(
   const items: DayItem[] = []
 
   for (const r of reminders) {
-    if (!r.is_active) continue
-    let matches = false
-    switch (r.frequency) {
-      case 'once':
-        matches = r.specific_date === dateStr
-        break
-      case 'weekly':
-        matches = r.day_of_week === dayOfWeek
-        break
-      case 'monthly':
-        matches = r.day_of_month === day
-        break
-      case 'yearly':
-        matches = r.day_of_month === day && r.month_of_year === (month + 1)
-        break
-    }
-    if (matches) {
+    if (reminderMatchesDate(r, date)) {
       items.push({
         type: 'reminder',
         label: r.description,

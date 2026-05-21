@@ -1,24 +1,36 @@
 'use client'
 
-import { VStack, HStack, Heading, Button } from '@chakra-ui/react'
-import { useState } from 'react'
+import { VStack, HStack, Heading, Button, Box, Text, Badge } from '@chakra-ui/react'
+import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiPlus } from 'react-icons/fi'
+import { FiPlus, FiCheckCircle } from 'react-icons/fi'
 import { ReminderForm } from '@/components/reminders/ReminderForm'
 import { RemindersList } from '@/components/reminders/RemindersList'
-import type { Category, ReminderWithCategory } from '@/types/database.types'
+import { TransactionForm } from '@/components/transactions/TransactionForm'
+import { remindersForDate } from '@/lib/reminders/matches-date'
+import { getLocalDateString } from '@/lib/utils/dates'
+import type { Account, Category, ReminderWithCategory } from '@/types/database.types'
 
 interface Props {
   userId: string
   categories: Category[]
+  accounts: Account[]
   initialReminders: ReminderWithCategory[]
 }
 
-export function RecordatoriosTab({ userId, categories, initialReminders }: Props) {
+export function RecordatoriosTab({ userId, categories, accounts, initialReminders }: Props) {
   const router = useRouter()
   const [isFormOpen, setIsFormOpen] = useState(false)
+  const [payingReminder, setPayingReminder] = useState<ReminderWithCategory | null>(null)
 
   const refresh = () => router.refresh()
+  const today = useMemo(() => new Date(), [])
+  const todayStr = getLocalDateString(today)
+
+  const pinnedToday = useMemo(
+    () => remindersForDate(initialReminders, today),
+    [initialReminders, today],
+  )
 
   return (
     <VStack alignItems="flex-start" gap={{ base: 4, md: 6 }} w="full">
@@ -35,6 +47,50 @@ export function RecordatoriosTab({ userId, categories, initialReminders }: Props
           Nuevo recordatorio
         </Button>
       </HStack>
+
+      {pinnedToday.length > 0 && (
+        <VStack gap={2} align="stretch" w="full">
+          <Text fontSize="sm" color="#B0B0B0">
+            📌 Para hoy
+          </Text>
+          {pinnedToday.map((r) => (
+            <Box
+              key={r.id}
+              borderWidth="1px"
+              borderRadius="xl"
+              borderColor="#4F46E5"
+              bg="#1a1a2e"
+              px={4}
+              py={3}
+            >
+              <HStack justify="space-between" align="center" flexWrap="wrap" gap={3}>
+                <VStack align="start" gap={1} flex={1} minW={0}>
+                  <Text fontWeight="semibold" color="white">
+                    {r.category?.icon ?? '🔔'} {r.description}
+                  </Text>
+                  <HStack gap={2} flexWrap="wrap">
+                    <Badge size="sm" variant="outline" colorPalette="purple">Hoy</Badge>
+                    {r.category && (
+                      <Text fontSize="xs" color="#B0B0B0">{r.category.name}</Text>
+                    )}
+                  </HStack>
+                </VStack>
+                <Button
+                  size="sm"
+                  bg="#10B981"
+                  color="white"
+                  _hover={{ bg: '#059669' }}
+                  onClick={() => setPayingReminder(r)}
+                  flexShrink={0}
+                >
+                  <FiCheckCircle />
+                  Pagar
+                </Button>
+              </HStack>
+            </Box>
+          ))}
+        </VStack>
+      )}
 
       <RemindersList
         userId={userId}
@@ -53,6 +109,24 @@ export function RecordatoriosTab({ userId, categories, initialReminders }: Props
           refresh()
         }}
       />
+
+      {payingReminder && (
+        <TransactionForm
+          isOpen
+          onClose={() => setPayingReminder(null)}
+          userId={userId}
+          categories={categories}
+          accounts={accounts}
+          initialDate={todayStr}
+          lockedDate
+          prefillDescription={payingReminder.description}
+          prefillCategoryId={payingReminder.category_id ?? undefined}
+          onSuccess={() => {
+            setPayingReminder(null)
+            refresh()
+          }}
+        />
+      )}
     </VStack>
   )
 }

@@ -165,6 +165,7 @@ export function MovimientosPageClient({
             <RecordatoriosTab
               userId={userId}
               categories={categories}
+              accounts={accounts}
               initialReminders={initialReminders}
             />
           )}

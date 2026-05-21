@@ -42,6 +42,23 @@ export async function createTransaction(
   }
 }
 
+export async function getTransactionsByDate(userId: string, date: string) {
+  if (!userId) return { success: false, error: 'User ID is required' }
+  try {
+    const { data, error } = await insforgeAdmin.database
+      .from('transactions')
+      .select('id, description, category_id, date')
+      .eq('user_id', userId)
+      .eq('date', date)
+
+    if (error) throw error
+    return { success: true, data: data ?? [] }
+  } catch (error) {
+    console.error('Get transactions by date error:', error)
+    return { success: false, error: 'Failed to fetch transactions' }
+  }
+}
+
 export async function getTransactions(userId: string, limit = 50) {
   if (!userId) {
     console.error('getTransactions: userId is missing')

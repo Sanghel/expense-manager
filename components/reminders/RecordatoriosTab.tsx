@@ -16,9 +16,16 @@ interface Props {
   categories: Category[]
   accounts: Account[]
   initialReminders: ReminderWithCategory[]
+  todaysTransactions: { description: string; category_id: string | null }[]
 }
 
-export function RecordatoriosTab({ userId, categories, accounts, initialReminders }: Props) {
+export function RecordatoriosTab({
+  userId,
+  categories,
+  accounts,
+  initialReminders,
+  todaysTransactions,
+}: Props) {
   const router = useRouter()
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [payingReminder, setPayingReminder] = useState<ReminderWithCategory | null>(null)
@@ -27,10 +34,15 @@ export function RecordatoriosTab({ userId, categories, accounts, initialReminder
   const today = useMemo(() => new Date(), [])
   const todayStr = getLocalDateString(today)
 
-  const pinnedToday = useMemo(
-    () => remindersForDate(initialReminders, today),
-    [initialReminders, today],
-  )
+  const pinnedToday = useMemo(() => {
+    const matches = remindersForDate(initialReminders, today)
+    return matches.filter(
+      (r) =>
+        !todaysTransactions.some(
+          (tx) => tx.description === r.description && tx.category_id === r.category_id,
+        ),
+    )
+  }, [initialReminders, today, todaysTransactions])
 
   return (
     <VStack alignItems="flex-start" gap={{ base: 4, md: 6 }} w="full">

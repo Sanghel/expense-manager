@@ -4,7 +4,8 @@ import { redirect } from 'next/navigation'
 import { insforgeAdmin } from '@/lib/insforge-admin'
 import { getCategories } from '@/lib/actions/categories.actions'
 import { getAccounts } from '@/lib/actions/accounts.actions'
-import { getTransactions } from '@/lib/actions/transactions.actions'
+import { getTransactions, getTransactionsByDate } from '@/lib/actions/transactions.actions'
+import { getLocalDateString } from '@/lib/utils/dates'
 import { getRecurringTransactions } from '@/lib/actions/recurring.actions'
 import { getLoans } from '@/lib/actions/loans.actions'
 import { getReminders } from '@/lib/actions/reminders.actions'
@@ -50,6 +51,7 @@ export default async function MovimientosPage({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let initialLoans: any[] | null = null
   let initialReminders: ReminderWithCategory[] | null = null
+  let todaysTransactions: { description: string; category_id: string | null }[] = []
 
   if (tab === 'transacciones') {
     const result = await getTransactions(user.id, 500)
@@ -61,8 +63,17 @@ export default async function MovimientosPage({
     const result = await getLoans(user.id)
     initialLoans = result.success && result.data ? result.data : []
   } else if (tab === 'recordatorios') {
-    const result = await getReminders(user.id)
-    initialReminders = result.success ? ((result.data ?? []) as ReminderWithCategory[]) : []
+    const today = getLocalDateString()
+    const [remindersResult, txResult] = await Promise.all([
+      getReminders(user.id),
+      getTransactionsByDate(user.id, today),
+    ])
+    initialReminders = remindersResult.success
+      ? ((remindersResult.data ?? []) as ReminderWithCategory[])
+      : []
+    todaysTransactions = txResult.success
+      ? (txResult.data as { description: string; category_id: string | null }[])
+      : []
   }
 
   return (
@@ -75,6 +86,7 @@ export default async function MovimientosPage({
       initialRecurring={initialRecurring}
       initialLoans={initialLoans}
       initialReminders={initialReminders}
+      todaysTransactions={todaysTransactions}
     />
   )
 }

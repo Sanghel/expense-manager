@@ -34,6 +34,7 @@ export async function createRecurringTransaction(
         frequency: validated.frequency,
         start_date: validated.start_date,
         end_date: validated.end_date || null,
+        is_active: true,
       }])
       .select('*, category:categories(*)')
       .single()
@@ -42,6 +43,7 @@ export async function createRecurringTransaction(
 
     revalidatePath('/recurring-transactions')
     revalidatePath('/movimientos')
+    revalidatePath('/calendar')
     return { success: true, data: transaction as RecurringTransactionWithCategory }
   } catch (error) {
     console.error('Create recurring transaction error:', error)
@@ -91,6 +93,7 @@ export async function updateRecurringTransaction(
 
     revalidatePath('/recurring-transactions')
     revalidatePath('/movimientos')
+    revalidatePath('/calendar')
     return { success: true, data: transaction as RecurringTransactionWithCategory }
   } catch (error) {
     console.error('Update recurring transaction error:', error)
@@ -110,6 +113,7 @@ export async function deleteRecurringTransaction(id: string, userId: string) {
 
     revalidatePath('/recurring-transactions')
     revalidatePath('/movimientos')
+    revalidatePath('/calendar')
     return { success: true }
   } catch (error) {
     console.error('Delete recurring transaction error:', error)
@@ -131,6 +135,7 @@ export async function toggleRecurringTransaction(id: string, userId: string, isA
 
     revalidatePath('/recurring-transactions')
     revalidatePath('/movimientos')
+    revalidatePath('/calendar')
     return { success: true, data: data as RecurringTransactionWithCategory }
   } catch (error) {
     console.error('Toggle recurring transaction error:', error)

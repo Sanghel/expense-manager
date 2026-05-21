@@ -17,7 +17,7 @@ import { AccountSelect } from '@/components/ui/AccountSelect'
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
 import { CurrencyPreview } from './CurrencyPreview'
 import { QuickCategoryForm } from '@/components/categories/QuickCategoryForm'
-import type { Account, Category, Currency, TransactionWithCategory } from '@/types/database.types'
+import type { Account, Category, Currency, TransactionType, TransactionWithCategory } from '@/types/database.types'
 
 const TYPE_OPTIONS = [
   { value: 'expense', label: 'Gasto' },
@@ -32,9 +32,19 @@ interface Props {
   accounts?: Account[]
   transaction: TransactionWithCategory
   onSuccess: () => void
+  onSubmitOverride?: (values: {
+    type: TransactionType
+    amount: number
+    currency: Currency
+    category_id: string
+    account_id: string | null
+    description: string
+    date: string
+    notes: string
+  }) => void
 }
 
-export function TransactionEditForm({ isOpen, onClose, userId, categories, accounts = [], transaction, onSuccess }: Props) {
+export function TransactionEditForm({ isOpen, onClose, userId, categories, accounts = [], transaction, onSuccess, onSubmitOverride }: Props) {
   const [loading, setLoading] = useState(false)
   const [localCategories, setLocalCategories] = useState<Category[]>(categories)
   const [quickCategoryOpen, setQuickCategoryOpen] = useState(false)
@@ -81,6 +91,23 @@ export function TransactionEditForm({ isOpen, onClose, userId, categories, accou
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (onSubmitOverride) {
+      onSubmitOverride({
+        type: formData.type,
+        amount: formData.amount ?? 0,
+        currency: formData.currency,
+        category_id: formData.category_id,
+        account_id: formData.account_id || null,
+        description: formData.description,
+        date: formData.date,
+        notes: formData.notes,
+      })
+      onSuccess()
+      onClose()
+      return
+    }
+
     setLoading(true)
 
     const result = await updateTransaction(transaction.id, userId, {

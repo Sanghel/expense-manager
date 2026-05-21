@@ -19,9 +19,9 @@ const currencies: { value: Currency; short: string; full: string }[] = [
 
 export function CurrencySelect({ value, onChange, showFullLabel = false, required, disabled }: Props) {
   return (
-    <FieldRoot required={required}>
+    <FieldRoot required={required} w="full">
       <FieldLabel>Moneda</FieldLabel>
-      <Box opacity={disabled ? 0.6 : 1} cursor={disabled ? 'not-allowed' : undefined} pointerEvents={disabled ? 'none' : undefined}>
+      <Box w="full" opacity={disabled ? 0.6 : 1} cursor={disabled ? 'not-allowed' : undefined} pointerEvents={disabled ? 'none' : undefined}>
         <NativeSelectRoot>
           <NativeSelectField
             value={value}

@@ -28,6 +28,7 @@ export async function createReminder(userId: string, input: ReminderFormData) {
   if (error) return { success: false, error: error.message }
 
   revalidatePath('/calendar')
+  revalidatePath('/movimientos')
   return { success: true, data }
 }
 
@@ -46,6 +47,7 @@ export async function updateReminder(userId: string, id: string, input: Reminder
   if (error) return { success: false, error: error.message }
 
   revalidatePath('/calendar')
+  revalidatePath('/movimientos')
   return { success: true, data }
 }
 
@@ -59,5 +61,6 @@ export async function deleteReminder(userId: string, id: string) {
   if (error) return { success: false, error: error.message }
 
   revalidatePath('/calendar')
+  revalidatePath('/movimientos')
   return { success: true }
 }

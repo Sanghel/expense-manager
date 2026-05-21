@@ -10,7 +10,7 @@
 - **Cola "Pendientes"** (`/pendientes`): los correos con confianza baja o sin cuenta matcheable quedan como borradores editables. El usuario revisa monto, categoría, cuenta, descripción y fecha, y confirma o rechaza.
 - **Botón "Sincronizar correos"** en la toolbar de `/transactions` que dispara el sync on-demand y muestra un toast con scanned / auto / pendientes / omitidos / errores.
 - **Sección Gmail en Settings**: conectar/desconectar Gmail, ver estado de la conexión, última sincronización, y disparar sync manual.
-- **Cron de respaldo** (`/api/cron/sync-gmail`) cada 6 horas itera usuarios con Gmail conectado y ejecuta el mismo pipeline; idempotencia garantizada vía `processed_emails.gmail_message_id UNIQUE`.
+- **Cron de respaldo** (`/api/cron/sync-gmail`) diario a las 11:00 UTC (06:00 Colombia) itera usuarios con Gmail conectado y ejecuta el mismo pipeline; idempotencia garantizada vía `processed_emails.gmail_message_id UNIQUE`. Limitado a daily por Vercel Hobby; el botón manual cubre sync más frecuente.
 - **Campo "Últimos 4 dígitos"** en el formulario de cuentas, opcional, para asociar correos a la cuenta correcta.
 - **OAuth Gmail multiusuario**: NextAuth pide el scope `gmail.readonly` en el consent; el refresh_token se persiste cifrado con AES-256-GCM (`GMAIL_TOKEN_ENCRYPTION_KEY`) en `users.gmail_refresh_token`.
 - **Parser Bancolombia** (`lib/gmail/parsers/bancolombia.ts`) con 4 reglas regex (compra tarjeta, transferencia enviada, pago servicio, recepción) y score de confianza basado en monto + last_four + merchant. Cubierto por fixtures en `scripts/test-bancolombia-parser.ts` (`npm run test:bancolombia-parser`).

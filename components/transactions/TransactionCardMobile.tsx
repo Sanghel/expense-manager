@@ -32,7 +32,7 @@ export function TransactionCardMobile({ transaction: t, onEdit, onDelete }: Prop
           </Text>
           <HStack gap={2} flexWrap="wrap">
             <Text fontSize="xs" color="#6b7280">
-              {t.category.icon} {t.category.name}
+              {t.category?.icon ?? '🏷️'} {t.category?.name ?? 'Sin categoría'}
             </Text>
             <Text fontSize="xs" color="#4b5563">·</Text>
             <Text fontSize="xs" color="#6b7280">

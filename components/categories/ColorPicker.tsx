@@ -1,6 +1,6 @@
 'use client'
 
-import { Box, chakra } from '@chakra-ui/react'
+import { Box, Text, chakra } from '@chakra-ui/react'
 import { useState, useRef, useEffect } from 'react'
 
 const StyledButton = chakra('button')
@@ -24,7 +24,7 @@ const COLORS = [
 ]
 
 const PICKER_WIDTH = 200
-const PICKER_HEIGHT = 140
+const PICKER_HEIGHT = 180
 
 interface Props {
   value: string
@@ -36,6 +36,9 @@ export function ColorPicker({ value, onChange }: Props) {
   const [pos, setPos] = useState({ top: 0, left: 0 })
   const wrapperRef = useRef<HTMLDivElement>(null)
   const pickerRef = useRef<HTMLDivElement>(null)
+  const nativeColorRef = useRef<HTMLInputElement>(null)
+
+  const isCustom = value !== '' && !COLORS.includes(value)
 
   const handleToggle = () => {
     if (!open && wrapperRef.current) {
@@ -63,6 +66,16 @@ export function ColorPicker({ value, onChange }: Props) {
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [open])
+
+  const openNativePicker = () => {
+    const input = nativeColorRef.current
+    if (!input) return
+    if (typeof input.showPicker === 'function') {
+      input.showPicker()
+    } else {
+      input.click()
+    }
+  }
 
   return (
     <Box ref={wrapperRef} display="inline-block" position="relative">
@@ -115,7 +128,46 @@ export function ColorPicker({ value, onChange }: Props) {
                 transition="transform 0.1s"
               />
             ))}
+            <StyledButton
+              type="button"
+              onClick={openNativePicker}
+              w="7"
+              h="7"
+              borderRadius="md"
+              bg={isCustom ? value : 'transparent'}
+              border="2px dashed"
+              borderColor={isCustom ? 'white' : '#4F46E5'}
+              color="white"
+              fontSize="md"
+              cursor="pointer"
+              _hover={{ transform: 'scale(1.15)' }}
+              transition="transform 0.1s"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              title="Color personalizado"
+            >
+              🎨
+            </StyledButton>
           </Box>
+          <Text fontSize="xs" color="#B0B0B0" textAlign="center" mt={2}>
+            {value.toUpperCase()}
+          </Text>
+          <input
+            ref={nativeColorRef}
+            type="color"
+            value={value || '#000000'}
+            onChange={(e) => onChange(e.target.value)}
+            aria-hidden="true"
+            tabIndex={-1}
+            style={{
+              position: 'absolute',
+              opacity: 0,
+              width: 1,
+              height: 1,
+              pointerEvents: 'none',
+            }}
+          />
         </Box>
       )}
     </Box>

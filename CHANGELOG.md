@@ -1,5 +1,23 @@
 # Changelog
 
+## [3.2.0] — 2026-05-21
+
+### Fixed
+
+- **Recurrentes en el calendario**: las transacciones recurrentes recién creadas no aparecían en el calendario de programados porque el insert no establecía `is_active`. Adicionalmente, todas las mutaciones de recurrentes (crear/editar/eliminar/toggle) ahora revalidan `/calendar`.
+
+### Added
+
+- **Crear recurrentes desde el calendario**: el diálogo de día en la tab "Programado" incluye un botón "Nueva recurrente" además del existente "Nuevo recordatorio", con la fecha clickeada prellenada como `start_date`.
+- **Nueva tab "Recordatorios" en /movimientos**: listado completo de recordatorios con crear, editar y eliminar reutilizando los componentes del calendario. Soporta `?tab=recordatorios` en la URL.
+- **Recordatorios fijados del día**: en la nueva tab, los recordatorios cuya frecuencia coincide con hoy se muestran como tarjetas fijadas arriba del listado con un botón "Pagar" que abre el formulario de transacción con descripción, categoría y fecha prellenadas (mismo flujo que en el calendario).
+- **Ocultar pin tras pagar**: cuando se registra una transacción para un recordatorio del día con la misma descripción y categoría, deja de aparecer como fijado en la tab.
+
+### Changed
+
+- Lógica de matching de recordatorios extraída a `lib/reminders/matches-date.ts` como única fuente de verdad para el calendario y la nueva tab de recordatorios.
+- Las server actions de recordatorios ahora revalidan también `/movimientos`.
+
 ## [1.3.0] — 2026-05-13
 
 ### Added

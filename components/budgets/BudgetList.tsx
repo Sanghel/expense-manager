@@ -22,7 +22,7 @@ interface Props {
 
 export function BudgetList({ userId, initialBudgets, onEdit }: Props) {
   const router = useRouter()
-  const [budgets] = useState<BudgetWithSpent[]>(initialBudgets)
+  const budgets = initialBudgets
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const { open, onOpen, onClose } = useDisclosure()
   const [isDeleting, setIsDeleting] = useState(false)

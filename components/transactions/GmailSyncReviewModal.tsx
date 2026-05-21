@@ -82,7 +82,18 @@ export function GmailSyncReviewModal({ isOpen, onClose, userId, items, categorie
     setLastEditing(idx)
     setEditing(idx)
   }
-  const stopEditing = () => setEditing(null)
+  const stopEditing = () => {
+    setEditing(null)
+    // Workaround: Chakra/Ark Dialog leaves pointer-events:none on body and
+    // aria-hidden on siblings when a nested dialog closes. Restore manually.
+    requestAnimationFrame(() => {
+      document.body.style.pointerEvents = ''
+      document.body.removeAttribute('aria-hidden')
+      document
+        .querySelectorAll('[aria-hidden="true"][data-aria-hidden]')
+        .forEach((el) => el.removeAttribute('aria-hidden'))
+    })
+  }
 
   const activeReviews = useMemo(() => reviews.filter((r) => !r.excluded), [reviews])
   const missingCategory = useMemo(

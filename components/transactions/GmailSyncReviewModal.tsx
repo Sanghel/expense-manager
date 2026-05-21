@@ -75,7 +75,14 @@ export function GmailSyncReviewModal({ isOpen, onClose, userId, items, categorie
     items.map((p) => ({ parsed: p, edited: initialEdited(p, accounts), excluded: false }))
   )
   const [editing, setEditing] = useState<number | null>(null)
+  const [lastEditing, setLastEditing] = useState<number | null>(null)
   const [saving, setSaving] = useState(false)
+
+  const startEditing = (idx: number) => {
+    setLastEditing(idx)
+    setEditing(idx)
+  }
+  const stopEditing = () => setEditing(null)
 
   const activeReviews = useMemo(() => reviews.filter((r) => !r.excluded), [reviews])
   const missingCategory = useMemo(
@@ -139,10 +146,10 @@ export function GmailSyncReviewModal({ isOpen, onClose, userId, items, categorie
     onClose()
   }
 
-  const editingReview = editing != null ? reviews[editing] : null
+  const editingReview = lastEditing != null ? reviews[lastEditing] : null
   const editingAsTransaction: TransactionWithCategory | null = editingReview
     ? ({
-        id: `staging-${editing}`,
+        id: `staging-${lastEditing}`,
         user_id: userId,
         amount: editingReview.edited.amount,
         currency: editingReview.edited.currency,
@@ -200,7 +207,7 @@ export function GmailSyncReviewModal({ isOpen, onClose, userId, items, categorie
                       <Table.Cell>{accountLabel(r.edited.account_id)}</Table.Cell>
                       <Table.Cell>
                         <HStack gap={1}>
-                          <IconButton aria-label="Editar" size="xs" variant="ghost" onClick={() => setEditing(idx)}><FiEdit2 /></IconButton>
+                          <IconButton aria-label="Editar" size="xs" variant="ghost" onClick={() => startEditing(idx)}><FiEdit2 /></IconButton>
                           <IconButton aria-label={r.excluded ? 'Incluir' : 'Excluir'} size="xs" variant="ghost" color={r.excluded ? '#4ade80' : '#ef4444'} onClick={() => toggleExclude(idx)}>
                             {r.excluded ? <FiCheck /> : <FiTrash2 />}
                           </IconButton>
@@ -237,7 +244,7 @@ export function GmailSyncReviewModal({ isOpen, onClose, userId, items, categorie
                       <Text fontSize="sm">{accountLabel(r.edited.account_id)}</Text>
                     </HStack>
                     <HStack justify="flex-end" gap={2}>
-                      <Button size="sm" variant="outline" onClick={() => setEditing(idx)}><FiEdit2 /> Editar</Button>
+                      <Button size="sm" variant="outline" onClick={() => startEditing(idx)}><FiEdit2 /> Editar</Button>
                       <Button size="sm" variant="outline" colorPalette={r.excluded ? 'green' : 'red'} onClick={() => toggleExclude(idx)}>
                         {r.excluded ? <><FiCheck /> Incluir</> : <><FiX /> Excluir</>}
                       </Button>
@@ -262,16 +269,16 @@ export function GmailSyncReviewModal({ isOpen, onClose, userId, items, categorie
         </VStack>
       </FormDialog>
 
-      {editingAsTransaction && editing != null && (
+      {editingAsTransaction && lastEditing != null && (
         <TransactionEditForm
-          isOpen={true}
-          onClose={() => setEditing(null)}
+          isOpen={editing != null}
+          onClose={stopEditing}
           userId={userId}
           categories={categories}
           accounts={accounts}
           transaction={editingAsTransaction}
-          onSuccess={() => setEditing(null)}
-          onSubmitOverride={(values) => updateRow(editing, values)}
+          onSuccess={stopEditing}
+          onSubmitOverride={(values) => updateRow(lastEditing, values)}
         />
       )}
     </>

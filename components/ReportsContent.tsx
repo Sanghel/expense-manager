@@ -5,7 +5,7 @@ import { Box, Heading, SimpleGrid } from '@chakra-ui/react'
 import { ExpensesByCategoryChart } from '@/components/charts/ExpensesByCategoryChart'
 import { MonthlyComparisonChart } from '@/components/charts/MonthlyComparisonChart'
 import { AccumulatedBalanceChart } from '@/components/charts/AccumulatedBalanceChart'
-import { ReportFilters, type ReportFiltersState } from '@/components/ReportFilters'
+import { ReportFilters, getCurrentMonthRange, type ReportFiltersState } from '@/components/ReportFilters'
 import { ReportStatistics } from '@/components/ReportStatistics'
 
 interface Props {
@@ -14,11 +14,14 @@ interface Props {
 }
 
 export function ReportsContent({ userId, preferredCurrency }: Props) {
-  const [filters, setFilters] = useState<ReportFiltersState>({
-    startDate: '',
-    endDate: '',
-    categoryIds: [],
-    transactionType: 'all',
+  const [filters, setFilters] = useState<ReportFiltersState>(() => {
+    const { firstDay, lastDay } = getCurrentMonthRange()
+    return {
+      startDate: firstDay,
+      endDate: lastDay,
+      categoryIds: [],
+      transactionType: 'all',
+    }
   })
 
   return (

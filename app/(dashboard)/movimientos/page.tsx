@@ -4,13 +4,15 @@ import { redirect } from 'next/navigation'
 import { insforgeAdmin } from '@/lib/insforge-admin'
 import { getCategories } from '@/lib/actions/categories.actions'
 import { getAccounts } from '@/lib/actions/accounts.actions'
-import { getTransactions } from '@/lib/actions/transactions.actions'
+import { getTransactions, getTransactionsByDate } from '@/lib/actions/transactions.actions'
+import { getLocalDateString } from '@/lib/utils/dates'
 import { getRecurringTransactions } from '@/lib/actions/recurring.actions'
 import { getLoans } from '@/lib/actions/loans.actions'
+import { getReminders } from '@/lib/actions/reminders.actions'
 import { MovimientosPageClient } from './MovimientosPageClient'
-import type { TransactionWithCategory, Account } from '@/types/database.types'
+import type { TransactionWithCategory, Account, ReminderWithCategory } from '@/types/database.types'
 
-type Tab = 'transacciones' | 'recurrentes' | 'prestamos'
+type Tab = 'transacciones' | 'recurrentes' | 'prestamos' | 'recordatorios'
 
 export default async function MovimientosPage({
   searchParams,
@@ -48,6 +50,8 @@ export default async function MovimientosPage({
   let initialRecurring: any[] | null = null
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let initialLoans: any[] | null = null
+  let initialReminders: ReminderWithCategory[] | null = null
+  let todaysTransactions: { description: string; category_id: string | null }[] = []
 
   if (tab === 'transacciones') {
     const result = await getTransactions(user.id, 500)
@@ -58,6 +62,18 @@ export default async function MovimientosPage({
   } else if (tab === 'prestamos') {
     const result = await getLoans(user.id)
     initialLoans = result.success && result.data ? result.data : []
+  } else if (tab === 'recordatorios') {
+    const today = getLocalDateString()
+    const [remindersResult, txResult] = await Promise.all([
+      getReminders(user.id),
+      getTransactionsByDate(user.id, today),
+    ])
+    initialReminders = remindersResult.success
+      ? ((remindersResult.data ?? []) as ReminderWithCategory[])
+      : []
+    todaysTransactions = txResult.success
+      ? (txResult.data as { description: string; category_id: string | null }[])
+      : []
   }
 
   return (
@@ -69,6 +85,8 @@ export default async function MovimientosPage({
       initialTransactions={initialTransactions}
       initialRecurring={initialRecurring}
       initialLoans={initialLoans}
+      initialReminders={initialReminders}
+      todaysTransactions={todaysTransactions}
     />
   )
 }

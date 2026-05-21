@@ -31,6 +31,7 @@ interface Props {
   onSuccess: () => void
   initialData?: RecurringTransactionWithCategory
   transactionId?: string
+  prefillStartDate?: string
 }
 
 const defaultForm = {
@@ -54,6 +55,7 @@ export function RecurringTransactionForm({
   onSuccess,
   initialData,
   transactionId,
+  prefillStartDate,
 }: Props) {
   const [form, setForm] = useState(defaultForm)
   const [loading, setLoading] = useState(false)
@@ -71,10 +73,12 @@ export function RecurringTransactionForm({
         start_date: initialData.start_date,
         end_date: initialData.end_date ?? '',
       })
+    } else if (prefillStartDate) {
+      setForm({ ...defaultForm, start_date: prefillStartDate })
     } else {
       setForm(defaultForm)
     }
-  }, [initialData])
+  }, [initialData, prefillStartDate, isOpen])
 
   const handleSubmit = async () => {
     if (!form.amount || !form.category_id || !form.description) {

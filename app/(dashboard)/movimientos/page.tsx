@@ -7,10 +7,11 @@ import { getAccounts } from '@/lib/actions/accounts.actions'
 import { getTransactions } from '@/lib/actions/transactions.actions'
 import { getRecurringTransactions } from '@/lib/actions/recurring.actions'
 import { getLoans } from '@/lib/actions/loans.actions'
+import { getReminders } from '@/lib/actions/reminders.actions'
 import { MovimientosPageClient } from './MovimientosPageClient'
-import type { TransactionWithCategory, Account } from '@/types/database.types'
+import type { TransactionWithCategory, Account, ReminderWithCategory } from '@/types/database.types'
 
-type Tab = 'transacciones' | 'recurrentes' | 'prestamos'
+type Tab = 'transacciones' | 'recurrentes' | 'prestamos' | 'recordatorios'
 
 export default async function MovimientosPage({
   searchParams,
@@ -48,6 +49,7 @@ export default async function MovimientosPage({
   let initialRecurring: any[] | null = null
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let initialLoans: any[] | null = null
+  let initialReminders: ReminderWithCategory[] | null = null
 
   if (tab === 'transacciones') {
     const result = await getTransactions(user.id, 500)
@@ -58,6 +60,9 @@ export default async function MovimientosPage({
   } else if (tab === 'prestamos') {
     const result = await getLoans(user.id)
     initialLoans = result.success && result.data ? result.data : []
+  } else if (tab === 'recordatorios') {
+    const result = await getReminders(user.id)
+    initialReminders = result.success ? ((result.data ?? []) as ReminderWithCategory[]) : []
   }
 
   return (
@@ -69,6 +74,7 @@ export default async function MovimientosPage({
       initialTransactions={initialTransactions}
       initialRecurring={initialRecurring}
       initialLoans={initialLoans}
+      initialReminders={initialReminders}
     />
   )
 }

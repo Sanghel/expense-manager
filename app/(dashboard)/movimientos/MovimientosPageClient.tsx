@@ -3,19 +3,21 @@
 import { useTransition, useState, useEffect } from 'react'
 import { Box, Heading, Tabs, Spinner, Icon } from '@chakra-ui/react'
 import { useRouter } from 'next/navigation'
-import { FiList, FiRepeat, FiCreditCard } from 'react-icons/fi'
+import { FiList, FiRepeat, FiCreditCard, FiBell } from 'react-icons/fi'
 import { TransactionsPageClient } from '../transactions/TransactionsPageClient'
 import { RecurringTransactionsPageContent } from '@/components/recurring/RecurringTransactionsPageContent'
 import { LoansPageClient } from '../loans/LoansPageClient'
+import { RecordatoriosTab } from '@/components/reminders/RecordatoriosTab'
 import type {
   Account,
   Category,
   TransactionWithCategory,
   LoanWithAccount,
   RecurringTransactionWithCategory,
+  ReminderWithCategory,
 } from '@/types/database.types'
 
-type Tab = 'transacciones' | 'recurrentes' | 'prestamos'
+type Tab = 'transacciones' | 'recurrentes' | 'prestamos' | 'recordatorios'
 
 interface Props {
   userId: string
@@ -25,6 +27,7 @@ interface Props {
   initialTransactions: TransactionWithCategory[] | null
   initialRecurring: RecurringTransactionWithCategory[] | null
   initialLoans: LoanWithAccount[] | null
+  initialReminders: ReminderWithCategory[] | null
 }
 
 export function MovimientosPageClient({
@@ -35,6 +38,7 @@ export function MovimientosPageClient({
   initialTransactions,
   initialRecurring,
   initialLoans,
+  initialReminders,
 }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -111,6 +115,17 @@ export function MovimientosPageClient({
             {tabIcon('prestamos', FiCreditCard)}
             Préstamos
           </Tabs.Trigger>
+          <Tabs.Trigger
+            value="recordatorios"
+            display="flex"
+            alignItems="center"
+            gap={2}
+            color="#B0B0B0"
+            _selected={{ color: 'white', borderBottomColor: '#6366f1' }}
+          >
+            {tabIcon('recordatorios', FiBell)}
+            Recordatorios
+          </Tabs.Trigger>
         </Tabs.List>
 
         <Tabs.Content value="transacciones">
@@ -141,6 +156,16 @@ export function MovimientosPageClient({
               userId={userId}
               initialLoans={initialLoans}
               accounts={accounts}
+            />
+          )}
+        </Tabs.Content>
+
+        <Tabs.Content value="recordatorios">
+          {initialReminders !== null && (
+            <RecordatoriosTab
+              userId={userId}
+              categories={categories}
+              initialReminders={initialReminders}
             />
           )}
         </Tabs.Content>

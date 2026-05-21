@@ -28,6 +28,7 @@ import { formatCurrency } from '@/lib/utils/currency'
 import { getLocalDateString } from '@/lib/utils/dates'
 import { TransactionForm } from '@/components/transactions/TransactionForm'
 import { ReminderForm } from '@/components/reminders/ReminderForm'
+import { RecurringTransactionForm } from '@/components/recurring/RecurringTransactionForm'
 
 const WEEKDAYS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
 const MONTHS = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
@@ -132,6 +133,7 @@ export function RemindersCalendar({ userId, reminders, recurringTransactions, ca
   const [selectedDay, setSelectedDay] = useState<{ date: string; items: DayItem[] } | null>(null)
   const [registerFor, setRegisterFor] = useState<{ date: string; reminder: ReminderWithCategory } | null>(null)
   const [createReminderDate, setCreateReminderDate] = useState<string | null>(null)
+  const [createRecurringDate, setCreateRecurringDate] = useState<string | null>(null)
   const isMobile = useBreakpointValue({ base: true, md: false })
 
   const year = currentDate.getFullYear()
@@ -319,7 +321,7 @@ export function RemindersCalendar({ userId, reminders, recurringTransactions, ca
               <Box w={2} h={2} borderRadius="full" bg={RECURRING_COLOR} />
               <Text fontSize="xs" color="#B0B0B0">Suscripción recurrente</Text>
             </HStack>
-            <Text fontSize="xs" color="#B0B0B0">· Haz clic en un día para ver detalles o crear un recordatorio</Text>
+            <Text fontSize="xs" color="#B0B0B0">· Haz clic en un día para ver detalles o crear un recordatorio/recurrente</Text>
           </HStack>
 
           {isMobile ? mobileView : desktopView}
@@ -414,21 +416,38 @@ export function RemindersCalendar({ userId, reminders, recurringTransactions, ca
               </VStack>
             </DialogBody>
             <DialogFooter borderTopWidth="1px" borderColor="#2d2d35" pt={4}>
-              <Button
-                bg="#4F46E5"
-                color="white"
-                _hover={{ bg: '#4338CA' }}
-                width="full"
-                onClick={() => {
-                  if (dialogDate) {
-                    setCreateReminderDate(dialogDate)
-                    setSelectedDay(null)
-                  }
-                }}
-              >
-                <FiPlus />
-                Nuevo recordatorio
-              </Button>
+              <VStack gap={2} width="full">
+                <Button
+                  bg="#4F46E5"
+                  color="white"
+                  _hover={{ bg: '#4338CA' }}
+                  width="full"
+                  onClick={() => {
+                    if (dialogDate) {
+                      setCreateReminderDate(dialogDate)
+                      setSelectedDay(null)
+                    }
+                  }}
+                >
+                  <FiPlus />
+                  Nuevo recordatorio
+                </Button>
+                <Button
+                  bg={RECURRING_COLOR}
+                  color="white"
+                  _hover={{ bg: '#059669' }}
+                  width="full"
+                  onClick={() => {
+                    if (dialogDate) {
+                      setCreateRecurringDate(dialogDate)
+                      setSelectedDay(null)
+                    }
+                  }}
+                >
+                  <FiPlus />
+                  Nueva recurrente
+                </Button>
+              </VStack>
             </DialogFooter>
           </DialogContent>
         </DialogPositioner>
@@ -462,6 +481,20 @@ export function RemindersCalendar({ userId, reminders, recurringTransactions, ca
         prefillDate={createReminderDate ?? undefined}
         onSuccess={() => {
           setCreateReminderDate(null)
+          onRefresh?.()
+        }}
+      />
+
+      {/* New recurring transaction from calendar */}
+      <RecurringTransactionForm
+        isOpen={createRecurringDate !== null}
+        onClose={() => setCreateRecurringDate(null)}
+        userId={userId}
+        categories={categories}
+        accounts={accounts}
+        prefillStartDate={createRecurringDate ?? undefined}
+        onSuccess={() => {
+          setCreateRecurringDate(null)
           onRefresh?.()
         }}
       />

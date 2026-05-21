@@ -3,7 +3,7 @@
 import {
   Box, Button, HStack, VStack, Text, Table, IconButton, Badge, Stack,
 } from '@chakra-ui/react'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { FiEdit2, FiTrash2, FiCheck, FiX } from 'react-icons/fi'
 import { FormDialog } from '@/components/ui/FormDialog'
 import { TransactionEditForm } from './TransactionEditForm'
@@ -76,23 +76,33 @@ export function GmailSyncReviewModal({ isOpen, onClose, userId, items, categorie
   )
   const [editing, setEditing] = useState<number | null>(null)
   const [lastEditing, setLastEditing] = useState<number | null>(null)
+  const [outerOpen, setOuterOpen] = useState(true)
   const [saving, setSaving] = useState(false)
+  // Skip the next onClose from outer dialog when we close it programmatically
+  // to open the nested edit dialog (avoid triggering handleDiscard).
+  const skipNextOuterCloseRef = useRef(false)
 
   const startEditing = (idx: number) => {
     setLastEditing(idx)
-    setEditing(idx)
+    skipNextOuterCloseRef.current = true
+    setOuterOpen(false)
+    // Wait for outer close animation before mounting the inner dialog,
+    // so Chakra/Ark dialogs are never simultaneously open.
+    setTimeout(() => setEditing(idx), 220)
   }
+
   const stopEditing = () => {
     setEditing(null)
-    // Workaround: Chakra/Ark Dialog leaves pointer-events:none on body and
-    // aria-hidden on siblings when a nested dialog closes. Restore manually.
-    requestAnimationFrame(() => {
-      document.body.style.pointerEvents = ''
-      document.body.removeAttribute('aria-hidden')
-      document
-        .querySelectorAll('[aria-hidden="true"][data-aria-hidden]')
-        .forEach((el) => el.removeAttribute('aria-hidden'))
-    })
+    // After inner close animation, reopen the outer.
+    setTimeout(() => setOuterOpen(true), 220)
+  }
+
+  const handleOuterClose = () => {
+    if (skipNextOuterCloseRef.current) {
+      skipNextOuterCloseRef.current = false
+      return
+    }
+    handleDiscard()
   }
 
   const activeReviews = useMemo(() => reviews.filter((r) => !r.excluded), [reviews])
@@ -179,7 +189,7 @@ export function GmailSyncReviewModal({ isOpen, onClose, userId, items, categorie
 
   return (
     <>
-      <FormDialog isOpen={isOpen} onClose={handleDiscard} title={`Revisar ${reviews.length} transacciones detectadas`} size="xl">
+      <FormDialog isOpen={isOpen && outerOpen} onClose={handleOuterClose} title={`Revisar ${reviews.length} transacciones detectadas`} size="xl">
         <VStack align="stretch" gap={4}>
           <Text fontSize="sm" color="#B0B0B0">
             Edita categoría, cuenta y otros campos con el botón ✏️ antes de guardar. Las transacciones no se registran hasta que confirmes.

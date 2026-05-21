@@ -218,7 +218,6 @@ export interface ReminderWithCategory extends Reminder {
 
 export type ProcessedEmailOutcome =
   | 'auto_registered'
-  | 'drafted'
   | 'skipped'
   | 'error'
 
@@ -227,7 +226,6 @@ export interface ProcessedEmail {
   user_id: string
   outcome: ProcessedEmailOutcome
   transaction_id: string | null
-  draft_id: string | null
   error_message: string | null
   processed_at: string
 }

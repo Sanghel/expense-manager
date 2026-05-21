@@ -2,7 +2,7 @@ export type Currency = 'COP' | 'USD' | 'VES'
 export type TransactionType = 'income' | 'expense'
 export type CategoryType = 'income' | 'expense' | 'both'
 export type BudgetPeriod = 'monthly' | 'yearly'
-export type TransactionSource = 'manual' | 'conversational' | 'import'
+export type TransactionSource = 'manual' | 'conversational' | 'import' | 'gmail'
 export type RecurrenceFrequency = 'daily' | 'weekly' | 'monthly' | 'yearly'
 
 export interface Whitelist {
@@ -17,6 +17,9 @@ export interface User {
   name: string | null
   avatar_url: string | null
   preferred_currency: Currency
+  gmail_refresh_token: string | null
+  gmail_connected_at: string | null
+  gmail_last_synced_at: string | null
   created_at: string
   updated_at: string
 }
@@ -43,6 +46,7 @@ export interface Account {
   credit_limit: number | null
   color: string | null
   icon: string | null
+  last_four: string | null
   is_active: boolean
   created_at: string
   updated_at: string
@@ -73,7 +77,7 @@ export interface Transaction {
   amount: number
   currency: Currency
   type: TransactionType
-  category_id: string
+  category_id: string | null
   account_id: string | null
   description: string
   date: string // ISO date
@@ -210,4 +214,44 @@ export interface Reminder {
 
 export interface ReminderWithCategory extends Reminder {
   category: Category | null
+}
+
+export type TransactionDraftStatus = 'pending' | 'confirmed' | 'rejected'
+
+export interface TransactionDraft {
+  id: string
+  user_id: string
+  gmail_message_id: string
+  amount: number | null
+  currency: Currency | null
+  type: TransactionType | null
+  category_id: string | null
+  account_id: string | null
+  description: string | null
+  date: string | null
+  notes: string | null
+  raw_subject: string | null
+  raw_snippet: string | null
+  raw_from: string | null
+  confidence: number
+  parse_reason: string | null
+  status: TransactionDraftStatus
+  created_at: string
+  resolved_at: string | null
+}
+
+export type ProcessedEmailOutcome =
+  | 'auto_registered'
+  | 'drafted'
+  | 'skipped'
+  | 'error'
+
+export interface ProcessedEmail {
+  gmail_message_id: string
+  user_id: string
+  outcome: ProcessedEmailOutcome
+  transaction_id: string | null
+  draft_id: string | null
+  error_message: string | null
+  processed_at: string
 }

@@ -38,6 +38,7 @@ const defaultForm = {
   credit_limit: undefined as number | undefined,
   icon: '💳',
   color: '#6366f1',
+  last_four: '',
 }
 
 export function AccountForm({ isOpen, onClose, userId, editingAccount, onSuccess }: Props) {
@@ -54,6 +55,7 @@ export function AccountForm({ isOpen, onClose, userId, editingAccount, onSuccess
         credit_limit: editingAccount.credit_limit != null ? Number(editingAccount.credit_limit) : undefined,
         icon: editingAccount.icon ?? '💳',
         color: editingAccount.color ?? '#6366f1',
+        last_four: editingAccount.last_four ?? '',
       })
     } else {
       setFormData(defaultForm)
@@ -65,6 +67,17 @@ export function AccountForm({ isOpen, onClose, userId, editingAccount, onSuccess
     setLoading(true)
 
     const isCard = formData.type === 'card'
+    const trimmedLastFour = formData.last_four.trim()
+    if (trimmedLastFour && !/^[0-9]{4}$/.test(trimmedLastFour)) {
+      toaster.create({
+        title: 'Últimos 4 dígitos inválidos',
+        description: 'Debe ser exactamente 4 dígitos numéricos',
+        type: 'error',
+        duration: 4000,
+      })
+      setLoading(false)
+      return
+    }
     const data = {
       name: formData.name,
       type: formData.type,
@@ -73,6 +86,7 @@ export function AccountForm({ isOpen, onClose, userId, editingAccount, onSuccess
       credit_limit: isCard ? (formData.credit_limit ?? null) : null,
       icon: formData.icon || null,
       color: formData.color || null,
+      last_four: trimmedLastFour || null,
     }
 
     const result = editingAccount
@@ -140,6 +154,13 @@ export function AccountForm({ isOpen, onClose, userId, editingAccount, onSuccess
               onChange={(v) => setFormData({ ...formData, balance: v })}
             />
           )}
+
+          <FormInput
+            label="Últimos 4 dígitos (para integración Gmail)"
+            value={formData.last_four}
+            onChange={(v) => setFormData({ ...formData, last_four: v.replace(/[^0-9]/g, '').slice(0, 4) })}
+            placeholder="1234"
+          />
 
           <HStack gap={4} w="full">
             <FieldRoot>

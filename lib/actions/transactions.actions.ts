@@ -9,17 +9,19 @@ import {
   type CreateTransactionInput,
   type UpdateTransactionInput,
 } from '@/lib/validations/transaction'
+import type { TransactionSource } from '@/types/database.types'
 
 export async function createTransaction(
   userId: string,
-  data: CreateTransactionInput
+  data: CreateTransactionInput,
+  source: TransactionSource = 'manual'
 ) {
   try {
     const validated = createTransactionSchema.parse(data)
 
     const { data: transaction, error } = await insforgeAdmin.database
       .from('transactions')
-      .insert([{ ...validated, user_id: userId, source: 'manual' }])
+      .insert([{ ...validated, user_id: userId, source }])
       .select()
       .single()
 

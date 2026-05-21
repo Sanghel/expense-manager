@@ -65,10 +65,12 @@ function BarTooltip({ active, payload, currency }: any) {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function CustomYAxisTick({ x, y, payload }: any) {
   const label: string = payload.value ?? ''
-  const maxLen = 14
-  const display = label.length > maxLen ? label.slice(0, maxLen) + '…' : label
+  const maxLen = 18
+  const truncated = label.length > maxLen
+  const display = truncated ? label.slice(0, maxLen) + '…' : label
   return (
     <text x={x} y={y} dy={4} textAnchor="end" fill="#B0B0B0" fontSize={12}>
+      {truncated && <title>{label}</title>}
       {display}
     </text>
   )
@@ -176,7 +178,7 @@ export function ExpensesByCategoryChart({ userId, type = 'expense', filters, pre
           <BarChart
             data={chartData}
             layout="vertical"
-            margin={{ top: 4, right: 16, left: 8, bottom: 4 }}
+            margin={{ top: 4, right: 16, left: 12, bottom: 4 }}
           >
             <XAxis
               type="number"
@@ -188,10 +190,11 @@ export function ExpensesByCategoryChart({ userId, type = 'expense', filters, pre
             <YAxis
               type="category"
               dataKey="name"
-              width={110}
+              width={160}
               tick={<CustomYAxisTick />}
               tickLine={false}
               axisLine={false}
+              interval={0}
             />
             <Tooltip content={<BarTooltip currency={preferredCurrency} />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
             <Bar dataKey="value" radius={[0, 4, 4, 0]} maxBarSize={24}>

@@ -23,80 +23,40 @@ import {
 } from '@chakra-ui/react'
 import { useState } from 'react'
 import { FiPlus, FiX } from 'react-icons/fi'
-import type { ReminderWithCategory, RecurringTransactionWithCategory, Account, Category } from '@/types/database.types'
-import { formatCurrency } from '@/lib/utils/currency'
+import type { ReminderWithCategory, Account, Category } from '@/types/database.types'
 import { getLocalDateString } from '@/lib/utils/dates'
 import { reminderMatchesDate } from '@/lib/reminders/matches-date'
 import { TransactionForm } from '@/components/transactions/TransactionForm'
 import { ReminderForm } from '@/components/reminders/ReminderForm'
-import { RecurringTransactionForm } from '@/components/recurring/RecurringTransactionForm'
 
 const WEEKDAYS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
 const MONTHS = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
 
 const REMINDER_COLOR = '#6366f1'
-const RECURRING_COLOR = '#10B981'
 
 interface DayItem {
-  type: 'reminder' | 'recurring'
   label: string
   icon: string
   color: string
-  reminder?: ReminderWithCategory
-  recurring?: RecurringTransactionWithCategory
+  reminder: ReminderWithCategory
 }
 
 function getItemsForDay(
   reminders: ReminderWithCategory[],
-  recurring: RecurringTransactionWithCategory[],
   year: number,
   month: number,
   day: number
 ): DayItem[] {
   const date = new Date(year, month, day)
-  const dayOfWeek = date.getDay()
-  const dateStr = getLocalDateString(date)
   const items: DayItem[] = []
 
   for (const r of reminders) {
     if (reminderMatchesDate(r, date)) {
       items.push({
-        type: 'reminder',
         label: r.description,
         icon: r.category?.icon ?? '🔔',
         color: REMINDER_COLOR,
         reminder: r,
-      })
-    }
-  }
-
-  for (const rt of recurring) {
-    if (!rt.is_active) continue
-    if (dateStr < rt.start_date) continue
-    if (rt.end_date && dateStr > rt.end_date) continue
-    const startDate = new Date(rt.start_date + 'T12:00:00')
-    let matches = false
-    switch (rt.frequency) {
-      case 'daily':
-        matches = true
-        break
-      case 'weekly':
-        matches = startDate.getDay() === dayOfWeek
-        break
-      case 'monthly':
-        matches = startDate.getDate() === day
-        break
-      case 'yearly':
-        matches = startDate.getDate() === day && startDate.getMonth() === month
-        break
-    }
-    if (matches) {
-      items.push({
-        type: 'recurring',
-        label: rt.description,
-        icon: rt.category?.icon ?? '🔄',
-        color: RECURRING_COLOR,
-        recurring: rt,
       })
     }
   }
@@ -107,18 +67,16 @@ function getItemsForDay(
 interface Props {
   userId: string
   reminders: ReminderWithCategory[]
-  recurringTransactions: RecurringTransactionWithCategory[]
   categories: Category[]
   accounts: Account[]
   onRefresh?: () => void
 }
 
-export function RemindersCalendar({ userId, reminders, recurringTransactions, categories, accounts, onRefresh }: Props) {
+export function RemindersCalendar({ userId, reminders, categories, accounts, onRefresh }: Props) {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDay, setSelectedDay] = useState<{ date: string; items: DayItem[] } | null>(null)
   const [registerFor, setRegisterFor] = useState<{ date: string; reminder: ReminderWithCategory } | null>(null)
   const [createReminderDate, setCreateReminderDate] = useState<string | null>(null)
-  const [createRecurringDate, setCreateRecurringDate] = useState<string | null>(null)
   const isMobile = useBreakpointValue({ base: true, md: false })
 
   const year = currentDate.getFullYear()
@@ -160,7 +118,7 @@ export function RemindersCalendar({ userId, reminders, recurringTransactions, ca
           {days.map((day, idx) => {
             if (day === null) return <Box key={`empty-${idx}`} />
             const dateStr = getLocalDateString(new Date(year, month, day))
-            const items = getItemsForDay(reminders, recurringTransactions, year, month, day)
+            const items = getItemsForDay(reminders, year, month, day)
             const isToday = dateStr === today
             return (
               <Box
@@ -206,7 +164,7 @@ export function RemindersCalendar({ userId, reminders, recurringTransactions, ca
     const daysWithItems: { day: number; dateStr: string; items: DayItem[] }[] = []
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr = getLocalDateString(new Date(year, month, d))
-      const items = getItemsForDay(reminders, recurringTransactions, year, month, d)
+      const items = getItemsForDay(reminders, year, month, d)
       if (items.length > 0) daysWithItems.push({ day: d, dateStr, items })
     }
 
@@ -214,7 +172,7 @@ export function RemindersCalendar({ userId, reminders, recurringTransactions, ca
       return (
         <VStack gap={3}>
           <Box py={8} textAlign="center" w="full">
-            <Text color="#808080">Sin recordatorios ni suscripciones este mes</Text>
+            <Text color="#808080">Sin recordatorios este mes</Text>
           </Box>
           <Button
             bg="#4F46E5"
@@ -260,7 +218,7 @@ export function RemindersCalendar({ userId, reminders, recurringTransactions, ca
                       {WEEKDAYS[new Date(year, month, day).getDay()]}
                       {isToday && <Badge ml={2} size="xs" colorPalette="purple">Hoy</Badge>}
                     </Text>
-                    <Text fontSize="xs" color="#808080">{items.length} evento{items.length !== 1 ? 's' : ''}</Text>
+                    <Text fontSize="xs" color="#808080">{items.length} recordatorio{items.length !== 1 ? 's' : ''}</Text>
                   </VStack>
                 </HStack>
               </HStack>
@@ -271,8 +229,8 @@ export function RemindersCalendar({ userId, reminders, recurringTransactions, ca
                     <Text fontSize="sm" color="white" lineClamp={1} flex={1}>
                       {item.icon} {item.label}
                     </Text>
-                    <Badge size="xs" variant="outline" colorPalette={item.type === 'reminder' ? 'purple' : 'green'}>
-                      {item.type === 'reminder' ? 'Recordatorio' : 'Suscripción'}
+                    <Badge size="xs" variant="outline" colorPalette="purple">
+                      Recordatorio
                     </Badge>
                   </HStack>
                 ))}
@@ -302,11 +260,7 @@ export function RemindersCalendar({ userId, reminders, recurringTransactions, ca
               <Box w={2} h={2} borderRadius="full" bg={REMINDER_COLOR} />
               <Text fontSize="xs" color="#B0B0B0">Recordatorio</Text>
             </HStack>
-            <HStack gap={1}>
-              <Box w={2} h={2} borderRadius="full" bg={RECURRING_COLOR} />
-              <Text fontSize="xs" color="#B0B0B0">Suscripción recurrente</Text>
-            </HStack>
-            <Text fontSize="xs" color="#B0B0B0">· Haz clic en un día para ver detalles o crear un recordatorio/recurrente</Text>
+            <Text fontSize="xs" color="#B0B0B0">· Haz clic en un día para ver detalles o crear un recordatorio</Text>
           </HStack>
 
           {isMobile ? mobileView : desktopView}
@@ -350,7 +304,7 @@ export function RemindersCalendar({ userId, reminders, recurringTransactions, ca
             <DialogBody flex="1" minH="0" overflowY="auto">
               <VStack alignItems="stretch" gap="2">
                 {dialogItems.length === 0 ? (
-                  <Text color="fg.muted">Sin recordatorios ni suscripciones este día.</Text>
+                  <Text color="fg.muted">Sin recordatorios este día.</Text>
                 ) : (
                   dialogItems.map((item, i) => (
                     <Box
@@ -366,20 +320,13 @@ export function RemindersCalendar({ userId, reminders, recurringTransactions, ca
                           <Box w={2} h={2} borderRadius="full" bg={item.color} flexShrink={0} mt="6px" />
                           <VStack align="flex-start" gap={0} flex={1}>
                             <Text fontWeight="bold" color="white">{item.icon} {item.label}</Text>
-                            <HStack gap={2} flexWrap="wrap">
-                              <Badge size="xs" variant="outline" colorPalette={item.type === 'reminder' ? 'purple' : 'green'}>
-                                {item.type === 'reminder' ? 'Recordatorio' : 'Suscripción'}
-                              </Badge>
-                              {item.recurring && (
-                                <Text fontSize="xs" color="#B0B0B0">
-                                  {formatCurrency(Number(item.recurring.amount), item.recurring.currency)}
-                                </Text>
-                              )}
-                            </HStack>
+                            <Badge size="xs" variant="outline" colorPalette="purple">
+                              Recordatorio
+                            </Badge>
                           </VStack>
                         </HStack>
                       </HStack>
-                      {item.type === 'reminder' && item.reminder && dialogDate && (
+                      {dialogDate && (
                         <Button
                           size="sm"
                           bg="#4F46E5"
@@ -387,7 +334,7 @@ export function RemindersCalendar({ userId, reminders, recurringTransactions, ca
                           _hover={{ bg: '#4338CA' }}
                           width="full"
                           onClick={() => {
-                            setRegisterFor({ date: dialogDate, reminder: item.reminder! })
+                            setRegisterFor({ date: dialogDate, reminder: item.reminder })
                             setSelectedDay(null)
                           }}
                         >
@@ -401,38 +348,21 @@ export function RemindersCalendar({ userId, reminders, recurringTransactions, ca
               </VStack>
             </DialogBody>
             <DialogFooter borderTopWidth="1px" borderColor="#2d2d35" pt={4}>
-              <VStack gap={2} width="full">
-                <Button
-                  bg="#4F46E5"
-                  color="white"
-                  _hover={{ bg: '#4338CA' }}
-                  width="full"
-                  onClick={() => {
-                    if (dialogDate) {
-                      setCreateReminderDate(dialogDate)
-                      setSelectedDay(null)
-                    }
-                  }}
-                >
-                  <FiPlus />
-                  Nuevo recordatorio
-                </Button>
-                <Button
-                  bg={RECURRING_COLOR}
-                  color="white"
-                  _hover={{ bg: '#059669' }}
-                  width="full"
-                  onClick={() => {
-                    if (dialogDate) {
-                      setCreateRecurringDate(dialogDate)
-                      setSelectedDay(null)
-                    }
-                  }}
-                >
-                  <FiPlus />
-                  Nueva recurrente
-                </Button>
-              </VStack>
+              <Button
+                bg="#4F46E5"
+                color="white"
+                _hover={{ bg: '#4338CA' }}
+                width="full"
+                onClick={() => {
+                  if (dialogDate) {
+                    setCreateReminderDate(dialogDate)
+                    setSelectedDay(null)
+                  }
+                }}
+              >
+                <FiPlus />
+                Nuevo recordatorio
+              </Button>
             </DialogFooter>
           </DialogContent>
         </DialogPositioner>
@@ -463,23 +393,10 @@ export function RemindersCalendar({ userId, reminders, recurringTransactions, ca
         onClose={() => setCreateReminderDate(null)}
         userId={userId}
         categories={categories}
+        accounts={accounts}
         prefillDate={createReminderDate ?? undefined}
         onSuccess={() => {
           setCreateReminderDate(null)
-          onRefresh?.()
-        }}
-      />
-
-      {/* New recurring transaction from calendar */}
-      <RecurringTransactionForm
-        isOpen={createRecurringDate !== null}
-        onClose={() => setCreateRecurringDate(null)}
-        userId={userId}
-        categories={categories}
-        accounts={accounts}
-        prefillStartDate={createRecurringDate ?? undefined}
-        onSuccess={() => {
-          setCreateRecurringDate(null)
           onRefresh?.()
         }}
       />

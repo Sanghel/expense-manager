@@ -6,13 +6,12 @@ import { getCategories } from '@/lib/actions/categories.actions'
 import { getAccounts } from '@/lib/actions/accounts.actions'
 import { getTransactions, getTransactionsByDate } from '@/lib/actions/transactions.actions'
 import { getLocalDateString } from '@/lib/utils/dates'
-import { getRecurringTransactions } from '@/lib/actions/recurring.actions'
 import { getLoans } from '@/lib/actions/loans.actions'
 import { getReminders } from '@/lib/actions/reminders.actions'
 import { MovimientosPageClient } from './MovimientosPageClient'
 import type { TransactionWithCategory, Account, ReminderWithCategory } from '@/types/database.types'
 
-type Tab = 'transacciones' | 'recurrentes' | 'prestamos' | 'recordatorios'
+type Tab = 'transacciones' | 'prestamos' | 'recordatorios'
 
 export default async function MovimientosPage({
   searchParams,
@@ -36,7 +35,9 @@ export default async function MovimientosPage({
   }
 
   const params = await searchParams
-  const tab = (params.tab as Tab) || 'transacciones'
+  const rawTab = params.tab
+  const tab: Tab =
+    rawTab === 'prestamos' || rawTab === 'recordatorios' ? rawTab : 'transacciones'
 
   const [categoriesResult, accountsResult] = await Promise.all([
     getCategories(user.id),
@@ -47,8 +48,6 @@ export default async function MovimientosPage({
 
   let initialTransactions: TransactionWithCategory[] | null = null
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let initialRecurring: any[] | null = null
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let initialLoans: any[] | null = null
   let initialReminders: ReminderWithCategory[] | null = null
   let todaysTransactions: { description: string; category_id: string | null }[] = []
@@ -56,9 +55,6 @@ export default async function MovimientosPage({
   if (tab === 'transacciones') {
     const result = await getTransactions(user.id, 500)
     initialTransactions = result.success ? ((result.data ?? []) as TransactionWithCategory[]) : []
-  } else if (tab === 'recurrentes') {
-    const result = await getRecurringTransactions(user.id)
-    initialRecurring = result.success ? (result.data ?? []) : []
   } else if (tab === 'prestamos') {
     const result = await getLoans(user.id)
     initialLoans = result.success && result.data ? result.data : []
@@ -83,7 +79,6 @@ export default async function MovimientosPage({
       categories={categories}
       accounts={accounts}
       initialTransactions={initialTransactions}
-      initialRecurring={initialRecurring}
       initialLoans={initialLoans}
       initialReminders={initialReminders}
       todaysTransactions={todaysTransactions}

@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { TransactionCalendar } from '@/components/calendar/TransactionCalendar'
 import { RemindersCalendar } from '@/components/calendar/RemindersCalendar'
 import { RemindersList } from '@/components/reminders/RemindersList'
-import type { TransactionWithCategory, Account, Category, ReminderWithCategory, RecurringTransactionWithCategory } from '@/types/database.types'
+import type { TransactionWithCategory, Account, Category, ReminderWithCategory } from '@/types/database.types'
 
 interface Props {
   userId: string
@@ -14,12 +14,11 @@ interface Props {
   categories: Category[]
   accounts: Account[]
   reminders: ReminderWithCategory[]
-  recurringTransactions: RecurringTransactionWithCategory[]
 }
 
 type Tab = 'transactions' | 'scheduled'
 
-export function CalendarPageContent({ userId, initialTransactions, categories, accounts, reminders, recurringTransactions }: Props) {
+export function CalendarPageContent({ userId, initialTransactions, categories, accounts, reminders }: Props) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<Tab>('transactions')
 
@@ -77,7 +76,6 @@ export function CalendarPageContent({ userId, initialTransactions, categories, a
           <RemindersCalendar
             userId={userId}
             reminders={reminders}
-            recurringTransactions={recurringTransactions}
             categories={categories}
             accounts={accounts}
             onRefresh={() => router.refresh()}
@@ -87,6 +85,7 @@ export function CalendarPageContent({ userId, initialTransactions, categories, a
             userId={userId}
             reminders={reminders}
             categories={categories}
+            accounts={accounts}
             onRefresh={() => router.refresh()}
           />
         </VStack>

@@ -191,9 +191,14 @@ export function AccountsTab({ userId, initialAccounts, initialMovements }: Props
                       </Box>
                       <VStack align="start" gap={0}>
                         <Text fontWeight="semibold" fontSize="sm" color="white">{acc.name}</Text>
-                        <Badge size="sm" variant="outline" colorPalette="gray">
-                          {ACCOUNT_TYPE_LABELS[acc.type] ?? acc.type}
-                        </Badge>
+                        <HStack gap={1} flexWrap="wrap">
+                          <Badge size="sm" variant="outline" colorPalette="gray">
+                            {ACCOUNT_TYPE_LABELS[acc.type] ?? acc.type}
+                          </Badge>
+                          {acc.is_default && (
+                            <Badge size="sm" colorPalette="purple">Por defecto</Badge>
+                          )}
+                        </HStack>
                       </VStack>
                     </HStack>
                     <HStack gap={1}>

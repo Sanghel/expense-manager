@@ -13,6 +13,7 @@ export const createAccountSchema = z.object({
     .regex(/^[0-9]{4}$/, 'Deben ser 4 dígitos')
     .nullable()
     .optional(),
+  is_default: z.boolean().optional(),
 })
 
 export const updateAccountSchema = createAccountSchema.partial()

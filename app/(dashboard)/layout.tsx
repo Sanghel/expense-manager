@@ -30,7 +30,7 @@ export default async function DashboardLayout({
       const [categoriesResult, accountsResult] = await Promise.all([
         getCategories(user.id),
         getAccounts(user.id),
-        // runDailyCatchUp(user.id),
+        // runDailyCatchUp(),
       ])
       categories = categoriesResult.success ? categoriesResult.data : []
       accounts = accountsResult.success ? accountsResult.data : []

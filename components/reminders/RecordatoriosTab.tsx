@@ -6,9 +6,8 @@ import { useRouter } from 'next/navigation'
 import { FiPlus, FiCheckCircle } from 'react-icons/fi'
 import { ReminderForm } from '@/components/reminders/ReminderForm'
 import { RemindersList } from '@/components/reminders/RemindersList'
-import { TransactionForm } from '@/components/transactions/TransactionForm'
+import { PayReminderDialog } from '@/components/reminders/PayReminderDialog'
 import { remindersForDate } from '@/lib/reminders/matches-date'
-import { getLocalDateString } from '@/lib/utils/dates'
 import type { Account, Category, ReminderWithCategory } from '@/types/database.types'
 
 interface Props {
@@ -32,7 +31,6 @@ export function RecordatoriosTab({
 
   const refresh = () => router.refresh()
   const today = useMemo(() => new Date(), [])
-  const todayStr = getLocalDateString(today)
 
   const pinnedToday = useMemo(() => {
     const matches = remindersForDate(initialReminders, today)
@@ -54,9 +52,10 @@ export function RecordatoriosTab({
           _hover={{ bg: '#4338CA' }}
           onClick={() => setIsFormOpen(true)}
           size={{ base: 'sm', md: 'md' }}
+          aria-label="Nuevo recordatorio"
         >
           <FiPlus />
-          Nuevo recordatorio
+          <Text as="span" display={{ base: 'none', md: 'inline' }}>Nuevo recordatorio</Text>
         </Button>
       </HStack>
 
@@ -108,6 +107,7 @@ export function RecordatoriosTab({
         userId={userId}
         reminders={initialReminders}
         categories={categories}
+        accounts={accounts}
         onRefresh={refresh}
       />
 
@@ -116,6 +116,7 @@ export function RecordatoriosTab({
         onClose={() => setIsFormOpen(false)}
         userId={userId}
         categories={categories}
+        accounts={accounts}
         onSuccess={() => {
           setIsFormOpen(false)
           refresh()
@@ -123,16 +124,12 @@ export function RecordatoriosTab({
       />
 
       {payingReminder && (
-        <TransactionForm
+        <PayReminderDialog
           isOpen
           onClose={() => setPayingReminder(null)}
           userId={userId}
-          categories={categories}
           accounts={accounts}
-          initialDate={todayStr}
-          lockedDate
-          prefillDescription={payingReminder.description}
-          prefillCategoryId={payingReminder.category_id ?? undefined}
+          reminder={payingReminder}
           onSuccess={() => {
             setPayingReminder(null)
             refresh()

@@ -3,11 +3,6 @@
 import { useState } from 'react'
 import { Box, Button, Text, VStack, HStack, Badge } from '@chakra-ui/react'
 import { updateExchangeRates } from '@/lib/actions/exchangeRates.actions'
-import { generateRecurringTransactions } from '@/lib/actions/recurring.actions'
-
-interface Props {
-  userId: string
-}
 
 type ActionStatus = 'idle' | 'loading' | 'success' | 'error'
 
@@ -16,9 +11,8 @@ interface ActionState {
   message: string
 }
 
-export function CronActionsPanel({ userId }: Props) {
+export function CronActionsPanel() {
   const [ratesState, setRatesState] = useState<ActionState>({ status: 'idle', message: '' })
-  const [recurringState, setRecurringState] = useState<ActionState>({ status: 'idle', message: '' })
 
   async function handleUpdateRates() {
     setRatesState({ status: 'loading', message: '' })
@@ -34,23 +28,6 @@ export function CronActionsPanel({ userId }: Props) {
     }
   }
 
-  async function handleGenerateRecurring() {
-    setRecurringState({ status: 'loading', message: '' })
-    const result = await generateRecurringTransactions(userId)
-    if (result.success && result.data) {
-      const { generated, skipped } = result.data
-      const msg = generated === 0 && skipped > 0
-        ? `0 generadas (${skipped} ya registradas hoy)`
-        : `${generated} transacción(es) generada(s)`
-      setRecurringState({
-        status: generated > 0 ? 'success' : 'idle',
-        message: result.error ? `${msg} — ${result.error}` : msg,
-      })
-    } else {
-      setRecurringState({ status: 'error', message: result.error ?? 'Error desconocido' })
-    }
-  }
-
   return (
     <VStack gap={4} align="stretch">
       <ActionRow
@@ -59,13 +36,6 @@ export function CronActionsPanel({ userId }: Props) {
         buttonLabel="Actualizar ahora"
         state={ratesState}
         onAction={handleUpdateRates}
-      />
-      <ActionRow
-        label="Transacciones recurrentes"
-        description="Genera las transacciones recurrentes pendientes para hoy."
-        buttonLabel="Generar ahora"
-        state={recurringState}
-        onAction={handleGenerateRecurring}
       />
     </VStack>
   )

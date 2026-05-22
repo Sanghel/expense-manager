@@ -52,9 +52,10 @@ export function RecordatoriosTab({
           _hover={{ bg: '#4338CA' }}
           onClick={() => setIsFormOpen(true)}
           size={{ base: 'sm', md: 'md' }}
+          aria-label="Nuevo recordatorio"
         >
           <FiPlus />
-          Nuevo recordatorio
+          <Text as="span" display={{ base: 'none', md: 'inline' }}>Nuevo recordatorio</Text>
         </Button>
       </HStack>
 

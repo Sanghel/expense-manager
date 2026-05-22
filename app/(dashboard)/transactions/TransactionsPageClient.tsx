@@ -94,22 +94,28 @@ export function TransactionsPageClient({ userId, categories, initialTransactions
 
   return (
     <Box>
-      <HStack justify="space-between" mb={{ base: 4, md: 6 }}>
+      <HStack justify="space-between" mb={{ base: 4, md: 6 }} gap={2} align="center" flexWrap="wrap">
         <Heading size={{ base: 'md', md: 'lg' }} color="white">Transacciones</Heading>
-        <HStack gap={2}>
+        <HStack gap={2} justify="flex-end" flexWrap="wrap">
           <GmailSyncButton userId={userId} categories={categories} accounts={accounts} />
-          <Button variant="outline" onClick={onExportOpen} size={{ base: 'sm', md: 'md' }}>
+          <Button variant="outline" onClick={onExportOpen} size={{ base: 'sm', md: 'md' }} aria-label="Exportar">
             <FiDownload />
-            <Text display={{ base: 'none', sm: 'inline' }}>Exportar</Text>
+            <Text display={{ base: 'none', md: 'inline' }}>Exportar</Text>
           </Button>
-          <Button variant="outline" onClick={onImportOpen} size={{ base: 'sm', md: 'md' }}>
+          <Button variant="outline" onClick={onImportOpen} size={{ base: 'sm', md: 'md' }} aria-label="Importar">
             <FiUpload />
-            <Text display={{ base: 'none', sm: 'inline' }}>Importar</Text>
+            <Text display={{ base: 'none', md: 'inline' }}>Importar</Text>
           </Button>
-          <Button bg="#4F46E5" color="white" _hover={{ bg: '#4338CA' }} onClick={onCreateOpen} size={{ base: 'sm', md: 'md' }}>
+          <Button
+            bg="#4F46E5"
+            color="white"
+            _hover={{ bg: '#4338CA' }}
+            onClick={onCreateOpen}
+            size={{ base: 'sm', md: 'md' }}
+            aria-label="Nueva transacción"
+          >
             <FiPlus />
-            <Text display={{ base: 'none', sm: 'inline' }}>Nueva Transacción</Text>
-            <Text display={{ base: 'inline', sm: 'none' }}>Nueva</Text>
+            <Text display={{ base: 'none', md: 'inline' }}>Nueva Transacción</Text>
           </Button>
         </HStack>
       </HStack>

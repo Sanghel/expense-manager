@@ -85,6 +85,7 @@ export function CalendarPageContent({ userId, initialTransactions, categories, a
             userId={userId}
             reminders={reminders}
             categories={categories}
+            accounts={accounts}
             onRefresh={() => router.refresh()}
           />
         </VStack>

@@ -108,6 +108,7 @@ export function RecordatoriosTab({
         userId={userId}
         reminders={initialReminders}
         categories={categories}
+        accounts={accounts}
         onRefresh={refresh}
       />
 
@@ -116,6 +117,7 @@ export function RecordatoriosTab({
         onClose={() => setIsFormOpen(false)}
         userId={userId}
         categories={categories}
+        accounts={accounts}
         onSuccess={() => {
           setIsFormOpen(false)
           refresh()

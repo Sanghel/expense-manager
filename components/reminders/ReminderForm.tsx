@@ -1,6 +1,6 @@
 'use client'
 
-import { VStack, HStack, Text, Box } from '@chakra-ui/react'
+import { VStack, HStack, Text, Box, NativeSelectRoot, NativeSelectField, FieldRoot, FieldLabel } from '@chakra-ui/react'
 import { useState, useEffect } from 'react'
 import { createReminder, updateReminder } from '@/lib/actions/reminders.actions'
 import { toaster } from '@/lib/toaster'
@@ -10,7 +10,8 @@ import { DateInput } from '@/components/ui/DateInput'
 import { RadioSelect } from '@/components/ui/RadioSelect'
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
 import { CategorySelect } from '@/components/ui/CategorySelect'
-import type { Category, Reminder } from '@/types/database.types'
+import { AccountSelect } from '@/components/ui/AccountSelect'
+import type { Account, Category, Reminder } from '@/types/database.types'
 import { getLocalDateString } from '@/lib/utils/dates'
 
 const FREQUENCY_OPTIONS = [
@@ -31,19 +32,22 @@ const WEEKDAY_OPTIONS = [
 ]
 
 const MONTH_OPTIONS = [
-  { value: '1', label: 'Enero' }, { value: '2', label: 'Febrero' },
-  { value: '3', label: 'Marzo' }, { value: '4', label: 'Abril' },
-  { value: '5', label: 'Mayo' }, { value: '6', label: 'Junio' },
-  { value: '7', label: 'Julio' }, { value: '8', label: 'Agosto' },
-  { value: '9', label: 'Septiembre' }, { value: '10', label: 'Octubre' },
-  { value: '11', label: 'Noviembre' }, { value: '12', label: 'Diciembre' },
+  { value: 1, label: 'Enero' }, { value: 2, label: 'Febrero' },
+  { value: 3, label: 'Marzo' }, { value: 4, label: 'Abril' },
+  { value: 5, label: 'Mayo' }, { value: 6, label: 'Junio' },
+  { value: 7, label: 'Julio' }, { value: 8, label: 'Agosto' },
+  { value: 9, label: 'Septiembre' }, { value: 10, label: 'Octubre' },
+  { value: 11, label: 'Noviembre' }, { value: 12, label: 'Diciembre' },
 ]
+
+const DAY_OF_MONTH_OPTIONS = Array.from({ length: 31 }, (_, i) => i + 1)
 
 interface Props {
   isOpen: boolean
   onClose: () => void
   userId: string
   categories: Category[]
+  accounts?: Account[]
   editingReminder?: Reminder | null
   onSuccess: () => void
   prefillDate?: string
@@ -52,6 +56,7 @@ interface Props {
 const defaultForm = {
   description: '',
   category_id: '',
+  account_id: '',
   frequency: 'monthly' as 'once' | 'weekly' | 'monthly' | 'yearly',
   day_of_week: 1,
   day_of_month: 1,
@@ -59,7 +64,7 @@ const defaultForm = {
   specific_date: getLocalDateString(),
 }
 
-export function ReminderForm({ isOpen, onClose, userId, categories, editingReminder, onSuccess, prefillDate }: Props) {
+export function ReminderForm({ isOpen, onClose, userId, categories, accounts = [], editingReminder, onSuccess, prefillDate }: Props) {
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState(defaultForm)
 
@@ -68,6 +73,7 @@ export function ReminderForm({ isOpen, onClose, userId, categories, editingRemin
       setFormData({
         description: editingReminder.description,
         category_id: editingReminder.category_id ?? '',
+        account_id: editingReminder.account_id ?? '',
         frequency: editingReminder.frequency,
         day_of_week: editingReminder.day_of_week ?? 1,
         day_of_month: editingReminder.day_of_month ?? 1,
@@ -96,6 +102,7 @@ export function ReminderForm({ isOpen, onClose, userId, categories, editingRemin
     const payload = {
       description: formData.description,
       category_id: formData.category_id || null,
+      account_id: formData.account_id || null,
       frequency: formData.frequency,
       day_of_week: formData.frequency === 'weekly' ? formData.day_of_week : null,
       day_of_month: (formData.frequency === 'monthly' || formData.frequency === 'yearly') ? formData.day_of_month : null,
@@ -142,6 +149,17 @@ export function ReminderForm({ isOpen, onClose, userId, categories, editingRemin
             />
           </Box>
 
+          {accounts.length > 0 && (
+            <AccountSelect
+              label="Cuenta"
+              optional
+              value={formData.account_id}
+              onChange={(v) => setFormData({ ...formData, account_id: v })}
+              accounts={accounts}
+              placeholder="Usar cuenta por defecto al pagar"
+            />
+          )}
+
           <RadioSelect
             label="Frecuencia"
             value={formData.frequency}
@@ -160,49 +178,59 @@ export function ReminderForm({ isOpen, onClose, userId, categories, editingRemin
           )}
 
           {formData.frequency === 'weekly' && (
-            <RadioSelect
-              label="Día de la semana"
-              value={String(formData.day_of_week)}
-              onChange={(v) => setFormData({ ...formData, day_of_week: Number(v) })}
-              options={WEEKDAY_OPTIONS}
-              required
-            />
+            <FieldRoot required w="full">
+              <FieldLabel>Día de la semana</FieldLabel>
+              <NativeSelectRoot>
+                <NativeSelectField
+                  value={String(formData.day_of_week)}
+                  onChange={(e) => setFormData({ ...formData, day_of_week: Number(e.target.value) })}
+                >
+                  {WEEKDAY_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </NativeSelectField>
+              </NativeSelectRoot>
+            </FieldRoot>
           )}
 
           {(formData.frequency === 'monthly' || formData.frequency === 'yearly') && (
-            <HStack gap={3} w="full" align="flex-end">
-              <Box flex={1}>
-                <Text fontSize="sm" color="#B0B0B0" mb={1}>Día del mes</Text>
-                <input
-                  type="number"
-                  min={1}
-                  max={31}
-                  value={formData.day_of_month}
-                  onChange={(e) => setFormData({ ...formData, day_of_month: Number(e.target.value) })}
-                  style={{
-                    width: '100%',
-                    background: '#18181d',
-                    border: '1px solid #2d2d35',
-                    borderRadius: '8px',
-                    padding: '8px 12px',
-                    color: 'white',
-                    fontSize: '14px',
-                  }}
-                  required
-                />
-              </Box>
-              {formData.frequency === 'yearly' && (
-                <Box flex={2}>
-                  <RadioSelect
-                    label="Mes"
-                    value={String(formData.month_of_year)}
-                    onChange={(v) => setFormData({ ...formData, month_of_year: Number(v) })}
-                    options={MONTH_OPTIONS}
-                    required
-                  />
-                </Box>
+            <VStack w="full" gap={2} align="stretch">
+              <HStack gap={3} w="full" align="flex-end">
+                <FieldRoot required flex={1}>
+                  <FieldLabel>Día del mes</FieldLabel>
+                  <NativeSelectRoot>
+                    <NativeSelectField
+                      value={String(formData.day_of_month)}
+                      onChange={(e) => setFormData({ ...formData, day_of_month: Number(e.target.value) })}
+                    >
+                      {DAY_OF_MONTH_OPTIONS.map((d) => (
+                        <option key={d} value={d}>{d}</option>
+                      ))}
+                    </NativeSelectField>
+                  </NativeSelectRoot>
+                </FieldRoot>
+                {formData.frequency === 'yearly' && (
+                  <FieldRoot required flex={2}>
+                    <FieldLabel>Mes</FieldLabel>
+                    <NativeSelectRoot>
+                      <NativeSelectField
+                        value={String(formData.month_of_year)}
+                        onChange={(e) => setFormData({ ...formData, month_of_year: Number(e.target.value) })}
+                      >
+                        {MONTH_OPTIONS.map((m) => (
+                          <option key={m.value} value={m.value}>{m.label}</option>
+                        ))}
+                      </NativeSelectField>
+                    </NativeSelectRoot>
+                  </FieldRoot>
+                )}
+              </HStack>
+              {formData.day_of_month > 28 && (
+                <Text fontSize="xs" color="#B0B0B0">
+                  Si el mes no tiene este día, se usará el último día disponible.
+                </Text>
               )}
-            </HStack>
+            </VStack>
           )}
 
           <PrimaryButton type="submit" width="full" loading={loading}>

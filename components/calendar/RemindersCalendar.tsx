@@ -393,6 +393,7 @@ export function RemindersCalendar({ userId, reminders, categories, accounts, onR
         onClose={() => setCreateReminderDate(null)}
         userId={userId}
         categories={categories}
+        accounts={accounts}
         prefillDate={createReminderDate ?? undefined}
         onSuccess={() => {
           setCreateReminderDate(null)

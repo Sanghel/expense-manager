@@ -7,7 +7,7 @@ import { deleteReminder } from '@/lib/actions/reminders.actions'
 import { toaster } from '@/lib/toaster'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { ReminderForm } from './ReminderForm'
-import type { Category, ReminderWithCategory } from '@/types/database.types'
+import type { Account, Category, ReminderWithCategory } from '@/types/database.types'
 
 const FREQUENCY_LABELS: Record<string, string> = {
   once: 'Una vez',
@@ -38,10 +38,11 @@ interface Props {
   userId: string
   reminders: ReminderWithCategory[]
   categories: Category[]
+  accounts?: Account[]
   onRefresh: () => void
 }
 
-export function RemindersList({ userId, reminders, categories, onRefresh }: Props) {
+export function RemindersList({ userId, reminders, categories, accounts = [], onRefresh }: Props) {
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingReminder, setEditingReminder] = useState<ReminderWithCategory | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -127,6 +128,7 @@ export function RemindersList({ userId, reminders, categories, onRefresh }: Prop
         onClose={() => setIsFormOpen(false)}
         userId={userId}
         categories={categories}
+        accounts={accounts}
         editingReminder={editingReminder}
         onSuccess={onRefresh}
       />

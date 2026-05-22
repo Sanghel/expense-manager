@@ -27,6 +27,16 @@ export async function getAccounts(userId: string) {
   }
 }
 
+async function clearOtherDefaults(userId: string, exceptId: string | null) {
+  const query = insforgeAdmin.database
+    .from('accounts')
+    .update({ is_default: false })
+    .eq('user_id', userId)
+    .eq('is_default', true)
+  if (exceptId) await query.neq('id', exceptId)
+  else await query
+}
+
 export async function createAccount(userId: string, data: CreateAccountInput) {
   try {
     const validated = createAccountSchema.parse(data)
@@ -36,15 +46,34 @@ export async function createAccount(userId: string, data: CreateAccountInput) {
       validated.balance = validated.credit_limit
     }
 
+    // If the user has no accounts yet, auto-mark this one as default.
+    const { count } = await insforgeAdmin.database
+      .from('accounts')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('is_active', true)
+    const isFirstAccount = (count ?? 0) === 0
+
+    if (validated.is_default) {
+      await clearOtherDefaults(userId, null)
+    }
+
+    const payload = {
+      ...validated,
+      is_default: validated.is_default ?? isFirstAccount,
+      user_id: userId,
+    }
+
     const { data: account, error } = await insforgeAdmin.database
       .from('accounts')
-      .insert([{ ...validated, user_id: userId }])
+      .insert([payload])
       .select()
       .single()
 
     if (error) throw error
     revalidatePath('/settings')
     revalidatePath('/dashboard')
+    revalidatePath('/movimientos')
     return { success: true, data: account }
   } catch (error) {
     console.error('Create account error:', error)
@@ -55,6 +84,10 @@ export async function createAccount(userId: string, data: CreateAccountInput) {
 export async function updateAccount(id: string, userId: string, data: UpdateAccountInput) {
   try {
     const validated = updateAccountSchema.parse(data)
+
+    if (validated.is_default === true) {
+      await clearOtherDefaults(userId, id)
+    }
 
     const { data: account, error } = await insforgeAdmin.database
       .from('accounts')
@@ -67,6 +100,7 @@ export async function updateAccount(id: string, userId: string, data: UpdateAcco
     if (error) throw error
     revalidatePath('/settings')
     revalidatePath('/dashboard')
+    revalidatePath('/movimientos')
     return { success: true, data: account }
   } catch (error) {
     console.error('Update account error:', error)

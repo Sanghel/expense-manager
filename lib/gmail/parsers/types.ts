@@ -1,7 +1,7 @@
 // lib/gmail/parsers/types.ts
 import type { Currency, TransactionType } from '@/types/database.types'
 
-export type ParserSource = 'bancolombia' | 'binance' | 'mercantil'
+export type ParserSource = 'bancolombia' | 'binance' | 'mercantil' | 'bofa'
 
 export interface ParsedTransaction {
   type: TransactionType

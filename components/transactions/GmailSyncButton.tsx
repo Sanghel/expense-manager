@@ -56,10 +56,10 @@ export function GmailSyncButton({ userId, categories, accounts }: Props) {
         onClick={handleClick}
         size={{ base: 'sm', md: 'md' }}
         loading={loading}
+        aria-label="Sincronizar correos"
       >
         <FiMail />
-        <Text display={{ base: 'none', sm: 'inline' }}>Sincronizar correos</Text>
-        <Text display={{ base: 'inline', sm: 'none' }}>Gmail</Text>
+        <Text display={{ base: 'none', md: 'inline' }}>Sincronizar correos</Text>
       </Button>
 
       {items && (

@@ -1,6 +1,6 @@
 {
   "name": "expense-manager",
-  "version": "3.3.0",
+  "version": "3.4.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -14,6 +14,7 @@
     "test:bancolombia-parser": "npx tsx scripts/test-bancolombia-parser.ts",
     "test:binance-parser": "npx tsx scripts/test-binance-parser.ts",
     "test:mercantil-parser": "npx tsx scripts/test-mercantil-parser.ts",
+    "test:bofa-parser": "npx tsx scripts/test-bofa-parser.ts",
     "generate-icons": "npx tsx scripts/generate-pwa-icons.ts"
   },
   "dependencies": {

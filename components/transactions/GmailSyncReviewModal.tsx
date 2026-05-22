@@ -33,6 +33,7 @@ const SOURCE_STYLES: Record<ParserSource, { bg: string; color: string; label: st
   bancolombia: { bg: '#FDDA24', color: '#000000', label: 'Bancolombia' },
   binance: { bg: '#F0B90B', color: '#000000', label: 'Binance' },
   mercantil: { bg: '#003B7A', color: '#FFFFFF', label: 'Mercantil' },
+  bofa: { bg: '#E31837', color: '#FFFFFF', label: 'Bank of America' },
 }
 
 function findAccountByLastFour(accounts: Account[], lastFour: string | null): string | null {

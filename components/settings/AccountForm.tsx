@@ -1,6 +1,6 @@
 'use client'
 
-import { VStack, HStack, FieldRoot, FieldLabel } from '@chakra-ui/react'
+import { VStack, HStack, FieldRoot, FieldLabel, Switch, Text } from '@chakra-ui/react'
 import { useState, useEffect } from 'react'
 import { createAccount, updateAccount } from '@/lib/actions/accounts.actions'
 import { toaster } from '@/lib/toaster'
@@ -39,6 +39,7 @@ const defaultForm = {
   icon: '💳',
   color: '#6366f1',
   last_four: '',
+  is_default: false,
 }
 
 export function AccountForm({ isOpen, onClose, userId, editingAccount, onSuccess }: Props) {
@@ -56,6 +57,7 @@ export function AccountForm({ isOpen, onClose, userId, editingAccount, onSuccess
         icon: editingAccount.icon ?? '💳',
         color: editingAccount.color ?? '#6366f1',
         last_four: editingAccount.last_four ?? '',
+        is_default: editingAccount.is_default ?? false,
       })
     } else {
       setFormData(defaultForm)
@@ -87,6 +89,7 @@ export function AccountForm({ isOpen, onClose, userId, editingAccount, onSuccess
       icon: formData.icon || null,
       color: formData.color || null,
       last_four: trimmedLastFour || null,
+      is_default: formData.is_default,
     }
 
     const result = editingAccount
@@ -178,6 +181,23 @@ export function AccountForm({ isOpen, onClose, userId, editingAccount, onSuccess
                 onChange={(color) => setFormData({ ...formData, color })}
               />
             </FieldRoot>
+          </HStack>
+
+          <HStack w="full" justify="space-between" align="center">
+            <VStack align="flex-start" gap={0}>
+              <Text fontSize="sm" color="white">Cuenta por defecto</Text>
+              <Text fontSize="xs" color="#B0B0B0">Se usará al pagar recordatorios sin cuenta asignada</Text>
+            </VStack>
+            <Switch.Root
+              checked={formData.is_default}
+              onCheckedChange={({ checked }) => setFormData({ ...formData, is_default: checked })}
+              colorPalette="brand"
+            >
+              <Switch.HiddenInput />
+              <Switch.Control>
+                <Switch.Thumb />
+              </Switch.Control>
+            </Switch.Root>
           </HStack>
 
           <PrimaryButton type="submit" width="full" loading={loading}>

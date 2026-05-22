@@ -3,7 +3,6 @@ export type TransactionType = 'income' | 'expense'
 export type CategoryType = 'income' | 'expense' | 'both'
 export type BudgetPeriod = 'monthly' | 'yearly'
 export type TransactionSource = 'manual' | 'conversational' | 'import' | 'gmail'
-export type RecurrenceFrequency = 'daily' | 'weekly' | 'monthly' | 'yearly'
 
 export interface Whitelist {
   id: string
@@ -48,6 +47,7 @@ export interface Account {
   icon: string | null
   last_four: string | null
   is_active: boolean
+  is_default: boolean
   created_at: string
   updated_at: string
 }
@@ -107,33 +107,12 @@ export interface ExchangeRate {
   created_at: string
 }
 
-export interface RecurringTransaction {
-  id: string
-  user_id: string
-  amount: number
-  currency: Currency
-  type: TransactionType
-  category_id: string
-  account_id: string | null
-  description: string
-  frequency: RecurrenceFrequency
-  start_date: string // ISO date
-  end_date: string | null // ISO date
-  is_active: boolean
-  last_generated: string | null // ISO date
-  created_at: string
-}
-
 // With relations
 export interface TransactionWithCategory extends Transaction {
   category: Category
 }
 
 export interface BudgetWithCategory extends Budget {
-  category: Category
-}
-
-export interface RecurringTransactionWithCategory extends RecurringTransaction {
   category: Category
 }
 
@@ -203,6 +182,7 @@ export interface Reminder {
   user_id: string
   description: string
   category_id: string | null
+  account_id: string | null
   frequency: ReminderFrequency
   day_of_week: number | null
   day_of_month: number | null

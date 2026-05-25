@@ -6,11 +6,15 @@ const BANCOLOMBIA_SENDERS = [
   'alertasynotificaciones@notificacionesbancolombia.com',
   'alertasynotificaciones@bancolombia.com.co',
   'alertasynotificaciones@an.notificacionesbancolombia.com',
+  'alertasynotificaciones@ayn.ayn.notificacionesbancolombia.com',
 ]
+
+const BANCOLOMBIA_DOMAIN_PATTERN = /(?:^|[@.])(?:notificacionesbancolombia\.com|bancolombia\.com\.co)\b/i
 
 export function isBancolombiaSender(fromHeader: string): boolean {
   const lower = fromHeader.toLowerCase()
-  return BANCOLOMBIA_SENDERS.some((s) => lower.includes(s))
+  if (BANCOLOMBIA_SENDERS.some((s) => lower.includes(s))) return true
+  return BANCOLOMBIA_DOMAIN_PATTERN.test(lower)
 }
 
 function parseAmount(raw: string): number | null {
@@ -65,7 +69,7 @@ const RULES: Array<{
   {
     name: 'compra_tarjeta_v2',
     pattern:
-      /compraste\s+\$?\s*([\d.,]+)\s+en\s+([A-Z0-9 .,&'\-/]+?)\s+con\s+tu\s+t\.?\s*(?:deb|cred)\s*\*?(\d{4})/i,
+      /compraste\s+\$?\s*([\d.,]+)\s+en\s+([A-Z0-9 .,&'\-/*()]+?)\s+con\s+tu\s+t\.?\s*(?:deb|cred)\s*\*?(\d{4})/i,
     build: (m) => ({
       type: 'expense',
       amountRaw: m[1],
@@ -95,7 +99,7 @@ const RULES: Array<{
   {
     name: 'compra_tarjeta',
     pattern:
-      /compra(?:ste)?\s+por\s+\$?\s*([\d.,]+)\s+(?:con\s+tarjeta\s+)?(?:de\s+cr[eé]dito|de\s+d[eé]bito|t\.?\s*(?:cred|deb))?[^.]*?en\s+([A-Z0-9 .,&'\-/*]+?)(?:\s+el\s|\s+\.|\.|\s+t\.?\s*(?:cred|deb)\b|\s+tarjeta\b)/i,
+      /compra(?:ste)?\s+por\s+\$?\s*([\d.,]+)\s+(?:con\s+tarjeta\s+)?(?:de\s+cr[eé]dito|de\s+d[eé]bito|t\.?\s*(?:cred|deb))?[^.]*?en\s+([A-Z0-9 .,&'\-/*()]+?)(?:\s+el\s|\s+\.|\.|\s+t\.?\s*(?:cred|deb)\b|\s+tarjeta\b)/i,
     build: (m) => {
       const lastFourMatch = m.input?.match(/\*+\s*(\d{4})\b|tarjeta[^\d]{0,15}(\d{4})\b/i)
       const lastFour = lastFourMatch?.[1] ?? lastFourMatch?.[2] ?? null
@@ -107,6 +111,24 @@ const RULES: Array<{
         lastFour,
         description: `Compra en ${merchant}`,
         matchedRule: 'compra_tarjeta',
+      }
+    },
+  },
+  {
+    name: 'transferencia_boton',
+    pattern:
+      /transferiste\s+\$?\s*([\d.,]+)\s+por\s+([A-Za-z0-9 .,&'\-/]+?)\s+a\s+([A-Z0-9 .,&'\-/]+?)\s+desde\s+(?:producto|cuenta)\s+\*?(\d{4,})/i,
+    build: (m) => {
+      const method = m[2].trim().replace(/\s+/g, ' ')
+      const merchant = m[3].trim().replace(/\s+/g, ' ')
+      const lastFour = m[4].slice(-4)
+      return {
+        type: 'expense',
+        amountRaw: m[1],
+        merchant,
+        lastFour,
+        description: `Transferencia a ${merchant} (${method})`,
+        matchedRule: 'transferencia_boton',
       }
     },
   },

@@ -6,7 +6,7 @@ import { getParserForSender, type ParsedTransaction } from './parsers'
 const DEFAULT_LOOKBACK_DAYS = 7
 
 const COMBINED_QUERY =
-  'from:(notificacionesbancolombia@bancolombia.com.co OR alertasynotificaciones@notificacionesbancolombia.com OR alertasynotificaciones@bancolombia.com.co OR alertasynotificaciones@an.notificacionesbancolombia.com OR do-not-reply@ses.binance.com OR notificaciones@bancomercantil.com)'
+  'from:(notificacionesbancolombia@bancolombia.com.co OR alertasynotificaciones@notificacionesbancolombia.com OR alertasynotificaciones@bancolombia.com.co OR alertasynotificaciones@an.notificacionesbancolombia.com OR alertasynotificaciones@ayn.ayn.notificacionesbancolombia.com OR do-not-reply@ses.binance.com OR notificaciones@bancomercantil.com)'
 
 export interface ParsedItem extends ParsedTransaction {
   gmailMessageId: string

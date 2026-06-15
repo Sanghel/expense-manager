@@ -30,56 +30,59 @@ export function TransactionsFilter({ filters, onChange, categories }: Props) {
 
   return (
     <Box mb={3}>
-      {/* Search: full width on mobile, constrained on desktop */}
-      <Input
-        placeholder="Buscar descripción..."
-        mb={2}
-        w={{ base: '100%', md: '320px' }}
-        value={filters.search}
-        onChange={(e) => update({ search: e.target.value })}
-        size="sm"
-      />
+      {/* Stacked on mobile, single row on desktop (description + selects) */}
+      <Flex direction={{ base: 'column', md: 'row' }} gap={2} align={{ md: 'center' }}>
+        {/* Search: full width on mobile, constrained on desktop */}
+        <Input
+          placeholder="Buscar descripción..."
+          w={{ base: '100%', md: '320px' }}
+          flexShrink={0}
+          value={filters.search}
+          onChange={(e) => update({ search: e.target.value })}
+          size="sm"
+        />
 
-      {/* Filters: horizontal scroll on mobile */}
-      <Flex gap={2} overflowX="auto" pb={1} css={{ '&::-webkit-scrollbar': { display: 'none' } }}>
-        <NativeSelectRoot flexShrink={0} w={{ base: '120px', md: '140px' }} size="sm">
-          <NativeSelectField
-            value={filters.type}
-            onChange={(e) => update({ type: e.target.value as FilterState['type'] })}
-          >
-            <option value="">Tipo</option>
-            <option value="income">Ingresos</option>
-            <option value="expense">Gastos</option>
-          </NativeSelectField>
-        </NativeSelectRoot>
+        {/* Filters: horizontal scroll on mobile */}
+        <Flex gap={2} overflowX="auto" pb={1} css={{ '&::-webkit-scrollbar': { display: 'none' } }}>
+          <NativeSelectRoot flexShrink={0} w={{ base: '120px', md: '140px' }} size="sm">
+            <NativeSelectField
+              value={filters.type}
+              onChange={(e) => update({ type: e.target.value as FilterState['type'] })}
+            >
+              <option value="">Tipo</option>
+              <option value="income">Ingresos</option>
+              <option value="expense">Gastos</option>
+            </NativeSelectField>
+          </NativeSelectRoot>
 
-        <NativeSelectRoot flexShrink={0} w={{ base: '150px', md: '190px' }} size="sm">
-          <NativeSelectField
-            value={filters.category_id}
-            onChange={(e) => update({ category_id: e.target.value })}
-          >
-            <option value="">Categoría</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.icon} {cat.name}
-              </option>
-            ))}
-          </NativeSelectField>
-        </NativeSelectRoot>
+          <NativeSelectRoot flexShrink={0} w={{ base: '150px', md: '190px' }} size="sm">
+            <NativeSelectField
+              value={filters.category_id}
+              onChange={(e) => update({ category_id: e.target.value })}
+            >
+              <option value="">Categoría</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.icon} {cat.name}
+                </option>
+              ))}
+            </NativeSelectField>
+          </NativeSelectRoot>
 
-        <NativeSelectRoot flexShrink={0} w={{ base: '130px', md: '180px' }} size="sm">
-          <NativeSelectField
-            value={filters.month}
-            onChange={(e) => update({ month: e.target.value })}
-          >
-            <option value="">Mes</option>
-            {months.map((m) => (
-              <option key={m.value} value={m.value}>
-                {m.label}
-              </option>
-            ))}
-          </NativeSelectField>
-        </NativeSelectRoot>
+          <NativeSelectRoot flexShrink={0} w={{ base: '130px', md: '180px' }} size="sm">
+            <NativeSelectField
+              value={filters.month}
+              onChange={(e) => update({ month: e.target.value })}
+            >
+              <option value="">Mes</option>
+              {months.map((m) => (
+                <option key={m.value} value={m.value}>
+                  {m.label}
+                </option>
+              ))}
+            </NativeSelectField>
+          </NativeSelectRoot>
+        </Flex>
       </Flex>
     </Box>
   )

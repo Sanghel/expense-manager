@@ -39,6 +39,7 @@ const defaultForm = {
   icon: '💳',
   color: '#6366f1',
   last_four: '',
+  card_number: '',
   is_default: false,
 }
 
@@ -57,6 +58,7 @@ export function AccountForm({ isOpen, onClose, userId, editingAccount, onSuccess
         icon: editingAccount.icon ?? '💳',
         color: editingAccount.color ?? '#6366f1',
         last_four: editingAccount.last_four ?? '',
+        card_number: editingAccount.card_number ?? '',
         is_default: editingAccount.is_default ?? false,
       })
     } else {
@@ -80,6 +82,19 @@ export function AccountForm({ isOpen, onClose, userId, editingAccount, onSuccess
       setLoading(false)
       return
     }
+    // Card number only applies to non-card accounts (a card that shares the
+    // account's fund). Card-type accounts use last_four for their own card.
+    const trimmedCardNumber = isCard ? '' : formData.card_number.trim()
+    if (trimmedCardNumber && !/^[0-9]{4}$/.test(trimmedCardNumber)) {
+      toaster.create({
+        title: 'Número de tarjeta inválido',
+        description: 'Debe ser exactamente 4 dígitos numéricos',
+        type: 'error',
+        duration: 4000,
+      })
+      setLoading(false)
+      return
+    }
     const data = {
       name: formData.name,
       type: formData.type,
@@ -89,6 +104,7 @@ export function AccountForm({ isOpen, onClose, userId, editingAccount, onSuccess
       icon: formData.icon || null,
       color: formData.color || null,
       last_four: trimmedLastFour || null,
+      card_number: trimmedCardNumber || null,
       is_default: formData.is_default,
     }
 
@@ -164,6 +180,15 @@ export function AccountForm({ isOpen, onClose, userId, editingAccount, onSuccess
             onChange={(v) => setFormData({ ...formData, last_four: v.replace(/[^0-9]/g, '').slice(0, 4) })}
             placeholder="1234"
           />
+
+          {!isCard && (
+            <FormInput
+              label="Número de tarjeta asociada (para integración Gmail)"
+              value={formData.card_number}
+              onChange={(v) => setFormData({ ...formData, card_number: v.replace(/[^0-9]/g, '').slice(0, 4) })}
+              placeholder="5678"
+            />
+          )}
 
           <HStack gap={4} w="full">
             <FieldRoot>

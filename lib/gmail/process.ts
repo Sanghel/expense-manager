@@ -38,14 +38,18 @@ interface AccountRow {
   id: string
   currency: string
   last_four: string | null
+  card_number: string | null
 }
 
+// Matches the parsed 4-digit number against either the account's own number
+// (last_four) or its linked card number (card_number). Some accounts and cards
+// share the same fund, and bank emails sometimes reference the card number.
 async function findAccountByLastFour(userId: string, lastFour: string): Promise<AccountRow | null> {
   const { data } = await insforgeAdmin.database
     .from('accounts')
-    .select('id, currency, last_four')
+    .select('id, currency, last_four, card_number')
     .eq('user_id', userId)
-    .eq('last_four', lastFour)
+    .or(`last_four.eq.${lastFour},card_number.eq.${lastFour}`)
     .eq('is_active', true)
     .limit(1)
     .maybeSingle()

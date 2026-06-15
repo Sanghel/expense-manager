@@ -46,6 +46,7 @@ export interface Account {
   color: string | null
   icon: string | null
   last_four: string | null
+  card_number: string | null
   is_active: boolean
   is_default: boolean
   created_at: string

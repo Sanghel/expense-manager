@@ -38,7 +38,9 @@ const SOURCE_STYLES: Record<ParserSource, { bg: string; color: string; label: st
 
 function findAccountByLastFour(accounts: Account[], lastFour: string | null): string | null {
   if (!lastFour) return null
-  const match = accounts.find((a) => a.last_four === lastFour && a.is_active)
+  const match = accounts.find(
+    (a) => (a.last_four === lastFour || a.card_number === lastFour) && a.is_active
+  )
   return match?.id ?? null
 }
 

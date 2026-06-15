@@ -13,6 +13,11 @@ export const createAccountSchema = z.object({
     .regex(/^[0-9]{4}$/, 'Deben ser 4 dígitos')
     .nullable()
     .optional(),
+  card_number: z
+    .string()
+    .regex(/^[0-9]{4}$/, 'Deben ser 4 dígitos')
+    .nullable()
+    .optional(),
   is_default: z.boolean().optional(),
 })
 

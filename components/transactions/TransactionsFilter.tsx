@@ -30,10 +30,11 @@ export function TransactionsFilter({ filters, onChange, categories }: Props) {
 
   return (
     <Box mb={3}>
-      {/* Search: full width */}
+      {/* Search: full width on mobile, constrained on desktop */}
       <Input
         placeholder="Buscar descripción..."
         mb={2}
+        w={{ base: '100%', md: '320px' }}
         value={filters.search}
         onChange={(e) => update({ search: e.target.value })}
         size="sm"

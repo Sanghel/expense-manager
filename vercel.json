@@ -7,6 +7,10 @@
     {
       "path": "/api/cron/sync-gmail",
       "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/cron/generate-savings-advice",
+      "schedule": "0 6 1 * *"
     }
   ]
 }

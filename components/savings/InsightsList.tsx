@@ -1,9 +1,10 @@
 'use client'
 
 import { VStack, HStack, Box, Text, Icon } from '@chakra-ui/react'
+import { useMemo } from 'react'
 import { FiInfo, FiAlertTriangle, FiAlertOctagon } from 'react-icons/fi'
 import type { IconType } from 'react-icons'
-import type { SavingsInsight, AdviceSeverity } from '@/types/database.types'
+import type { Category, SavingsInsight, AdviceSeverity } from '@/types/database.types'
 
 const SEVERITY: Record<AdviceSeverity, { color: string; icon: IconType; label: string }> = {
   info: { color: '#6366f1', icon: FiInfo, label: 'Info' },
@@ -13,9 +14,12 @@ const SEVERITY: Record<AdviceSeverity, { color: string; icon: IconType; label: s
 
 interface Props {
   insights: SavingsInsight[]
+  categories?: Category[]
 }
 
-export function InsightsList({ insights }: Props) {
+export function InsightsList({ insights, categories = [] }: Props) {
+  const categoryMap = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories])
+
   if (insights.length === 0) {
     return <Text color="#B0B0B0">No hay observaciones para este periodo.</Text>
   }
@@ -24,6 +28,7 @@ export function InsightsList({ insights }: Props) {
     <VStack gap={3} align="stretch">
       {insights.map((insight, i) => {
         const s = SEVERITY[insight.severity] ?? SEVERITY.info
+        const category = insight.category_id ? categoryMap.get(insight.category_id) : undefined
         return (
           <Box
             key={i}
@@ -38,9 +43,12 @@ export function InsightsList({ insights }: Props) {
             <HStack align="start" gap={3}>
               <Icon as={s.icon} color={s.color} boxSize={5} mt={0.5} flexShrink={0} />
               <Box>
-                <Text fontWeight="semibold" color="white">
-                  {insight.title}
-                </Text>
+                <HStack gap={2}>
+                  {category?.icon && <Text fontSize="md">{category.icon}</Text>}
+                  <Text fontWeight="semibold" color="white">
+                    {insight.title}
+                  </Text>
+                </HStack>
                 <Text fontSize="sm" color="#B0B0B0" mt={1}>
                   {insight.detail}
                 </Text>

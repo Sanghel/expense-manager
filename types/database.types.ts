@@ -214,6 +214,14 @@ export interface SavingsBudgetSuggestion {
   current_budget_amount?: number | null
 }
 
+export interface SavingsGoalSuggestion {
+  name: string
+  target_amount: number
+  monthly_contribution?: number | null
+  deadline?: string | null
+  rationale: string
+}
+
 export interface AiSavingsAdvice {
   id: string
   user_id: string
@@ -221,6 +229,7 @@ export interface AiSavingsAdvice {
   currency: Currency
   insights: SavingsInsight[]
   budget_suggestions: SavingsBudgetSuggestion[]
+  goal_suggestions: SavingsGoalSuggestion[]
   generated_at: string
 }
 

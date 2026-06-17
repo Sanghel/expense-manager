@@ -17,9 +17,18 @@ export const savingsBudgetSuggestionSchema = z.object({
   current_budget_amount: z.number().nullish(),
 })
 
+export const savingsGoalSuggestionSchema = z.object({
+  name: z.string().min(1),
+  target_amount: z.number().positive(),
+  monthly_contribution: z.number().positive().nullish(),
+  deadline: z.string().nullish(),
+  rationale: z.string().min(1),
+})
+
 export const savingsAdvicePayloadSchema = z.object({
   insights: z.array(savingsInsightSchema),
   budget_suggestions: z.array(savingsBudgetSuggestionSchema),
+  goal_suggestions: z.array(savingsGoalSuggestionSchema).default([]),
 })
 
 export type SavingsAdvicePayload = z.infer<typeof savingsAdvicePayloadSchema>

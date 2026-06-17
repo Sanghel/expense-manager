@@ -34,6 +34,12 @@ interface Budget {
   start_date: string
 }
 
+interface PrefillBudget {
+  category_id?: string
+  amount?: number
+  currency?: Currency
+}
+
 interface Props {
   isOpen: boolean
   onClose: () => void
@@ -41,6 +47,9 @@ interface Props {
   categories: Category[]
   onSuccess: () => void
   editingBudget?: Budget | null
+  // Pre-fills the create form (e.g. from an AI budget suggestion). Ignored when
+  // editingBudget is set.
+  prefill?: PrefillBudget | null
 }
 
 const defaultForm = {
@@ -52,7 +61,7 @@ const defaultForm = {
   start_date: getLocalDateString(),
 }
 
-export function BudgetForm({ isOpen, onClose, userId, categories, onSuccess, editingBudget }: Props) {
+export function BudgetForm({ isOpen, onClose, userId, categories, onSuccess, editingBudget, prefill }: Props) {
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState(defaultForm)
 
@@ -68,11 +77,20 @@ export function BudgetForm({ isOpen, onClose, userId, categories, onSuccess, edi
           period: editingBudget.period,
           start_date: editingBudget.start_date,
         })
+      } else if (prefill) {
+        const category = categories.find((c) => c.id === prefill.category_id)
+        setFormData({
+          ...defaultForm,
+          type: category?.type === 'income' ? 'income' : 'expense',
+          category_id: prefill.category_id ?? '',
+          amount: prefill.amount,
+          currency: prefill.currency ?? defaultForm.currency,
+        })
       } else {
         setFormData(defaultForm)
       }
     }
-  }, [isOpen, editingBudget, categories])
+  }, [isOpen, editingBudget, prefill, categories])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

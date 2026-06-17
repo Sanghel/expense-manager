@@ -58,6 +58,7 @@ async function main() {
 
   await testCron('update-exchange-rates', '/api/cron/update-exchange-rates')
   await testCron('sync-gmail', '/api/cron/sync-gmail')
+  await testCron('generate-savings-advice', '/api/cron/generate-savings-advice')
 
   console.log('\n' + '='.repeat(60))
   console.log('Done. Check the terminal running `next dev` for server-side logs.')

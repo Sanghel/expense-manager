@@ -1,5 +1,25 @@
 # Changelog
 
+## [3.6.0] — 2026-06-17
+
+### Added
+
+**Sección "Consejos de Ahorro con IA"** (`/consejos-ahorro`)
+
+- **Diagnóstico del mes**: la IA analiza el gasto del periodo (tendencias mes a mes, categorías problemáticas y presupuestos en riesgo) y muestra observaciones accionables con nivel de severidad (info / atención / crítico).
+- **Sugerencias de presupuesto**: la IA propone montos por categoría basándose en el gasto real; cada sugerencia tiene un botón "Aplicar y editar" que abre el formulario de presupuesto prellenado (crea si no existe, ajusta si ya hay uno). Reutiliza `BudgetForm` vía el nuevo prop opcional `prefill`.
+- **Coach conversacional**: chat en vivo (`askSavingsCoach`) para preguntar "¿en qué estoy gastando de más?" o "¿cómo ahorro este mes?"; responde usando el resumen financiero del usuario como contexto, sin registrar transacciones. Historial efímero en `localStorage`.
+- **Generación**: los insights y sugerencias se pre-generan con un cron semanal (`/api/cron/generate-savings-advice`, lunes 06:00) y se cachean por usuario y mes; un botón "Generar / Actualizar" sirve de fallback bajo demanda. La IA recibe un resumen agregado compacto (no transacciones crudas) para controlar costo.
+- **Navegación**: nueva entrada "Consejos de Ahorro" en el sidebar y el menú móvil.
+
+### Database
+
+- Nueva migración `supabase/seeds/savings-advice-v3.6.0.sql`: tabla `ai_savings_advice` (cache de consejos por `(user_id, period)` con `insights` y `budget_suggestions` en jsonb) + RLS de lectura.
+
+### Operational
+
+- Nuevo cron en `vercel.json`: `/api/cron/generate-savings-advice` (`0 6 * * 1`). Usa la `ANTHROPIC_API_KEY` y el `CRON_SECRET` ya existentes.
+
 ## [3.3.0] — 2026-05-21
 
 ### Added

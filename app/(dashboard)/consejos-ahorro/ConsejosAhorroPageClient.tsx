@@ -9,6 +9,7 @@ import { StatCard } from '@/components/ui/StatCard'
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
 import { InsightsList } from '@/components/savings/InsightsList'
 import { BudgetSuggestionsList, type ExistingBudget } from '@/components/savings/BudgetSuggestionsList'
+import { SavingsCoachChat } from '@/components/savings/SavingsCoachChat'
 import { generateSavingsAdvice } from '@/lib/actions/savingsAdvice.actions'
 import { formatCurrency } from '@/lib/utils/currency'
 import { toaster } from '@/lib/toaster'
@@ -97,7 +98,7 @@ export function ConsejosAhorroPageClient({ userId, period, advice, summary, budg
         <StatCard label="Balance" value={formatCurrency(summary.totals.net, currency)} />
       </SimpleGrid>
 
-      {/* Estados vacíos */}
+      {/* Estados vacíos / contenido */}
       {!summary.hasData ? (
         <Card>
           <VStack gap={3} py={6} color="#B0B0B0">
@@ -108,38 +109,49 @@ export function ConsejosAhorroPageClient({ userId, period, advice, summary, budg
             </Text>
           </VStack>
         </Card>
-      ) : !hasAdvice ? (
-        <Card>
-          <VStack gap={4} py={6}>
-            <Icon as={FiZap} boxSize={8} color="#6366f1" />
-            <Text textAlign="center" color="#B0B0B0">
-              Aún no has generado consejos para este mes. Genera un análisis de tus gastos con IA.
-            </Text>
-            <PrimaryButton onClick={handleGenerate} loading={loading}>
-              Generar consejos
-            </PrimaryButton>
-          </VStack>
-        </Card>
       ) : (
         <VStack gap={8} align="stretch">
-          <Box>
-            <Heading size="md" color="white" mb={4}>
-              Diagnóstico
-            </Heading>
-            <InsightsList insights={advice.insights} />
-          </Box>
+          {!hasAdvice ? (
+            <Card>
+              <VStack gap={4} py={6}>
+                <Icon as={FiZap} boxSize={8} color="#6366f1" />
+                <Text textAlign="center" color="#B0B0B0">
+                  Aún no has generado consejos para este mes. Genera un análisis de tus gastos con IA.
+                </Text>
+                <PrimaryButton onClick={handleGenerate} loading={loading}>
+                  Generar consejos
+                </PrimaryButton>
+              </VStack>
+            </Card>
+          ) : (
+            <>
+              <Box>
+                <Heading size="md" color="white" mb={4}>
+                  Diagnóstico
+                </Heading>
+                <InsightsList insights={advice.insights} />
+              </Box>
+
+              <Box>
+                <Heading size="md" color="white" mb={4}>
+                  Sugerencias de presupuesto
+                </Heading>
+                <BudgetSuggestionsList
+                  userId={userId}
+                  suggestions={advice.budget_suggestions}
+                  budgets={budgets}
+                  categories={categories}
+                  currency={currency}
+                />
+              </Box>
+            </>
+          )}
 
           <Box>
             <Heading size="md" color="white" mb={4}>
-              Sugerencias de presupuesto
+              Coach de ahorro
             </Heading>
-            <BudgetSuggestionsList
-              userId={userId}
-              suggestions={advice.budget_suggestions}
-              budgets={budgets}
-              categories={categories}
-              currency={currency}
-            />
+            <SavingsCoachChat userId={userId} />
           </Box>
         </VStack>
       )}

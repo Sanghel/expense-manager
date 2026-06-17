@@ -1,5 +1,16 @@
 # Changelog
 
+## [3.6.1] — 2026-06-17
+
+### Changed
+
+**Mejoras de UI en la sección "Consejos de Ahorro"**
+
+- El panel se reorganizó en **2 tabs**: "Consejos de ahorro" (diagnóstico + sugerencias de presupuesto) y "Coach de ahorro" (el chat, antes apilado como tercer bloque).
+- En desktop, la tab de consejos usa un **layout 40/60**: diagnóstico a la izquierda y sugerencias de presupuesto a la derecha, cada columna con alto fijo y scroll propio. En móvil se apilan.
+- Las tarjetas de sugerencia y de diagnóstico ahora muestran el **icono y color de la categoría** para identificarlas mejor.
+- Una sugerencia cuya categoría ya tiene presupuesto (incluido el recién creado) se marca como **"Aplicado"** con el botón deshabilitado.
+
 ## [3.6.0] — 2026-06-17
 
 ### Added

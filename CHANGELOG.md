@@ -1,5 +1,22 @@
 # Changelog
 
+## [3.7.0] — 2026-06-17
+
+### Added
+
+**Metas de ahorro sugeridas en "Consejos de Ahorro"**
+
+- Nueva sección inferior en la tab de consejos con la **capacidad de ahorro mensual** estimada (promedios de ingreso y gasto sobre los últimos 6 meses con actividad: ingreso prom. − gasto prom.).
+- La IA propone **metas de ahorro** (`goal_suggestions`) con nombre, monto objetivo, aporte mensual sugerido (≤ capacidad de ahorro), fecha límite y justificación. Cada meta tiene un botón "Crear meta" que abre el formulario de meta prellenado para ajustar y confirmar.
+
+### Changed
+
+- El cron `/api/cron/generate-savings-advice` volvió a ejecutarse **mensualmente el día 1** (`0 6 1 * *`).
+
+### Database
+
+- Nueva migración `supabase/seeds/savings-goal-suggestions-v3.7.0.sql`: agrega la columna `ai_savings_advice.goal_suggestions jsonb` (default `'[]'`).
+
 ## [3.6.1] — 2026-06-17
 
 ### Changed

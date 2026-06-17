@@ -197,6 +197,33 @@ export interface ReminderWithCategory extends Reminder {
   category: Category | null
 }
 
+export type AdviceSeverity = 'info' | 'warning' | 'critical'
+
+export interface SavingsInsight {
+  title: string
+  detail: string
+  severity: AdviceSeverity
+  category_id?: string | null
+}
+
+export interface SavingsBudgetSuggestion {
+  category_id: string
+  category_name: string
+  suggested_amount: number
+  rationale: string
+  current_budget_amount?: number | null
+}
+
+export interface AiSavingsAdvice {
+  id: string
+  user_id: string
+  period: string // 'YYYY-MM'
+  currency: Currency
+  insights: SavingsInsight[]
+  budget_suggestions: SavingsBudgetSuggestion[]
+  generated_at: string
+}
+
 export type ProcessedEmailOutcome =
   | 'auto_registered'
   | 'skipped'

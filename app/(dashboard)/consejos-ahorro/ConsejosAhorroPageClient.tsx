@@ -22,6 +22,7 @@ import { StatCard } from '@/components/ui/StatCard'
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
 import { InsightsList } from '@/components/savings/InsightsList'
 import { BudgetSuggestionsList, type ExistingBudget } from '@/components/savings/BudgetSuggestionsList'
+import { SavingsGoalSuggestions } from '@/components/savings/SavingsGoalSuggestions'
 import { SavingsCoachChat } from '@/components/savings/SavingsCoachChat'
 import { generateSavingsAdvice } from '@/lib/actions/savingsAdvice.actions'
 import { formatCurrency } from '@/lib/utils/currency'
@@ -165,6 +166,7 @@ export function ConsejosAhorroPageClient({ userId, period, advice, summary, budg
                 </VStack>
               </Card>
             ) : (
+              <VStack gap={8} align="stretch">
               <Grid templateColumns={{ base: '1fr', lg: '2fr 3fr' }} gap={6}>
                 {/* Diagnóstico — 40% */}
                 <GridItem>
@@ -196,6 +198,25 @@ export function ConsejosAhorroPageClient({ userId, period, advice, summary, budg
                   </Flex>
                 </GridItem>
               </Grid>
+
+              {/* Metas de ahorro (sección inferior, full width) */}
+              <Box>
+                <Heading size="md" color="white" mb={4}>
+                  Metas de ahorro
+                </Heading>
+                <SavingsGoalSuggestions
+                  userId={userId}
+                  suggestions={advice.goal_suggestions ?? []}
+                  capacity={{
+                    avgMonthlyIncome: summary.avgMonthlyIncome,
+                    avgMonthlyExpense: summary.avgMonthlyExpense,
+                    monthlySavingsCapacity: summary.monthlySavingsCapacity,
+                    monthsAnalyzed: summary.monthsAnalyzed,
+                  }}
+                  currency={currency}
+                />
+              </Box>
+              </VStack>
             )}
 
             {loading && (

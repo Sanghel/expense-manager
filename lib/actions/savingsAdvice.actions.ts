@@ -10,6 +10,7 @@ import type {
   Currency,
   SavingsInsight,
   SavingsBudgetSuggestion,
+  SavingsGoalSuggestion,
 } from '@/types/database.types'
 
 const client = new Anthropic({
@@ -55,12 +56,21 @@ function buildConverter(rates: RateRow[]) {
 // Aggregation — compact spending summary fed to the model (no raw rows)
 // ---------------------------------------------------------------------------
 
+// Number of months (including the current one) used to compute the averages
+// that feed the savings-capacity card and goal suggestions.
+const AVG_WINDOW_MONTHS = 6
+
 export interface SpendingSummary {
   period: string
   currency: Currency
   hasData: boolean
   transactionCount: number
   totals: { income: number; expense: number; net: number }
+  // Averages over the months with activity in the last AVG_WINDOW_MONTHS.
+  avgMonthlyIncome: number
+  avgMonthlyExpense: number
+  monthlySavingsCapacity: number
+  monthsAnalyzed: number
   categories: { category_id: string; name: string; current: number; previous: number; delta_pct: number | null }[]
   budgets: { category_id: string; name: string; budget_amount: number; spent: number; utilization_pct: number }[]
   goals: { name: string; target: number; current: number; progress_pct: number; deadline: string | null }[]
@@ -71,7 +81,9 @@ export async function buildSpendingSummary(
   period: string = currentPeriod()
 ): Promise<SpendingSummary> {
   const prevPeriod = shiftPeriod(period, -1)
-  const since = `${prevPeriod}-01`
+  // Fetch a wider window so we can compute monthly averages, not just the two
+  // most recent months used for the category breakdown.
+  const since = `${shiftPeriod(period, -(AVG_WINDOW_MONTHS - 1))}-01`
 
   // Resolve preferred currency
   const { data: user } = await insforgeAdmin.database
@@ -121,9 +133,20 @@ export async function buildSpendingSummary(
   // Per-category expense, current vs previous period
   const current = new Map<string, number>()
   const previous = new Map<string, number>()
+  // Income/expense per month within the window, for the averages.
+  const monthly = new Map<string, { income: number; expense: number }>()
 
   for (const t of transactions) {
     const amount = convert(t.amount || 0, t.currency, currency)
+
+    const monthKey = typeof t.date === 'string' ? t.date.slice(0, 7) : ''
+    if (monthKey && monthKey <= period) {
+      const bucket = monthly.get(monthKey) ?? { income: 0, expense: 0 }
+      if (t.type === 'income') bucket.income += amount
+      else bucket.expense += amount
+      monthly.set(monthKey, bucket)
+    }
+
     if (inPeriod(t.date, period)) {
       transactionCount++
       if (t.type === 'income') income += amount
@@ -137,6 +160,14 @@ export async function buildSpendingSummary(
       previous.set(key, (previous.get(key) ?? 0) + amount)
     }
   }
+
+  // Averages over the months that actually have activity in the window.
+  const monthsAnalyzed = monthly.size
+  const sumIncome = [...monthly.values()].reduce((s, m) => s + m.income, 0)
+  const sumExpense = [...monthly.values()].reduce((s, m) => s + m.expense, 0)
+  const avgMonthlyIncome = monthsAnalyzed > 0 ? Math.round(sumIncome / monthsAnalyzed) : 0
+  const avgMonthlyExpense = monthsAnalyzed > 0 ? Math.round(sumExpense / monthsAnalyzed) : 0
+  const monthlySavingsCapacity = avgMonthlyIncome - avgMonthlyExpense
 
   const categoryKeys = new Set<string>([...current.keys(), ...previous.keys()])
   const categories = [...categoryKeys]
@@ -190,6 +221,10 @@ export async function buildSpendingSummary(
     hasData: transactionCount > 0,
     transactionCount,
     totals: { income: Math.round(income), expense: Math.round(expense), net: Math.round(income - expense) },
+    avgMonthlyIncome,
+    avgMonthlyExpense,
+    monthlySavingsCapacity,
+    monthsAnalyzed,
     categories,
     budgets,
     goals,
@@ -216,6 +251,13 @@ Reglas:
 - Genera entre 1 y 5 "budget_suggestions": montos recomendados de presupuesto mensual por
   categoría, basados en el gasto real. Usa SOLO category_id y category_name que aparezcan en el
   resumen. Si la categoría ya tiene presupuesto, incluye "current_budget_amount".
+- Genera entre 1 y 3 "goal_suggestions": metas de ahorro realistas basadas en la capacidad de
+  ahorro mensual (campo "monthlySavingsCapacity" = ingreso prom. − gasto prom.) y en los promedios
+  mensuales. Cada meta lleva "name" (ej. "Fondo de emergencia", "Ahorro para vacaciones"),
+  "target_amount" (monto objetivo total), "monthly_contribution" (aporte mensual sugerido, que NO
+  debe exceder la capacidad de ahorro), "deadline" (fecha YYYY-MM-DD coherente con target/aporte) y
+  "rationale". Si la capacidad de ahorro es <= 0, propón primero reducir gastos y sugiere metas
+  pequeñas o ninguna.
 - Sé breve y claro. Habla de "tú". No inventes cifras que no estén en el resumen.
 
 Responde ÚNICAMENTE con un JSON válido (sin markdown, sin explicaciones) con esta forma:
@@ -225,6 +267,9 @@ Responde ÚNICAMENTE con un JSON válido (sin markdown, sin explicaciones) con e
   ],
   "budget_suggestions": [
     { "category_id": "...", "category_name": "...", "suggested_amount": <número>, "rationale": "...", "current_budget_amount": <opcional> }
+  ],
+  "goal_suggestions": [
+    { "name": "...", "target_amount": <número>, "monthly_contribution": <número>, "deadline": "YYYY-MM-DD", "rationale": "..." }
   ]
 }`
 }
@@ -233,7 +278,11 @@ interface GenerateResult {
   success: boolean
   error?: string
   skipped?: boolean
-  data?: { insights: SavingsInsight[]; budget_suggestions: SavingsBudgetSuggestion[] }
+  data?: {
+    insights: SavingsInsight[]
+    budget_suggestions: SavingsBudgetSuggestion[]
+    goal_suggestions: SavingsGoalSuggestion[]
+  }
 }
 
 export async function generateSavingsAdvice(
@@ -280,6 +329,7 @@ export async function generateSavingsAdvice(
         currency: summary.currency,
         insights: payload.insights,
         budget_suggestions: payload.budget_suggestions,
+        goal_suggestions: payload.goal_suggestions,
       })
 
     if (insertError) throw insertError
@@ -290,6 +340,7 @@ export async function generateSavingsAdvice(
       data: {
         insights: payload.insights as SavingsInsight[],
         budget_suggestions: payload.budget_suggestions as SavingsBudgetSuggestion[],
+        goal_suggestions: payload.goal_suggestions as SavingsGoalSuggestion[],
       },
     }
   } catch (error) {

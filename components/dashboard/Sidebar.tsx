@@ -11,6 +11,7 @@ import {
   FiTarget,
   FiCalendar,
   FiLayers,
+  FiZap,
   FiChevronsLeft,
   FiChevronsRight,
 } from 'react-icons/fi'
@@ -23,6 +24,7 @@ const navItems: { href: string; label: string; icon: IconType }[] = [
   { href: '/planificacion', label: 'Planificación', icon: FiTarget },
   { href: '/calendar', label: 'Calendario', icon: FiCalendar },
   { href: '/reports', label: 'Reportes', icon: FiBarChart2 },
+  { href: '/consejos-ahorro', label: 'Consejos de Ahorro', icon: FiZap },
   { href: '/settings', label: 'Configuración', icon: FiSettings },
 ]
 

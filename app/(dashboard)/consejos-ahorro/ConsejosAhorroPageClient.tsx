@@ -27,7 +27,7 @@ import { SavingsCoachChat } from '@/components/savings/SavingsCoachChat'
 import { generateSavingsAdvice } from '@/lib/actions/savingsAdvice.actions'
 import { formatCurrency } from '@/lib/utils/currency'
 import { toaster } from '@/lib/toaster'
-import type { AiSavingsAdvice, Category } from '@/types/database.types'
+import type { AiSavingsAdvice, Category, SavingsGoal } from '@/types/database.types'
 import type { SpendingSummary } from '@/lib/actions/savingsAdvice.actions'
 
 interface Props {
@@ -37,6 +37,7 @@ interface Props {
   summary: SpendingSummary
   budgets: ExistingBudget[]
   categories: Category[]
+  goals: SavingsGoal[]
 }
 
 // Fixed height for each scrollable column on desktop.
@@ -49,7 +50,7 @@ function periodLabel(period: string): string {
   return label.charAt(0).toUpperCase() + label.slice(1)
 }
 
-export function ConsejosAhorroPageClient({ userId, period, advice, summary, budgets, categories }: Props) {
+export function ConsejosAhorroPageClient({ userId, period, advice, summary, budgets, categories, goals }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [generating, setGenerating] = useState(false)
@@ -207,7 +208,9 @@ export function ConsejosAhorroPageClient({ userId, period, advice, summary, budg
                 </Heading>
                 <SavingsGoalSuggestions
                   userId={userId}
+                  period={period}
                   suggestions={advice.goal_suggestions ?? []}
+                  goals={goals}
                   capacity={{
                     avgMonthlyIncome: summary.avgMonthlyIncome,
                     avgMonthlyExpense: summary.avgMonthlyExpense,

@@ -189,6 +189,7 @@ export function ConsejosAhorroPageClient({ userId, period, advice, summary, budg
                     <Box flex="1" minH={0} overflowY={{ base: 'visible', lg: 'auto' }} pr={{ lg: 2 }}>
                       <BudgetSuggestionsList
                         userId={userId}
+                        period={period}
                         suggestions={advice.budget_suggestions}
                         budgets={budgets}
                         categories={categories}

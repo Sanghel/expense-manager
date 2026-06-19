@@ -1,9 +1,9 @@
 'use client'
 
-import { VStack, HStack, Box, Text, Button, Icon, IconButton, useDisclosure } from '@chakra-ui/react'
+import { VStack, HStack, Box, Text, Button, IconButton, useDisclosure } from '@chakra-ui/react'
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiCheck, FiX } from 'react-icons/fi'
+import { FiX } from 'react-icons/fi'
 import { BudgetForm } from '@/components/budgets/BudgetForm'
 import { dismissSuggestion } from '@/lib/actions/savingsAdvice.actions'
 import { toaster } from '@/lib/toaster'
@@ -17,6 +17,12 @@ export interface ExistingBudget {
   currency: Currency
   period: 'monthly' | 'yearly'
   start_date: string
+}
+
+// Treats amounts as equal within a small relative tolerance, so rounding in
+// the AI-suggested figure doesn't flag an otherwise-identical budget as "differs".
+function amountsEqual(a: number, b: number): boolean {
+  return Math.abs(a - b) <= Math.max(1, Math.round(Math.max(a, b) * 0.005))
 }
 
 interface Props {
@@ -33,22 +39,18 @@ export function BudgetSuggestionsList({ userId, period, suggestions, budgets, ca
   const { open, onOpen, onClose } = useDisclosure()
   const [editingBudget, setEditingBudget] = useState<ExistingBudget | null>(null)
   const [prefill, setPrefill] = useState<{ category_id: string; amount: number; currency: Currency } | null>(null)
-  const [pendingCategoryId, setPendingCategoryId] = useState<string | null>(null)
-  // Categories marked applied during this session (instant feedback before refresh).
-  const [sessionApplied, setSessionApplied] = useState<Set<string>>(new Set())
   // Categories dismissed during this session (hidden instantly; persisted on the server).
   const [dismissed, setDismissed] = useState<Set<string>>(new Set())
 
   const categoryMap = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories])
-  // A category counts as "applied" once it has a live budget.
-  const budgetedCategoryIds = useMemo(() => new Set(budgets.map((b) => b.category_id)), [budgets])
-
-  const isApplied = (categoryId: string) =>
-    budgetedCategoryIds.has(categoryId) || sessionApplied.has(categoryId)
+  // The live budget per category, used to dedup suggestions against what exists.
+  const budgetByCategory = useMemo(
+    () => new Map(budgets.map((b) => [b.category_id, b])),
+    [budgets]
+  )
 
   const handleApply = (suggestion: SavingsBudgetSuggestion) => {
     const existing = budgets.find((b) => b.category_id === suggestion.category_id)
-    setPendingCategoryId(suggestion.category_id)
     if (existing) {
       setEditingBudget({ ...existing, amount: suggestion.suggested_amount })
       setPrefill(null)
@@ -64,9 +66,6 @@ export function BudgetSuggestionsList({ userId, period, suggestions, budgets, ca
   }
 
   const handleSuccess = () => {
-    if (pendingCategoryId) {
-      setSessionApplied((prev) => new Set(prev).add(pendingCategoryId))
-    }
     router.refresh()
   }
 
@@ -86,7 +85,17 @@ export function BudgetSuggestionsList({ userId, period, suggestions, budgets, ca
     router.refresh()
   }
 
-  const visibleSuggestions = suggestions.filter((s) => !dismissed.has(s.category_id))
+  // Show a suggestion only if it adds an action: it's new, or it differs from
+  // the existing budget (so the user can edit it). A suggestion that matches an
+  // existing budget with the same amount is redundant and gets hidden.
+  const visibleSuggestions = suggestions.filter((s) => {
+    if (dismissed.has(s.category_id)) return false
+    const existing = budgetByCategory.get(s.category_id)
+    if (!existing) return true
+    // Different currency → can't safely compare, surface it for editing.
+    if (existing.currency !== currency) return true
+    return !amountsEqual(existing.amount, s.suggested_amount)
+  })
 
   if (visibleSuggestions.length === 0) {
     return <Text color="#B0B0B0">No hay sugerencias de presupuesto para este periodo.</Text>
@@ -98,7 +107,7 @@ export function BudgetSuggestionsList({ userId, period, suggestions, budgets, ca
         {visibleSuggestions.map((s, i) => {
           const category = categoryMap.get(s.category_id)
           const accent = category?.color ?? '#2d2d35'
-          const applied = isApplied(s.category_id)
+          const exists = budgetByCategory.has(s.category_id)
           return (
             <Box
               key={i}
@@ -134,22 +143,15 @@ export function BudgetSuggestionsList({ userId, period, suggestions, budgets, ca
                 </Box>
 
                 <HStack gap={1} flexShrink={0}>
-                  {applied ? (
-                    <Button size="sm" variant="outline" colorPalette="green" disabled>
-                      <Icon as={FiCheck} />
-                      Aplicado
-                    </Button>
-                  ) : (
-                    <Button
-                      size="sm"
-                      bg="#4F46E5"
-                      color="white"
-                      _hover={{ bg: '#4338CA' }}
-                      onClick={() => handleApply(s)}
-                    >
-                      Aplicar y editar
-                    </Button>
-                  )}
+                  <Button
+                    size="sm"
+                    bg="#4F46E5"
+                    color="white"
+                    _hover={{ bg: '#4338CA' }}
+                    onClick={() => handleApply(s)}
+                  >
+                    {exists ? 'Editar' : 'Aplicar'}
+                  </Button>
                   <IconButton
                     aria-label="Descartar sugerencia"
                     size="sm"

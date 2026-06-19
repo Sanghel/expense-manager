@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Box, Heading, SimpleGrid } from '@chakra-ui/react'
+import { Box, Heading, SimpleGrid, HStack, Icon } from '@chakra-ui/react'
+import { FiBarChart2 } from 'react-icons/fi'
 import { ExpensesByCategoryChart } from '@/components/charts/ExpensesByCategoryChart'
 import { MonthlyComparisonChart } from '@/components/charts/MonthlyComparisonChart'
 import { AccumulatedBalanceChart } from '@/components/charts/AccumulatedBalanceChart'
@@ -26,9 +27,12 @@ export function ReportsContent({ userId, preferredCurrency }: Props) {
 
   return (
     <Box p={4}>
-      <Heading mb={8} size="lg">
-        Reportes
-      </Heading>
+      <HStack gap={2} mb={8}>
+        <Icon as={FiBarChart2} color="#6366f1" boxSize={6} />
+        <Heading size="lg">
+          Reportes
+        </Heading>
+      </HStack>
 
       <ReportFilters userId={userId} onFilterChange={setFilters} />
 

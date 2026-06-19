@@ -1,9 +1,9 @@
 'use client'
 
-import { Box, Heading, Button, HStack, Text, useDisclosure } from '@chakra-ui/react'
+import { Box, Heading, Button, HStack, Text, useDisclosure, Icon } from '@chakra-ui/react'
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiPlus } from 'react-icons/fi'
+import { FiPlus, FiCreditCard } from 'react-icons/fi'
 import { Card } from '@/components/ui/Card'
 import { LoanForm } from '@/components/loans/LoanForm'
 import { LoanPaymentForm } from '@/components/loans/LoanPaymentForm'
@@ -78,7 +78,10 @@ export function LoansPageClient({ userId, initialLoans, accounts }: Props) {
   return (
     <Box>
       <HStack justify="space-between" mb={{ base: 4, md: 6 }}>
-        <Heading size={{ base: 'md', md: 'lg' }} color="white">Deudas y Préstamos</Heading>
+        <HStack gap={2}>
+          <Icon as={FiCreditCard} color="#6366f1" boxSize={6} />
+          <Heading size={{ base: 'md', md: 'lg' }} color="white">Deudas y Préstamos</Heading>
+        </HStack>
         <Button
           bg="#4F46E5"
           color="white"

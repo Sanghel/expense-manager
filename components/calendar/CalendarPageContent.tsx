@@ -1,8 +1,9 @@
 'use client'
 
-import { VStack, HStack, Heading, Box, Text, Button } from '@chakra-ui/react'
+import { VStack, HStack, Heading, Box, Text, Button, Icon } from '@chakra-ui/react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { FiCalendar } from 'react-icons/fi'
 import { TransactionCalendar } from '@/components/calendar/TransactionCalendar'
 import { RemindersCalendar } from '@/components/calendar/RemindersCalendar'
 import { RemindersList } from '@/components/reminders/RemindersList'
@@ -24,7 +25,10 @@ export function CalendarPageContent({ userId, initialTransactions, categories, a
 
   return (
     <VStack alignItems="flex-start" gap={6} w="full">
-      <Heading size="lg">Calendario</Heading>
+      <HStack gap={2}>
+        <Icon as={FiCalendar} color="#6366f1" boxSize={6} />
+        <Heading size="lg">Calendario</Heading>
+      </HStack>
 
       {/* Tab bar */}
       <HStack gap={0} borderWidth="1px" borderRadius="lg" borderColor="#2d2d35" overflow="hidden" w="fit-content">

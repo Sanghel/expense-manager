@@ -1,9 +1,9 @@
 'use client'
 
 import { useTransition, useState, useEffect } from 'react'
-import { Box, Heading, Tabs, Spinner } from '@chakra-ui/react'
+import { Box, Heading, HStack, Tabs, Spinner, Icon } from '@chakra-ui/react'
 import { useRouter } from 'next/navigation'
-import { FiTarget, FiPieChart } from 'react-icons/fi'
+import { FiTarget, FiPieChart, FiClipboard } from 'react-icons/fi'
 import { SavingsGoalsPageContent } from '@/components/savings/SavingsGoalsPageContent'
 import { BudgetsPageClient } from '../budgets/BudgetsPageClient'
 import type { Account, SavingsGoal, Category } from '@/types/database.types'
@@ -47,9 +47,12 @@ export function PlanificacionPageClient({
 
   return (
     <Box>
-      <Heading size="lg" mb={6} color="white">
-        Planificación
-      </Heading>
+      <HStack gap={2} mb={6}>
+        <Icon as={FiClipboard} color="#6366f1" boxSize={6} />
+        <Heading size="lg" color="white">
+          Planificación
+        </Heading>
+      </HStack>
 
       <Tabs.Root
         value={activeTab}

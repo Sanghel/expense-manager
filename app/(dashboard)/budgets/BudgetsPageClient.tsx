@@ -1,8 +1,9 @@
 'use client'
 
-import { VStack, Heading, Button, HStack, Box } from '@chakra-ui/react'
+import { VStack, Heading, Button, HStack, Box, Icon } from '@chakra-ui/react'
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { FiPieChart } from 'react-icons/fi'
 import { BudgetForm } from '@/components/budgets/BudgetForm'
 import { BudgetList } from '@/components/budgets/BudgetList'
 import type { Category } from '@/types/database.types'
@@ -45,7 +46,10 @@ export function BudgetsPageClient({ userId, categories, initialBudgets }: Props)
   return (
     <VStack gap={6} align="stretch">
       <HStack justify="space-between">
-        <Heading size="lg">Presupuestos</Heading>
+        <HStack gap={2}>
+          <Icon as={FiPieChart} color="#6366f1" boxSize={6} />
+          <Heading size="lg">Presupuestos</Heading>
+        </HStack>
         <Button
           bg="#4F46E5"
           color="white"

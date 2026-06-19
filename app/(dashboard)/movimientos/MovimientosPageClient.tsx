@@ -1,9 +1,9 @@
 'use client'
 
 import { useTransition, useState, useEffect } from 'react'
-import { Box, Heading, Tabs, Spinner, Icon } from '@chakra-ui/react'
+import { Box, Heading, HStack, Tabs, Spinner, Icon } from '@chakra-ui/react'
 import { useRouter } from 'next/navigation'
-import { FiList, FiCreditCard, FiBell } from 'react-icons/fi'
+import { FiList, FiCreditCard, FiBell, FiActivity } from 'react-icons/fi'
 import { TransactionsPageClient } from '../transactions/TransactionsPageClient'
 import { LoansPageClient } from '../loans/LoansPageClient'
 import { RecordatoriosTab } from '@/components/reminders/RecordatoriosTab'
@@ -70,9 +70,12 @@ export function MovimientosPageClient({
 
   return (
     <Box>
-      <Heading size="lg" mb={6} color="white">
-        Movimientos
-      </Heading>
+      <HStack gap={2} mb={6}>
+        <Icon as={FiActivity} color="#6366f1" boxSize={6} />
+        <Heading size="lg" color="white">
+          Movimientos
+        </Heading>
+      </HStack>
 
       <Tabs.Root
         value={activeTab}

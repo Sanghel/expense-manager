@@ -1,6 +1,6 @@
 'use client'
 
-import { VStack, HStack, Box, Text, Badge, IconButton } from '@chakra-ui/react'
+import { VStack, HStack, Box, Text, Badge, IconButton, SimpleGrid } from '@chakra-ui/react'
 import { useState } from 'react'
 import { FiEdit2, FiTrash2 } from 'react-icons/fi'
 import { deleteReminder } from '@/lib/actions/reminders.actions'
@@ -69,7 +69,7 @@ export function RemindersList({ userId, reminders, categories, accounts = [], on
       {reminders.length === 0 ? (
         <Text color="#B0B0B0" fontSize="sm">No tienes recordatorios. Crea uno para verlo en el calendario.</Text>
       ) : (
-        <VStack gap={2} align="stretch">
+        <SimpleGrid columns={{ base: 1, md: 2, xl: 3 }} gap={2}>
           {reminders.map((r) => (
             <Box
               key={r.id}
@@ -120,7 +120,7 @@ export function RemindersList({ userId, reminders, categories, accounts = [], on
               </HStack>
             </Box>
           ))}
-        </VStack>
+        </SimpleGrid>
       )}
 
       <ReminderForm

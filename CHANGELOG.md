@@ -1,5 +1,23 @@
 # Changelog
 
+## [3.8.0] — 2026-06-19
+
+### Added
+
+**Descartar y deduplicar sugerencias de IA en "Consejos de Ahorro"**
+
+- Cada sugerencia de **presupuesto** y de **meta de ahorro** tiene ahora un botón **"Descartar"** que la oculta de forma **persistente** (se elimina del análisis cacheado en `ai_savings_advice`, sin reaparecer hasta la próxima generación mensual).
+- Las **metas de ahorro** sugeridas alcanzan **paridad** con los presupuestos: se deduplican contra las metas existentes por nombre y permiten editar la existente.
+
+### Changed
+
+- **Dedup de sugerencias**: una sugerencia idéntica a un presupuesto/meta ya creado (mismo monto/objetivo) deja de mostrarse; una que difiere se muestra como **"Editar"** abriendo el registro existente prellenado; las nuevas se muestran para crear. Se reemplaza el botón "Aplicado" deshabilitado.
+- **Iconos en los títulos de página**: todas las páginas (Dashboard, Movimientos, Transacciones, Planificación, Metas de Ahorro, Presupuestos, Deudas y Préstamos, Calendario, Chat IA, Etiquetas, Reportes, Configuración) muestran un icono junto al título, siguiendo el patrón de "Consejos de Ahorro".
+
+### Fixed
+
+- La lista **"Mis Recordatorios"** (`movimientos?tab=recordatorios`) se muestra en una **grilla de varias columnas** en desktop, aprovechando el ancho completo (1 columna en móvil).
+
 ## [3.7.0] — 2026-06-17
 
 ### Added

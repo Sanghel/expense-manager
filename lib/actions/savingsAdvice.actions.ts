@@ -401,6 +401,55 @@ ${JSON.stringify(summary)}`
   }
 }
 
+/**
+ * Removes a single suggestion from the cached advice so it stops appearing.
+ * Persists in place (update, preserving `generated_at`) instead of
+ * delete-then-insert, since this is an edit of an existing analysis — not a
+ * fresh generation. Budget suggestions are keyed by `category_id`, goal
+ * suggestions by `name`.
+ */
+export async function dismissSuggestion(
+  userId: string,
+  period: string,
+  kind: 'budget' | 'goal',
+  key: string
+): Promise<{ success: boolean; error?: string }> {
+  if (!userId) return { success: false, error: 'User ID is required' }
+  if (!key) return { success: false, error: 'Suggestion key is required' }
+
+  try {
+    const { data, error } = await insforgeAdmin.database
+      .from('ai_savings_advice')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('period', period)
+      .maybeSingle()
+
+    if (error) throw error
+    if (!data) return { success: true }
+
+    const row = data as AiSavingsAdvice
+    const patch =
+      kind === 'budget'
+        ? { budget_suggestions: row.budget_suggestions.filter((s) => s.category_id !== key) }
+        : { goal_suggestions: row.goal_suggestions.filter((s) => s.name !== key) }
+
+    const { error: updateError } = await insforgeAdmin.database
+      .from('ai_savings_advice')
+      .update(patch)
+      .eq('user_id', userId)
+      .eq('period', period)
+
+    if (updateError) throw updateError
+
+    revalidatePath('/consejos-ahorro')
+    return { success: true }
+  } catch (error) {
+    console.error('dismissSuggestion error:', error)
+    return { success: false, error: 'No se pudo descartar la sugerencia' }
+  }
+}
+
 /** Reads the cached advice for a user/period (used by the panel page). */
 export async function getSavingsAdvice(
   userId: string,

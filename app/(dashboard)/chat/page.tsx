@@ -4,7 +4,8 @@ import { redirect } from 'next/navigation'
 import { insforgeAdmin } from '@/lib/insforge-admin'
 import { getCategories } from '@/lib/actions/categories.actions'
 import { ChatInterface } from '@/components/chat/ChatInterface'
-import { Box, Heading, Text, VStack } from '@chakra-ui/react'
+import { Box, Heading, Text, VStack, HStack, Icon } from '@chakra-ui/react'
+import { FiMessageCircle } from 'react-icons/fi'
 
 export default async function ChatPage() {
   const session = await getServerSession(authOptions)
@@ -29,7 +30,10 @@ export default async function ChatPage() {
   return (
     <VStack gap={0} h="full" align="stretch">
       <Box pb={4}>
-        <Heading size="lg" color="white">Chat IA</Heading>
+        <HStack gap={2}>
+          <Icon as={FiMessageCircle} color="#6366f1" boxSize={6} />
+          <Heading size="lg" color="white">Chat IA</Heading>
+        </HStack>
         <Text color="#B0B0B0" fontSize="sm" mt={1}>
           Registra gastos e ingresos escribiendo en lenguaje natural
         </Text>

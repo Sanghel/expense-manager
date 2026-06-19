@@ -1,7 +1,8 @@
 'use client'
 
-import { VStack, Heading, Box, Text } from '@chakra-ui/react'
+import { VStack, Heading, Box, Text, Icon } from '@chakra-ui/react'
 import { useState } from 'react'
+import { FiTag } from 'react-icons/fi'
 import { deleteTag } from '@/lib/actions/tags.actions'
 import { TagBadge } from '@/components/tags/TagBadge'
 import { Button, HStack } from '@chakra-ui/react'
@@ -41,7 +42,10 @@ export function TagsPageContent({ userId, initialTags }: Props) {
   return (
     <>
       <VStack alignItems="flex-start" gap={6}>
-        <Heading size="lg">Gestión de Etiquetas</Heading>
+        <HStack gap={2}>
+          <Icon as={FiTag} color="#6366f1" boxSize={6} />
+          <Heading size="lg">Gestión de Etiquetas</Heading>
+        </HStack>
 
         {initialTags.length === 0 ? (
           <Text color="fg.muted">No hay etiquetas. Créalas al editar transacciones.</Text>

@@ -7,10 +7,11 @@ import {
   HStack,
   useDisclosure,
   Text,
+  Icon,
 } from '@chakra-ui/react'
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiPlus, FiDownload, FiUpload } from 'react-icons/fi'
+import { FiPlus, FiDownload, FiUpload, FiList } from 'react-icons/fi'
 import { Card } from '@/components/ui/Card'
 import { TransactionForm } from '@/components/transactions/TransactionForm'
 import { TransactionEditForm } from '@/components/transactions/TransactionEditForm'
@@ -95,7 +96,10 @@ export function TransactionsPageClient({ userId, categories, initialTransactions
   return (
     <Box>
       <HStack justify="space-between" mb={{ base: 4, md: 6 }} gap={2} align="center" flexWrap="wrap">
-        <Heading size={{ base: 'md', md: 'lg' }} color="white">Transacciones</Heading>
+        <HStack gap={2}>
+          <Icon as={FiList} color="#6366f1" boxSize={6} />
+          <Heading size={{ base: 'md', md: 'lg' }} color="white">Transacciones</Heading>
+        </HStack>
         <HStack gap={2} justify="flex-end" flexWrap="wrap">
           <GmailSyncButton userId={userId} categories={categories} accounts={accounts} />
           <Button variant="outline" onClick={onExportOpen} size={{ base: 'sm', md: 'md' }} aria-label="Exportar">

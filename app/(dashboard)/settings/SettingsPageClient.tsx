@@ -1,7 +1,7 @@
 'use client'
 
 import { useTransition, useState, useEffect } from 'react'
-import { Box, Heading, VStack, Text, Separator, Tabs, Spinner, Icon } from '@chakra-ui/react'
+import { Box, Heading, HStack, VStack, Text, Separator, Tabs, Spinner, Icon } from '@chakra-ui/react'
 import { useRouter } from 'next/navigation'
 import { FiSliders, FiBriefcase, FiTag } from 'react-icons/fi'
 import { CurrencySelector } from '@/components/settings/CurrencySelector'
@@ -64,9 +64,12 @@ export function SettingsPageClient({
 
   return (
     <Box>
-      <Heading size="lg" mb={8} color="white">
-        Configuración
-      </Heading>
+      <HStack gap={2} mb={8}>
+        <Icon as={FiSliders} color="#6366f1" boxSize={6} />
+        <Heading size="lg" color="white">
+          Configuración
+        </Heading>
+      </HStack>
 
       <Tabs.Root
         value={activeTab}

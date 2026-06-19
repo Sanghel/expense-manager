@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
-import { Box, Heading, VStack, HStack, Spinner } from '@chakra-ui/react'
+import { Box, Heading, VStack, HStack, Spinner, Icon } from '@chakra-ui/react'
+import { FiHome } from 'react-icons/fi'
 import { FinancialCards } from './FinancialCards'
 import { RecentTransactions } from './RecentTransactions'
 import { AccountsOverview } from './AccountsOverview'
@@ -37,7 +38,10 @@ export function DashboardContent({
   return (
     <Box>
       <HStack justify="space-between" align="center" mb={{ base: 4, md: 8 }}>
-        <Heading size={{ base: 'lg', md: 'xl' }}>Dashboard</Heading>
+        <HStack gap={2}>
+          <Icon as={FiHome} color="#6366f1" boxSize={6} />
+          <Heading size={{ base: 'lg', md: 'xl' }}>Dashboard</Heading>
+        </HStack>
         <MonthSelector value={selectedMonth} onChange={setSelectedMonth} />
       </HStack>
 

@@ -1,6 +1,5 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import { Box, VStack, HStack, Text, Button, Icon, Spinner } from '@chakra-ui/react'
 import { usePathname } from 'next/navigation'
 import Image from 'next/image'
@@ -30,23 +29,14 @@ const navItems: { href: string; label: string; icon: IconType }[] = [
   { href: '/settings', label: 'Configuración', icon: FiSettings },
 ]
 
-export function Sidebar() {
+interface Props {
+  isCollapsed: boolean
+  toggle: () => void
+}
+
+export function Sidebar({ isCollapsed, toggle }: Props) {
   const pathname = usePathname()
   const { navigate, loadingPath } = useNavigation()
-  const [isCollapsed, setIsCollapsed] = useState(false)
-
-  useEffect(() => {
-    const saved = localStorage.getItem('sidebar-collapsed')
-    if (saved === 'true') setIsCollapsed(true)
-  }, [])
-
-  const toggle = () => {
-    setIsCollapsed((prev) => {
-      const next = !prev
-      localStorage.setItem('sidebar-collapsed', String(next))
-      return next
-    })
-  }
 
   return (
     <Box

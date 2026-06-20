@@ -20,8 +20,13 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { FiLogOut, FiSettings } from 'react-icons/fi'
 import logo from '@/public/brand/gh_push_money_logo.png'
+import { CraftedByFooter } from './CraftedByFooter'
 
-export function Header() {
+interface Props {
+  isCollapsed: boolean
+}
+
+export function Header({ isCollapsed }: Props) {
   const { data: session } = useSession()
   const router = useRouter()
 
@@ -36,19 +41,29 @@ export function Header() {
       flexShrink={0}
       style={{ paddingTop: 'max(12px, env(safe-area-inset-top))' }}
     >
-      <Flex justify={{ base: 'space-between', md: 'flex-end' }} align="center">
-        {/* Logo only on mobile — on desktop it lives in the sidebar */}
-        <Flex align="center" gap={2} display={{ base: 'flex', md: 'none' }}>
-          <Image src={logo} alt="GitPush Money" width={30} height={30} />
-          <HStack gap={2} align="center" justify="center">
-            <Text fontSize="18px" fontWeight="bold" color="brand.300">
-              GitPush
-            </Text>
-            <Text fontSize="18px" fontWeight="bold" color="brand.200">
-              Money
-            </Text>
-          </HStack>
-        </Flex>
+      <Flex justify="space-between" align="center" gap={3}>
+        {/* Left slot */}
+        <Box minW={0}>
+          {/* Logo only on mobile — on desktop it lives in the sidebar */}
+          <Flex align="center" gap={2} display={{ base: 'flex', md: 'none' }}>
+            <Image src={logo} alt="GitPush Money" width={30} height={30} />
+            <HStack gap={2} align="center" justify="center">
+              <Text fontSize="18px" fontWeight="bold" color="brand.300">
+                GitPush
+              </Text>
+              <Text fontSize="18px" fontWeight="bold" color="brand.200">
+                Money
+              </Text>
+            </HStack>
+          </Flex>
+
+          {/* When the sidebar is collapsed, the crafted-by footer moves here (desktop only) */}
+          {isCollapsed && (
+            <Box display={{ base: 'none', md: 'block' }}>
+              <CraftedByFooter />
+            </Box>
+          )}
+        </Box>
 
         {session?.user && (
           <MenuRoot>

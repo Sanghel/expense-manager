@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Flex, Box } from '@chakra-ui/react'
 import { Header } from './Header'
 import { Sidebar } from './Sidebar'
@@ -9,12 +9,26 @@ import { MobileNav } from './MobileNav'
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(false)
+
+  useEffect(() => {
+    const saved = localStorage.getItem('sidebar-collapsed')
+    if (saved === 'true') setIsCollapsed(true)
+  }, [])
+
+  const toggleSidebar = () => {
+    setIsCollapsed((prev) => {
+      const next = !prev
+      localStorage.setItem('sidebar-collapsed', String(next))
+      return next
+    })
+  }
 
   return (
     <Flex direction="row" h="100dvh" bg="#0f0f13">
-      <Sidebar />
+      <Sidebar isCollapsed={isCollapsed} toggle={toggleSidebar} />
       <Flex direction="column" flex="1" minW={0} overflow="hidden" bg="#0f0f13">
-        <Header />
+        <Header isCollapsed={isCollapsed} />
         <Box
           as="main"
           flex="1"

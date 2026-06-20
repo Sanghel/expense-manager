@@ -38,6 +38,7 @@ export function PayReminderDialog({ isOpen, onClose, userId, accounts, reminder,
 
   const selectedAccount = accounts.find((a) => a.id === accountId) ?? null
   const currency = selectedAccount?.currency ?? 'COP'
+  const isIncome = reminder.type === 'income'
   const today = getLocalDateString()
   const todayLabel = new Date(today + 'T12:00:00').toLocaleDateString('es-CO', {
     day: 'numeric', month: 'long', year: 'numeric',
@@ -57,7 +58,7 @@ export function PayReminderDialog({ isOpen, onClose, userId, accounts, reminder,
     const result = await createTransaction(userId, {
       amount,
       currency,
-      type: 'expense',
+      type: reminder.type,
       category_id: reminder.category_id,
       account_id: accountId || null,
       description: reminder.description,
@@ -65,7 +66,7 @@ export function PayReminderDialog({ isOpen, onClose, userId, accounts, reminder,
     })
     setLoading(false)
     if (result.success) {
-      toaster.create({ title: 'Pago registrado', type: 'success', duration: 3000 })
+      toaster.create({ title: isIncome ? 'Ingreso registrado' : 'Pago registrado', type: 'success', duration: 3000 })
       onSuccess()
       onClose()
     } else {
@@ -74,7 +75,7 @@ export function PayReminderDialog({ isOpen, onClose, userId, accounts, reminder,
   }
 
   return (
-    <FormDialog isOpen={isOpen} onClose={onClose} title="Pagar recordatorio">
+    <FormDialog isOpen={isOpen} onClose={onClose} title={isIncome ? 'Registrar ingreso' : 'Pagar recordatorio'}>
       <form onSubmit={handleSubmit}>
         <VStack gap={4} align="stretch">
           <Box borderWidth="1px" borderColor="#2d2d35" borderRadius="md" px={3} py={2} bg="#18181d">
@@ -113,7 +114,7 @@ export function PayReminderDialog({ isOpen, onClose, userId, accounts, reminder,
           />
 
           <PrimaryButton type="submit" width="full" loading={loading} disabled={!accountId}>
-            Registrar pago
+            {isIncome ? 'Registrar ingreso' : 'Registrar pago'}
           </PrimaryButton>
         </VStack>
       </form>

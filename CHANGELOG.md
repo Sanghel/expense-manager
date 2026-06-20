@@ -1,5 +1,28 @@
 # Changelog
 
+## [3.9.0] — 2026-06-20
+
+### Added
+
+**Recordatorios de ingreso**
+
+- Los recordatorios ahora tienen **tipo** (`income` | `expense`): se puede crear un recordatorio de **ingreso** además de gasto.
+- **Diferenciación visual** por tipo: en el listado (badge verde "Ingreso" / rojo "Gasto" con icono) y en el calendario (color del punto, leyenda con ambos, badges y textos "Registrar ingreso"/"Registrar pago"). Al registrar desde el calendario o el diálogo, la transacción se crea con el tipo correcto.
+
+### Changed
+
+- **Layout**: el logo se movió al **sidebar** (visible siempre; contraído solo el logo, expandido logo + "GitPush Money"). El sidebar ahora ocupa toda la altura, por encima del header. El footer **"Crafted with… by Sanghel González"** aparece en el **header** cuando el sidebar está contraído (desktop); en mobile el logo sigue en el header.
+- **Consejos de Ahorro**: se quitó el botón **"Actualizar"** del header (la regeneración queda a cargo únicamente del cron mensual). Se eliminaron las **tabs** y el **Coach/chat de ahorro**; la página muestra directamente diagnóstico, sugerencias de presupuesto y metas.
+- **Selectores (dropdown)**: la **frecuencia** y el **tipo** del recordatorio, y el **tipo de cuenta**, ahora usan un selector desplegable (componente reutilizable `SelectField`).
+
+### Removed
+
+- Coach de ahorro (chat) y la acción `askSavingsCoach` / tipo `CoachMessage`.
+
+### Database
+
+- Migración manual: `ALTER TABLE reminders ADD COLUMN type text NOT NULL DEFAULT 'expense';`
+
 ## [3.8.0] — 2026-06-19
 
 ### Added

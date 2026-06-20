@@ -7,7 +7,7 @@ import { toaster } from '@/lib/toaster'
 import { FormDialog } from '@/components/ui/FormDialog'
 import { FormInput } from '@/components/ui/FormInput'
 import { InputAmount } from '@/components/ui/InputAmount'
-import { RadioSelect } from '@/components/ui/RadioSelect'
+import { SelectField } from '@/components/ui/SelectField'
 import { CurrencySelect } from '@/components/ui/CurrencySelect'
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
 import { IconPicker } from '@/components/categories/IconPicker'
@@ -144,7 +144,7 @@ export function AccountForm({ isOpen, onClose, userId, editingAccount, onSuccess
             required
           />
 
-          <RadioSelect
+          <SelectField
             label="Tipo"
             value={formData.type}
             onChange={(v) => setFormData({ ...formData, type: v as typeof formData.type })}

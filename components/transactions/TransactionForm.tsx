@@ -37,6 +37,7 @@ interface Props {
   lockedDate?: boolean
   prefillDescription?: string
   prefillCategoryId?: string
+  initialType?: 'income' | 'expense'
 }
 
 const defaultForm = {
@@ -50,9 +51,9 @@ const defaultForm = {
   notes: '',
 }
 
-export function TransactionForm({ isOpen, onClose, userId, categories, accounts = [], onSuccess, initialDate, lockedDate, prefillDescription, prefillCategoryId }: Props) {
+export function TransactionForm({ isOpen, onClose, userId, categories, accounts = [], onSuccess, initialDate, lockedDate, prefillDescription, prefillCategoryId, initialType }: Props) {
   const [loading, setLoading] = useState(false)
-  const [formData, setFormData] = useState({ ...defaultForm, date: initialDate ?? getLocalDateString() })
+  const [formData, setFormData] = useState({ ...defaultForm, type: initialType ?? defaultForm.type, date: initialDate ?? getLocalDateString() })
   const [localCategories, setLocalCategories] = useState<Category[]>(categories)
   const [quickCategoryOpen, setQuickCategoryOpen] = useState(false)
 
@@ -60,13 +61,14 @@ export function TransactionForm({ isOpen, onClose, userId, categories, accounts 
     if (isOpen) {
       setFormData({
         ...defaultForm,
+        type: initialType ?? defaultForm.type,
         date: initialDate ?? getLocalDateString(),
         description: prefillDescription ?? '',
         category_id: prefillCategoryId ?? '',
       })
       setLocalCategories(categories)
     }
-  }, [isOpen, initialDate, categories, prefillDescription, prefillCategoryId])
+  }, [isOpen, initialDate, categories, prefillDescription, prefillCategoryId, initialType])
 
   const handleAccountChange = (accountId: string) => {
     const account = accounts.find((a) => a.id === accountId)

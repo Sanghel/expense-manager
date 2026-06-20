@@ -352,55 +352,6 @@ export async function generateSavingsAdvice(
   }
 }
 
-// ---------------------------------------------------------------------------
-// Conversational coach (live Q&A grounded in the user's spending summary)
-// ---------------------------------------------------------------------------
-
-export interface CoachMessage {
-  role: 'user' | 'assistant'
-  content: string
-}
-
-export async function askSavingsCoach(
-  userId: string,
-  messages: CoachMessage[]
-): Promise<{ success: boolean; text?: string; error?: string }> {
-  if (!userId) return { success: false, error: 'User ID is required' }
-  if (!messages.length) return { success: false, error: 'No hay mensajes' }
-
-  try {
-    const summary = await buildSpendingSummary(userId)
-
-    const system = `Eres un coach de finanzas personales dentro de una app de gestión de gastos.
-Respondes en español, de forma breve, concreta y accionable, tuteando al usuario. Fundamenta tus
-respuestas en su resumen financiero; no inventes cifras que no estén ahí. Si te preguntan algo
-fuera de finanzas personales, redirige amablemente al tema. Los montos están en ${summary.currency}.
-
-Resumen financiero del usuario (periodo ${summary.period}):
-${JSON.stringify(summary)}`
-
-    // Keep only the last 10 turns to bound token usage.
-    const history = messages.slice(-10).map((m) => ({ role: m.role, content: m.content }))
-
-    const response = await client.messages.create({
-      model: 'claude-haiku-4-5',
-      max_tokens: 800,
-      system,
-      messages: history,
-    })
-
-    const textContent = response.content.find((b) => b.type === 'text')
-    if (!textContent || textContent.type !== 'text') {
-      return { success: false, error: 'No se recibió respuesta del modelo' }
-    }
-
-    return { success: true, text: textContent.text.trim() }
-  } catch (error) {
-    console.error('askSavingsCoach error:', error)
-    return { success: false, error: 'Error al consultar el coach de ahorro' }
-  }
-}
-
 /**
  * Removes a single suggestion from the cached advice so it stops appearing.
  * Persists in place (update, preserving `generated_at`) instead of

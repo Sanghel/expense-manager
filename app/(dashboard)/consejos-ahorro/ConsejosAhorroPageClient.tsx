@@ -12,18 +12,16 @@ import {
   Flex,
   Icon,
   Spinner,
-  Tabs,
 } from '@chakra-ui/react'
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiZap, FiInbox, FiMessageCircle } from 'react-icons/fi'
+import { FiZap, FiInbox } from 'react-icons/fi'
 import { Card } from '@/components/ui/Card'
 import { StatCard } from '@/components/ui/StatCard'
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
 import { InsightsList } from '@/components/savings/InsightsList'
 import { BudgetSuggestionsList, type ExistingBudget } from '@/components/savings/BudgetSuggestionsList'
 import { SavingsGoalSuggestions } from '@/components/savings/SavingsGoalSuggestions'
-import { SavingsCoachChat } from '@/components/savings/SavingsCoachChat'
 import { generateSavingsAdvice } from '@/lib/actions/savingsAdvice.actions'
 import { formatCurrency } from '@/lib/utils/currency'
 import { toaster } from '@/lib/toaster'
@@ -54,7 +52,6 @@ export function ConsejosAhorroPageClient({ userId, period, advice, summary, budg
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [generating, setGenerating] = useState(false)
-  const [tab, setTab] = useState('consejos')
   const { currency } = summary
 
   const handleGenerate = async () => {
@@ -112,53 +109,27 @@ export function ConsejosAhorroPageClient({ userId, period, advice, summary, budg
           </VStack>
         </Card>
       ) : (
-        <Tabs.Root value={tab} onValueChange={({ value }) => setTab(value)} colorPalette="brand">
-          <Tabs.List mb={6} borderBottomWidth="1px" borderColor="#2d2d35">
-            <Tabs.Trigger
-              value="consejos"
-              display="flex"
-              alignItems="center"
-              gap={2}
-              color="#B0B0B0"
-              _selected={{ color: 'white', borderBottomColor: '#6366f1' }}
-            >
-              <FiZap />
-              Consejos de ahorro
-            </Tabs.Trigger>
-            <Tabs.Trigger
-              value="coach"
-              display="flex"
-              alignItems="center"
-              gap={2}
-              color="#B0B0B0"
-              _selected={{ color: 'white', borderBottomColor: '#6366f1' }}
-            >
-              <FiMessageCircle />
-              Coach de ahorro
-            </Tabs.Trigger>
-          </Tabs.List>
+        <Box>
+          <SimpleGrid columns={{ base: 1, sm: 3 }} gap={4} mb={6}>
+            <StatCard label="Ingresos" value={formatCurrency(summary.totals.income, currency)} />
+            <StatCard label="Gastos" value={formatCurrency(summary.totals.expense, currency)} />
+            <StatCard label="Balance" value={formatCurrency(summary.totals.net, currency)} />
+          </SimpleGrid>
 
-          <Tabs.Content value="consejos">
-            <SimpleGrid columns={{ base: 1, sm: 3 }} gap={4} mb={6}>
-              <StatCard label="Ingresos" value={formatCurrency(summary.totals.income, currency)} />
-              <StatCard label="Gastos" value={formatCurrency(summary.totals.expense, currency)} />
-              <StatCard label="Balance" value={formatCurrency(summary.totals.net, currency)} />
-            </SimpleGrid>
-
-            {!hasAdvice ? (
-              <Card>
-                <VStack gap={4} py={6}>
-                  <Icon as={FiZap} boxSize={8} color="#6366f1" />
-                  <Text textAlign="center" color="#B0B0B0">
-                    Aún no has generado consejos para este mes. Genera un análisis de tus gastos con IA.
-                  </Text>
-                  <PrimaryButton onClick={handleGenerate} loading={loading}>
-                    Generar consejos
-                  </PrimaryButton>
-                </VStack>
-              </Card>
-            ) : (
-              <VStack gap={8} align="stretch">
+          {!hasAdvice ? (
+            <Card>
+              <VStack gap={4} py={6}>
+                <Icon as={FiZap} boxSize={8} color="#6366f1" />
+                <Text textAlign="center" color="#B0B0B0">
+                  Aún no has generado consejos para este mes. Genera un análisis de tus gastos con IA.
+                </Text>
+                <PrimaryButton onClick={handleGenerate} loading={loading}>
+                  Generar consejos
+                </PrimaryButton>
+              </VStack>
+            </Card>
+          ) : (
+            <VStack gap={8} align="stretch">
               <Grid templateColumns={{ base: '1fr', lg: '2fr 3fr' }} gap={6}>
                 {/* Diagnóstico — 40% */}
                 <GridItem>
@@ -211,21 +182,16 @@ export function ConsejosAhorroPageClient({ userId, period, advice, summary, budg
                   currency={currency}
                 />
               </Box>
-              </VStack>
-            )}
+            </VStack>
+          )}
 
-            {loading && (
-              <HStack justify="center" mt={6} color="#B0B0B0" gap={2}>
-                <Spinner size="sm" />
-                <Text fontSize="sm">Analizando tus gastos…</Text>
-              </HStack>
-            )}
-          </Tabs.Content>
-
-          <Tabs.Content value="coach">
-            <SavingsCoachChat userId={userId} />
-          </Tabs.Content>
-        </Tabs.Root>
+          {loading && (
+            <HStack justify="center" mt={6} color="#B0B0B0" gap={2}>
+              <Spinner size="sm" />
+              <Text fontSize="sm">Analizando tus gastos…</Text>
+            </HStack>
+          )}
+        </Box>
       )}
     </Box>
   )

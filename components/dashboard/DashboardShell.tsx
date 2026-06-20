@@ -11,10 +11,10 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false)
 
   return (
-    <Flex direction="column" h="100dvh" bg="#0f0f13">
-      <Header />
-      <Flex flex="1" overflow="hidden" bg="#0f0f13">
-        <Sidebar />
+    <Flex direction="row" h="100dvh" bg="#0f0f13">
+      <Sidebar />
+      <Flex direction="column" flex="1" minW={0} overflow="hidden" bg="#0f0f13">
+        <Header />
         <Box
           as="main"
           flex="1"

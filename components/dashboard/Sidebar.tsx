@@ -1,9 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Box, VStack, Button, Icon, Spinner } from '@chakra-ui/react'
+import { Box, VStack, HStack, Text, Button, Icon, Spinner } from '@chakra-ui/react'
 import { usePathname } from 'next/navigation'
+import Image from 'next/image'
 import { CraftedByFooter } from './CraftedByFooter'
+import logo from '@/public/brand/gh_push_money_logo.png'
 import {
   FiHome,
   FiBarChart2,
@@ -86,6 +88,30 @@ export function Sidebar() {
         aria-label={isCollapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
       >
         <Icon as={isCollapsed ? FiChevronsRight : FiChevronsLeft} boxSize="2.5" />
+      </Box>
+
+      {/* Brand / logo */}
+      <Box
+        px={isCollapsed ? 0 : 3}
+        py={4}
+        borderBottomWidth="1px"
+        borderColor="#2d2d35"
+        flexShrink={0}
+        style={{ paddingTop: 'max(16px, env(safe-area-inset-top))' }}
+      >
+        <HStack gap={2} justify={isCollapsed ? 'center' : 'flex-start'} align="center">
+          <Image src={logo} alt="GitPush Money" width={30} height={30} style={{ flexShrink: 0 }} />
+          {!isCollapsed && (
+            <HStack gap={1} align="center">
+              <Text fontSize="18px" fontWeight="bold" color="brand.300">
+                GitPush
+              </Text>
+              <Text fontSize="18px" fontWeight="bold" color="brand.200">
+                Money
+              </Text>
+            </HStack>
+          )}
+        </HStack>
       </Box>
 
       {/* Scrollable nav content */}

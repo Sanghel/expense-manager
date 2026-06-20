@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 export const reminderSchema = z.object({
   description: z.string().min(1, 'La descripción es requerida'),
+  type: z.enum(['income', 'expense']).default('expense'),
   category_id: z.string().uuid().nullable().optional(),
   account_id: z.string().uuid().nullable().optional(),
   frequency: z.enum(['once', 'weekly', 'monthly', 'yearly']),

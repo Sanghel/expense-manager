@@ -7,12 +7,17 @@ import { toaster } from '@/lib/toaster'
 import { FormDialog } from '@/components/ui/FormDialog'
 import { FormInput } from '@/components/ui/FormInput'
 import { DateInput } from '@/components/ui/DateInput'
-import { RadioSelect } from '@/components/ui/RadioSelect'
+import { SelectField } from '@/components/ui/SelectField'
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
 import { CategorySelect } from '@/components/ui/CategorySelect'
 import { AccountSelect } from '@/components/ui/AccountSelect'
-import type { Account, Category, Reminder } from '@/types/database.types'
+import type { Account, Category, Reminder, ReminderType } from '@/types/database.types'
 import { getLocalDateString } from '@/lib/utils/dates'
+
+const TYPE_OPTIONS = [
+  { value: 'expense', label: 'Gasto' },
+  { value: 'income', label: 'Ingreso' },
+]
 
 const FREQUENCY_OPTIONS = [
   { value: 'once', label: 'Una vez' },
@@ -55,6 +60,7 @@ interface Props {
 
 const defaultForm = {
   description: '',
+  type: 'expense' as ReminderType,
   category_id: '',
   account_id: '',
   frequency: 'monthly' as 'once' | 'weekly' | 'monthly' | 'yearly',
@@ -72,6 +78,7 @@ export function ReminderForm({ isOpen, onClose, userId, categories, accounts = [
     if (editingReminder) {
       setFormData({
         description: editingReminder.description,
+        type: editingReminder.type ?? 'expense',
         category_id: editingReminder.category_id ?? '',
         account_id: editingReminder.account_id ?? '',
         frequency: editingReminder.frequency,
@@ -101,6 +108,7 @@ export function ReminderForm({ isOpen, onClose, userId, categories, accounts = [
 
     const payload = {
       description: formData.description,
+      type: formData.type,
       category_id: formData.category_id || null,
       account_id: formData.account_id || null,
       frequency: formData.frequency,
@@ -141,6 +149,14 @@ export function ReminderForm({ isOpen, onClose, userId, categories, accounts = [
             required
           />
 
+          <SelectField
+            label="Tipo"
+            value={formData.type}
+            onChange={(v) => setFormData({ ...formData, type: v as ReminderType })}
+            options={TYPE_OPTIONS}
+            required
+          />
+
           <Box w="full">
             <CategorySelect
               value={formData.category_id}
@@ -160,7 +176,7 @@ export function ReminderForm({ isOpen, onClose, userId, categories, accounts = [
             />
           )}
 
-          <RadioSelect
+          <SelectField
             label="Frecuencia"
             value={formData.frequency}
             onChange={(v) => setFormData({ ...formData, frequency: v as typeof formData.frequency })}

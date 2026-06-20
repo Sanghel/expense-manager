@@ -16,7 +16,7 @@ import {
 } from '@chakra-ui/react'
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiZap, FiRefreshCw, FiInbox, FiMessageCircle } from 'react-icons/fi'
+import { FiZap, FiInbox, FiMessageCircle } from 'react-icons/fi'
 import { Card } from '@/components/ui/Card'
 import { StatCard } from '@/components/ui/StatCard'
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
@@ -99,15 +99,6 @@ export function ConsejosAhorroPageClient({ userId, period, advice, summary, budg
             )}
           </Text>
         </Box>
-
-        {summary.hasData && (
-          <PrimaryButton onClick={handleGenerate} loading={loading}>
-            <HStack gap={2}>
-              <Icon as={FiRefreshCw} />
-              {hasAdvice ? 'Actualizar' : 'Generar consejos'}
-            </HStack>
-          </PrimaryButton>
-        )}
       </HStack>
 
       {!summary.hasData ? (

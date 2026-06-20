@@ -36,8 +36,9 @@ export function Header() {
       flexShrink={0}
       style={{ paddingTop: 'max(12px, env(safe-area-inset-top))' }}
     >
-      <Flex justify="space-between" align="center">
-        <Flex align="center" gap={2}>
+      <Flex justify={{ base: 'space-between', md: 'flex-end' }} align="center">
+        {/* Logo only on mobile — on desktop it lives in the sidebar */}
+        <Flex align="center" gap={2} display={{ base: 'flex', md: 'none' }}>
           <Image src={logo} alt="GitPush Money" width={30} height={30} />
           <HStack gap={2} align="center" justify="center">
             <Text fontSize="18px" fontWeight="bold" color="brand.300">

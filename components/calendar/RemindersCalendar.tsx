@@ -23,7 +23,7 @@ import {
 } from '@chakra-ui/react'
 import { useState } from 'react'
 import { FiPlus, FiX } from 'react-icons/fi'
-import type { ReminderWithCategory, Account, Category } from '@/types/database.types'
+import type { ReminderWithCategory, Account, Category, ReminderType } from '@/types/database.types'
 import { getLocalDateString } from '@/lib/utils/dates'
 import { reminderMatchesDate } from '@/lib/reminders/matches-date'
 import { TransactionForm } from '@/components/transactions/TransactionForm'
@@ -32,12 +32,16 @@ import { ReminderForm } from '@/components/reminders/ReminderForm'
 const WEEKDAYS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
 const MONTHS = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
 
-const REMINDER_COLOR = '#6366f1'
+const INCOME_COLOR = '#10b981'
+const EXPENSE_COLOR = '#6366f1'
+
+const reminderColor = (type: ReminderType) => (type === 'income' ? INCOME_COLOR : EXPENSE_COLOR)
 
 interface DayItem {
   label: string
   icon: string
   color: string
+  type: ReminderType
   reminder: ReminderWithCategory
 }
 
@@ -55,7 +59,8 @@ function getItemsForDay(
       items.push({
         label: r.description,
         icon: r.category?.icon ?? '🔔',
-        color: REMINDER_COLOR,
+        color: reminderColor(r.type),
+        type: r.type,
         reminder: r,
       })
     }
@@ -229,8 +234,8 @@ export function RemindersCalendar({ userId, reminders, categories, accounts, onR
                     <Text fontSize="sm" color="white" lineClamp={1} flex={1}>
                       {item.icon} {item.label}
                     </Text>
-                    <Badge size="xs" variant="outline" colorPalette="purple">
-                      Recordatorio
+                    <Badge size="xs" variant="subtle" colorPalette={item.type === 'income' ? 'green' : 'red'}>
+                      {item.type === 'income' ? 'Ingreso' : 'Gasto'}
                     </Badge>
                   </HStack>
                 ))}
@@ -257,8 +262,12 @@ export function RemindersCalendar({ userId, reminders, categories, accounts, onR
           {/* Legend */}
           <HStack gap={4} flexWrap="wrap">
             <HStack gap={1}>
-              <Box w={2} h={2} borderRadius="full" bg={REMINDER_COLOR} />
-              <Text fontSize="xs" color="#B0B0B0">Recordatorio</Text>
+              <Box w={2} h={2} borderRadius="full" bg={EXPENSE_COLOR} />
+              <Text fontSize="xs" color="#B0B0B0">Gasto</Text>
+            </HStack>
+            <HStack gap={1}>
+              <Box w={2} h={2} borderRadius="full" bg={INCOME_COLOR} />
+              <Text fontSize="xs" color="#B0B0B0">Ingreso</Text>
             </HStack>
             <Text fontSize="xs" color="#B0B0B0">· Haz clic en un día para ver detalles o crear un recordatorio</Text>
           </HStack>
@@ -320,8 +329,8 @@ export function RemindersCalendar({ userId, reminders, categories, accounts, onR
                           <Box w={2} h={2} borderRadius="full" bg={item.color} flexShrink={0} mt="6px" />
                           <VStack align="flex-start" gap={0} flex={1}>
                             <Text fontWeight="bold" color="white">{item.icon} {item.label}</Text>
-                            <Badge size="xs" variant="outline" colorPalette="purple">
-                              Recordatorio
+                            <Badge size="xs" variant="subtle" colorPalette={item.type === 'income' ? 'green' : 'red'}>
+                              {item.type === 'income' ? 'Ingreso' : 'Gasto'}
                             </Badge>
                           </VStack>
                         </HStack>
@@ -339,7 +348,7 @@ export function RemindersCalendar({ userId, reminders, categories, accounts, onR
                           }}
                         >
                           <FiPlus />
-                          Registrar pago
+                          {item.type === 'income' ? 'Registrar ingreso' : 'Registrar pago'}
                         </Button>
                       )}
                     </Box>
@@ -384,6 +393,7 @@ export function RemindersCalendar({ userId, reminders, categories, accounts, onR
           }}
           prefillDescription={registerFor.reminder.description}
           prefillCategoryId={registerFor.reminder.category_id ?? undefined}
+          initialType={registerFor.reminder.type}
         />
       )}
 

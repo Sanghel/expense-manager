@@ -1,8 +1,8 @@
 'use client'
 
-import { VStack, HStack, Box, Text, Badge, IconButton, SimpleGrid } from '@chakra-ui/react'
+import { VStack, HStack, Box, Text, Badge, IconButton, SimpleGrid, Icon } from '@chakra-ui/react'
 import { useState } from 'react'
-import { FiEdit2, FiTrash2 } from 'react-icons/fi'
+import { FiEdit2, FiTrash2, FiArrowUpRight, FiArrowDownLeft } from 'react-icons/fi'
 import { deleteReminder } from '@/lib/actions/reminders.actions'
 import { toaster } from '@/lib/toaster'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
@@ -88,6 +88,14 @@ export function RemindersList({ userId, reminders, categories, accounts = [], on
                     {r.category?.icon ?? '🔔'} {r.description}
                   </Text>
                   <HStack gap={2} flexWrap="wrap">
+                    <Badge
+                      size="sm"
+                      variant="subtle"
+                      colorPalette={r.type === 'income' ? 'green' : 'red'}
+                    >
+                      <Icon as={r.type === 'income' ? FiArrowDownLeft : FiArrowUpRight} mr={1} />
+                      {r.type === 'income' ? 'Ingreso' : 'Gasto'}
+                    </Badge>
                     <Badge size="sm" variant="outline" colorPalette="purple">
                       {FREQUENCY_LABELS[r.frequency]}
                     </Badge>

@@ -1,13 +1,15 @@
 'use client'
 
-import { useState } from 'react'
-import { VStack, Button, Text } from '@chakra-ui/react'
+import { useEffect, useState } from 'react'
+import { VStack, Button, Text, Box } from '@chakra-ui/react'
 import { FormDialog } from '@/components/ui/FormDialog'
 import { InputAmount } from '@/components/ui/InputAmount'
 import { CurrencySelect } from '@/components/ui/CurrencySelect'
 import { AccountSelect } from '@/components/ui/AccountSelect'
-import { addFundsToGoal } from '@/lib/actions/savings.actions'
+import { addFundsToGoal, previewGoalContribution } from '@/lib/actions/savings.actions'
 import { toaster } from '@/lib/toaster'
+import { formatCurrency } from '@/lib/utils/currency'
+import { toNumber } from '@/lib/utils/numbers'
 import type { Account, Currency, SavingsGoal } from '@/types/database.types'
 
 interface Props {
@@ -24,8 +26,39 @@ export function AddFundsForm({ isOpen, onClose, goal, userId, accounts, onSucces
   const [accountId, setAccountId] = useState<string>('')
   const [currency, setCurrency] = useState<Currency>(goal.currency)
   const [loading, setLoading] = useState(false)
+  const [conversion, setConversion] = useState<{ key: string; ok: boolean; text: string } | null>(null)
 
   const activeAccounts = accounts.filter((a) => a.is_active)
+  const current = toNumber(goal.current_amount)
+  const target = toNumber(goal.target_amount)
+
+  const needsConversion = !!amount && amount > 0 && currency !== goal.currency
+  const conversionKey = `${amount ?? ''}|${currency}`
+
+  // Show what will actually be credited to the goal when the contribution is
+  // in a different currency — the mismatch used to be silent.
+  useEffect(() => {
+    if (!needsConversion || !amount) return
+
+    let cancelled = false
+    previewGoalContribution(amount, currency, goal.currency).then((result) => {
+      if (cancelled) return
+      setConversion({
+        key: conversionKey,
+        ok: result.ok,
+        text: result.ok
+          ? `≈ ${formatCurrency(result.amount, goal.currency)} en la meta`
+          : result.error,
+      })
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [needsConversion, amount, currency, goal.currency, conversionKey])
+
+  // Keyed so a result from a previous amount/currency is never shown.
+  const preview = needsConversion && conversion?.key === conversionKey ? conversion : null
 
   const handleAccountChange = (id: string) => {
     setAccountId(id)
@@ -59,7 +92,7 @@ export function AddFundsForm({ isOpen, onClose, goal, userId, accounts, onSucces
       onClose()
       onSuccess()
     } else {
-      toaster.create({ title: result.error || 'Error al añadir fondos', type: 'error', duration: 4000 })
+      toaster.create({ title: result.error || 'Error al añadir fondos', type: 'error', duration: 5000 })
     }
   }
 
@@ -72,7 +105,7 @@ export function AddFundsForm({ isOpen, onClose, goal, userId, accounts, onSucces
       <VStack gap={4} align="stretch">
         <Text fontSize="sm" color="#B0B0B0">
           Meta: <Text as="span" color="white" fontWeight="600">
-            {goal.current_amount.toLocaleString()} / {goal.target_amount.toLocaleString()} {goal.currency}
+            {formatCurrency(current, goal.currency)} / {formatCurrency(target, goal.currency)}
           </Text>
         </Text>
 
@@ -99,6 +132,21 @@ export function AddFundsForm({ isOpen, onClose, goal, userId, accounts, onSucces
           isRequired
         />
 
+        {preview && (
+          <Box
+            bg="#26262f"
+            borderRadius="md"
+            borderWidth="1px"
+            borderColor={preview.ok ? '#2d2d35' : '#F43F5E'}
+            px={3}
+            py={2}
+          >
+            <Text fontSize="sm" color={preview.ok ? 'white' : '#F43F5E'}>
+              {preview.text}
+            </Text>
+          </Box>
+        )}
+
         <Button
           bg="#4F46E5"
           color="white"
@@ -106,6 +154,7 @@ export function AddFundsForm({ isOpen, onClose, goal, userId, accounts, onSucces
           onClick={handleSubmit}
           loading={loading}
           loadingText="Añadiendo..."
+          disabled={preview?.ok === false}
           w="full"
           mt={2}
         >

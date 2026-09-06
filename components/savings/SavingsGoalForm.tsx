@@ -10,6 +10,7 @@ import { DateInput } from '@/components/ui/DateInput'
 import { InputAmount } from '@/components/ui/InputAmount'
 import { CurrencySelect } from '@/components/ui/CurrencySelect'
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
+import { toNumber } from '@/lib/utils/numbers'
 import type { Currency, SavingsGoal } from '@/types/database.types'
 
 interface Props {
@@ -36,7 +37,7 @@ export function SavingsGoalForm({ isOpen, onClose, userId, onSuccess, initialDat
     if (initialData) {
       setForm({
         name: initialData.name,
-        target_amount: Number(initialData.target_amount) as number | undefined,
+        target_amount: toNumber(initialData.target_amount) as number | undefined,
         currency: initialData.currency,
         deadline: initialData.deadline ?? '',
       })
@@ -56,7 +57,9 @@ export function SavingsGoalForm({ isOpen, onClose, userId, onSuccess, initialDat
       name: form.name,
       target_amount: form.target_amount ?? 0,
       currency: form.currency,
-      deadline: form.deadline || undefined,
+      // `null`, not `undefined`: an undefined key is dropped from the PATCH
+      // body, which would silently keep the previous deadline.
+      deadline: form.deadline || null,
     }
 
     const result = goalId

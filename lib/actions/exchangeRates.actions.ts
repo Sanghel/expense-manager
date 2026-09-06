@@ -108,6 +108,12 @@ export async function getAllRatePairs() {
   }
 }
 
+/**
+ * Lenient conversion for display: a missing rate falls back to the unconverted
+ * amount. Never use this on a write path — see `convertAmount` in
+ * `lib/utils/exchange.ts`, which fails instead of silently persisting a figure
+ * in the wrong currency.
+ */
 export async function convertCurrency(
   amount: number,
   from: Currency,

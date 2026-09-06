@@ -1,4 +1,6 @@
 import { insforgeAdmin } from '@/lib/insforge-admin'
+import { convertAmount } from '@/lib/utils/exchange'
+import { toNumber } from '@/lib/utils/numbers'
 
 /**
  * Updates an account balance by adding or subtracting an amount,
@@ -22,28 +24,15 @@ export async function applyBalanceDelta(
     return `balance-fetch-error: ${JSON.stringify(fetchError)}`
   }
 
-  let amt = Number(amount)
+  const converted = await convertAmount(amount, transactionCurrency, account.currency)
 
-  if (transactionCurrency !== account.currency) {
-    const { data: rate } = await insforgeAdmin.database
-      .from('exchange_rates')
-      .select('rate')
-      .eq('from_currency', transactionCurrency)
-      .eq('to_currency', account.currency)
-      .order('date', { ascending: false })
-      .limit(1)
-      .single()
-
-    if (!rate) {
-      return `no-exchange-rate from=${transactionCurrency} to=${account.currency}`
-    }
-
-    amt = amt * Number(rate.rate)
+  if (!converted.ok) {
+    return `no-exchange-rate from=${transactionCurrency} to=${account.currency}`
   }
 
   const newBalance = direction === 'add'
-    ? Number(account.balance) + amt
-    : Number(account.balance) - amt
+    ? toNumber(account.balance) + converted.amount
+    : toNumber(account.balance) - converted.amount
 
   const { error: updateError } = await insforgeAdmin.database
     .from('accounts')

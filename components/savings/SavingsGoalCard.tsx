@@ -1,15 +1,17 @@
 'use client'
 
 import { Box, VStack, HStack, Text, Button, Badge, IconButton } from '@chakra-ui/react'
-import { FiEdit2, FiTrash2, FiCheckCircle, FiRotateCcw } from 'react-icons/fi'
+import { FiEdit2, FiTrash2, FiCheckCircle, FiRotateCcw, FiChevronDown, FiChevronUp } from 'react-icons/fi'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { deleteSavingsGoal, setGoalCompleted } from '@/lib/actions/savings.actions'
 import { toaster } from '@/lib/toaster'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { AddFundsForm } from '@/components/savings/AddFundsForm'
+import { ContributionHistory } from '@/components/savings/ContributionHistory'
 import { formatCurrency } from '@/lib/utils/currency'
 import { toNumber, safeRatio } from '@/lib/utils/numbers'
+import { getSavingsPace, type PaceStatus } from '@/lib/utils/savings-pace'
 import type { Account, SavingsGoal } from '@/types/database.types'
 
 interface Props {
@@ -26,17 +28,26 @@ function getStatusBadge(goal: SavingsGoal, current: number, target: number) {
   return { label: 'En Progreso', colorPalette: 'blue' }
 }
 
+const PACE_LABEL: Record<PaceStatus, { label: string; color: string }> = {
+  'on-track': { label: 'Al día', color: '#10B981' },
+  behind: { label: 'Atrasada', color: '#F97316' },
+  overdue: { label: 'Vencida', color: '#F43F5E' },
+  done: { label: 'Objetivo alcanzado', color: '#10B981' },
+}
+
 export function SavingsGoalCard({ goal, userId, accounts, onEdit }: Props) {
   const router = useRouter()
   const [isAddFundsOpen, setIsAddFundsOpen] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [statusLoading, setStatusLoading] = useState(false)
+  const [showHistory, setShowHistory] = useState(false)
 
   const current = toNumber(goal.current_amount)
   const target = toNumber(goal.target_amount)
   const progress = safeRatio(current, target) * 100
   const status = getStatusBadge(goal, current, target)
+  const pace = getSavingsPace(goal)
 
   const confirmDelete = async () => {
     setDeleteLoading(true)
@@ -104,6 +115,23 @@ export function SavingsGoalCard({ goal, userId, accounts, onEdit }: Props) {
             </Text>
           )}
 
+          {pace && pace.status !== 'done' && (
+            <HStack gap={2} flexWrap="wrap">
+              <Text fontSize="xs" color="#B0B0B0">
+                Faltan {formatCurrency(pace.remaining, goal.currency)}
+                {pace.monthsLeft > 0 && (
+                  <>
+                    {' '}· {pace.monthsLeft} {pace.monthsLeft === 1 ? 'mes' : 'meses'} →{' '}
+                    {formatCurrency(pace.requiredMonthly, goal.currency)}/mes
+                  </>
+                )}
+              </Text>
+              <Badge size="sm" variant="outline" color={PACE_LABEL[pace.status].color}>
+                {PACE_LABEL[pace.status].label}
+              </Badge>
+            </HStack>
+          )}
+
           <HStack width="100%" justifyContent="space-between">
             <Button
               size="sm"
@@ -145,6 +173,28 @@ export function SavingsGoalCard({ goal, userId, accounts, onEdit }: Props) {
               </IconButton>
             </HStack>
           </HStack>
+
+          <Box w="full" borderTopWidth="1px" borderColor="#2d2d35" pt={2}>
+            <Button
+              size="xs"
+              variant="ghost"
+              color="#B0B0B0"
+              onClick={() => setShowHistory((v) => !v)}
+              w="full"
+              justifyContent="space-between"
+            >
+              Aportes
+              {showHistory ? <FiChevronUp /> : <FiChevronDown />}
+            </Button>
+            {showHistory && (
+              <ContributionHistory
+                userId={userId}
+                goalId={goal.id}
+                goalCurrency={goal.currency}
+                onChange={() => router.refresh()}
+              />
+            )}
+          </Box>
         </VStack>
       </Box>
 

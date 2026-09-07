@@ -13,7 +13,7 @@ import {
   type UpdateSavingsGoalInput,
   type AddFundsInput,
 } from '@/lib/validations/savings'
-import type { SavingsGoal } from '@/types/database.types'
+import type { SavingsContribution, SavingsGoal } from '@/types/database.types'
 
 function errorMessage(error: unknown, fallback: string): string {
   if (error instanceof Error && error.message) return error.message
@@ -215,8 +215,11 @@ export async function addFundsToGoal(id: string, userId: string, data: AddFundsI
         goal_id: id,
         user_id: userId,
         amount: validated.amount,
+        // Stored so the contribution can be reversed exactly later; rates drift.
+        converted_amount: converted.amount,
         currency: contributionCurrency,
         account_id: validated.account_id ?? null,
+        notes: validated.notes ?? null,
       })
       .select()
       .single()
@@ -315,4 +318,117 @@ export async function previewGoalContribution(
   to: string
 ): Promise<{ ok: true; amount: number } | { ok: false; error: string }> {
   return convertAmount(amount, from, to)
+}
+
+function normalizeContribution(row: Record<string, unknown>): SavingsContribution {
+  return {
+    ...(row as unknown as SavingsContribution),
+    amount: toNumber(row.amount),
+    // Rows written before `converted_amount` existed fall back to `amount`,
+    // which is correct for same-currency contributions.
+    converted_amount: toNumber(row.converted_amount ?? row.amount),
+  }
+}
+
+export async function getGoalContributions(userId: string, goalId: string) {
+  if (!userId) {
+    console.error('getGoalContributions: userId is missing')
+    return { success: false, error: 'Falta el identificador de usuario' }
+  }
+  try {
+    const { data, error } = await insforgeAdmin.database
+      .from('savings_contributions')
+      .select()
+      .eq('user_id', userId)
+      .eq('goal_id', goalId)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return { success: true, data: (data ?? []).map(normalizeContribution) }
+  } catch (error) {
+    console.error('Get goal contributions error:', error)
+    return { success: false, error: errorMessage(error, 'No se pudieron cargar los aportes') }
+  }
+}
+
+/**
+ * Reverses a contribution: subtracts what was actually credited to the goal,
+ * refunds the source account, then deletes the row. The stored
+ * `converted_amount` is what makes the reversal exact — reconverting at
+ * today's rate would drift.
+ */
+export async function deleteGoalContribution(userId: string, contributionId: string) {
+  if (!userId) {
+    console.error('deleteGoalContribution: userId is missing')
+    return { success: false, error: 'Falta el identificador de usuario' }
+  }
+  try {
+    const { data: row, error: fetchError } = await insforgeAdmin.database
+      .from('savings_contributions')
+      .select()
+      .eq('id', contributionId)
+      .eq('user_id', userId)
+      .single()
+
+    if (fetchError) throw fetchError
+    if (!row) return { success: false, error: 'Aporte no encontrado' }
+
+    const contribution = normalizeContribution(row)
+
+    const { data: goalRow, error: goalError } = await insforgeAdmin.database
+      .from('savings_goals')
+      .select()
+      .eq('id', contribution.goal_id)
+      .eq('user_id', userId)
+      .single()
+
+    if (goalError) throw goalError
+    if (!goalRow) return { success: false, error: 'Meta no encontrada' }
+
+    const goal = normalizeGoal(goalRow)
+    const newAmount = Math.max(goal.current_amount - contribution.converted_amount, 0)
+
+    const { error: updateError } = await insforgeAdmin.database
+      .from('savings_goals')
+      .update({ current_amount: newAmount, is_completed: newAmount >= goal.target_amount })
+      .eq('id', goal.id)
+      .eq('user_id', userId)
+
+    if (updateError) throw updateError
+
+    // Refund the account. If this fails the goal is already reverted, so put
+    // the goal back rather than leaving the two out of sync.
+    if (contribution.account_id) {
+      const balanceError = await applyBalanceDelta(
+        contribution.account_id,
+        contribution.amount,
+        contribution.currency,
+        'add'
+      )
+      if (balanceError) {
+        await insforgeAdmin.database
+          .from('savings_goals')
+          .update({ current_amount: goal.current_amount, is_completed: goal.is_completed })
+          .eq('id', goal.id)
+          .eq('user_id', userId)
+        console.error('Delete contribution — balance error:', balanceError)
+        return { success: false, error: 'No se pudo reintegrar el saldo a la cuenta' }
+      }
+    }
+
+    const { error: deleteError } = await insforgeAdmin.database
+      .from('savings_contributions')
+      .delete()
+      .eq('id', contributionId)
+      .eq('user_id', userId)
+
+    if (deleteError) throw deleteError
+
+    revalidateSavings()
+    revalidatePath('/settings')
+    return { success: true }
+  } catch (error) {
+    console.error('Delete goal contribution error:', error)
+    return { success: false, error: errorMessage(error, 'No se pudo eliminar el aporte') }
+  }
 }

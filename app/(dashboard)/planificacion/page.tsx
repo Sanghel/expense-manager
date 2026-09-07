@@ -6,8 +6,9 @@ import { getSavingsGoals } from '@/lib/actions/savings.actions'
 import { getCategories } from '@/lib/actions/categories.actions'
 import { getBudgets } from '@/lib/actions/budgets.actions'
 import { getAccounts } from '@/lib/actions/accounts.actions'
+import { getAllRatePairs } from '@/lib/actions/exchangeRates.actions'
 import { PlanificacionPageClient } from './PlanificacionPageClient'
-import type { SavingsGoal, Category, Account } from '@/types/database.types'
+import type { SavingsGoal, Category, Account, Currency, ExchangeRate } from '@/types/database.types'
 
 type Tab = 'metas' | 'presupuestos'
 
@@ -24,7 +25,7 @@ export default async function PlanificacionPage({
 
   const { data: user, error: userError } = await insforgeAdmin.database
     .from('users')
-    .select('id')
+    .select('id, preferred_currency')
     .eq('email', session.user.email)
     .single()
 
@@ -39,14 +40,17 @@ export default async function PlanificacionPage({
   let initialBudgets: unknown[] | null = null
   let categories: Category[] = []
   let accounts: Account[] = []
+  let exchangeRates: ExchangeRate[] = []
 
   if (tab === 'metas') {
-    const [goalsResult, accountsResult] = await Promise.all([
+    const [goalsResult, accountsResult, ratesResult] = await Promise.all([
       getSavingsGoals(user.id),
       getAccounts(user.id),
+      getAllRatePairs(),
     ])
     initialGoals = goalsResult.success ? (goalsResult.data ?? []) : []
     accounts = (accountsResult.success ? accountsResult.data : []) as Account[]
+    exchangeRates = (ratesResult.success ? ratesResult.data : []) as ExchangeRate[]
   } else if (tab === 'presupuestos') {
     const [categoriesResult, budgetsResult] = await Promise.all([
       getCategories(user.id),
@@ -64,6 +68,8 @@ export default async function PlanificacionPage({
       initialBudgets={initialBudgets}
       categories={categories}
       accounts={accounts}
+      preferredCurrency={(user.preferred_currency as Currency) ?? 'COP'}
+      exchangeRates={exchangeRates}
     />
   )
 }

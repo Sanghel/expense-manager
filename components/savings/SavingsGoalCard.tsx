@@ -1,13 +1,15 @@
 'use client'
 
 import { Box, VStack, HStack, Text, Button, Badge, IconButton } from '@chakra-ui/react'
-import { FiEdit2, FiTrash2 } from 'react-icons/fi'
+import { FiEdit2, FiTrash2, FiCheckCircle, FiRotateCcw } from 'react-icons/fi'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { deleteSavingsGoal } from '@/lib/actions/savings.actions'
+import { deleteSavingsGoal, setGoalCompleted } from '@/lib/actions/savings.actions'
 import { toaster } from '@/lib/toaster'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { AddFundsForm } from '@/components/savings/AddFundsForm'
+import { formatCurrency } from '@/lib/utils/currency'
+import { toNumber, safeRatio } from '@/lib/utils/numbers'
 import type { Account, SavingsGoal } from '@/types/database.types'
 
 interface Props {
@@ -17,9 +19,10 @@ interface Props {
   onEdit: (goal: SavingsGoal) => void
 }
 
-function getStatusBadge(goal: SavingsGoal) {
+function getStatusBadge(goal: SavingsGoal, current: number, target: number) {
   if (goal.is_completed) return { label: 'Completada', colorPalette: 'green' }
-  if (goal.current_amount === 0) return { label: 'Sin iniciar', colorPalette: 'gray' }
+  if (current > target) return { label: 'Superada', colorPalette: 'purple' }
+  if (current === 0) return { label: 'Sin iniciar', colorPalette: 'gray' }
   return { label: 'En Progreso', colorPalette: 'blue' }
 }
 
@@ -28,9 +31,12 @@ export function SavingsGoalCard({ goal, userId, accounts, onEdit }: Props) {
   const [isAddFundsOpen, setIsAddFundsOpen] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
+  const [statusLoading, setStatusLoading] = useState(false)
 
-  const progress = (goal.current_amount / goal.target_amount) * 100
-  const status = getStatusBadge(goal)
+  const current = toNumber(goal.current_amount)
+  const target = toNumber(goal.target_amount)
+  const progress = safeRatio(current, target) * 100
+  const status = getStatusBadge(goal, current, target)
 
   const confirmDelete = async () => {
     setDeleteLoading(true)
@@ -41,38 +47,59 @@ export function SavingsGoalCard({ goal, userId, accounts, onEdit }: Props) {
       toaster.create({ title: 'Meta eliminada', type: 'success', duration: 3000 })
       router.refresh()
     } else {
-      toaster.create({ title: result.error || 'Error', type: 'error', duration: 3000 })
+      toaster.create({ title: result.error || 'Error', type: 'error', duration: 4000 })
+    }
+  }
+
+  const toggleCompleted = async () => {
+    setStatusLoading(true)
+    const result = await setGoalCompleted(goal.id, userId, !goal.is_completed)
+    setStatusLoading(false)
+    if (result.success) {
+      toaster.create({
+        title: goal.is_completed ? 'Meta reabierta' : 'Meta completada',
+        type: 'success',
+        duration: 3000,
+      })
+      router.refresh()
+    } else {
+      toaster.create({ title: result.error || 'Error', type: 'error', duration: 4000 })
     }
   }
 
   return (
     <>
-      <Box borderWidth="1px" borderRadius="md" p="4" bg="bg.muted">
+      <Box borderWidth="1px" borderRadius="xl" p="4" bg="#1a1a23" borderColor="#2d2d35">
         <VStack alignItems="flex-start" gap="3">
-          <HStack width="100%" justifyContent="space-between">
-            <Text fontWeight="bold" fontSize="lg">
+          <HStack width="100%" justifyContent="space-between" gap={2}>
+            <Text fontWeight="bold" fontSize="lg" color="white" lineClamp={1}>
               {goal.name}
             </Text>
-            <Badge colorPalette={status.colorPalette} variant="solid">
+            <Badge colorPalette={status.colorPalette} variant="solid" flexShrink={0}>
               {status.label}
             </Badge>
           </HStack>
 
           <VStack alignItems="flex-start" width="100%" gap="1">
             <HStack width="100%" justifyContent="space-between">
-              <Text fontSize="sm" color="fg.muted">Progreso</Text>
-              <Text fontSize="sm">
-                {goal.current_amount.toLocaleString()} / {goal.target_amount.toLocaleString()} {goal.currency}
+              <Text fontSize="sm" color="#B0B0B0">Progreso</Text>
+              <Text fontSize="sm" color="white">
+                {formatCurrency(current, goal.currency)} / {formatCurrency(target, goal.currency)}
               </Text>
             </HStack>
-            <Box width="100%" height="2" bg="gray.200" borderRadius="md" overflow="hidden">
-              <Box height="100%" bg="#4F46E5" width={`${Math.min(progress, 100)}%`} transition="width 0.3s" />
+            <Box width="100%" height="2" bg="#2d2d35" borderRadius="md" overflow="hidden">
+              <Box
+                height="100%"
+                bg={current > target ? '#10B981' : '#4F46E5'}
+                width={`${Math.min(progress, 100)}%`}
+                transition="width 0.3s"
+              />
             </Box>
-            <Text fontSize="xs" color="fg.muted">{progress.toFixed(1)}%</Text>
+            <Text fontSize="xs" color="#B0B0B0">{progress.toFixed(1)}%</Text>
           </VStack>
 
           {goal.deadline && (
-            <Text fontSize="sm" color="fg.muted">
+            <Text fontSize="sm" color="#B0B0B0">
               Fecha Límite: {new Date(goal.deadline).toLocaleDateString('es-ES')}
             </Text>
           )}
@@ -89,6 +116,16 @@ export function SavingsGoalCard({ goal, userId, accounts, onEdit }: Props) {
               + Añadir Fondos
             </Button>
             <HStack gap={1}>
+              <IconButton
+                aria-label={goal.is_completed ? 'Reabrir meta' : 'Marcar como completada'}
+                title={goal.is_completed ? 'Reabrir meta' : 'Marcar como completada'}
+                size="sm"
+                variant="ghost"
+                loading={statusLoading}
+                onClick={toggleCompleted}
+              >
+                {goal.is_completed ? <FiRotateCcw /> : <FiCheckCircle />}
+              </IconButton>
               <IconButton
                 aria-label="Editar"
                 size="sm"

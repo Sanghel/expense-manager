@@ -13,7 +13,7 @@ interface Props {
 
 export function SavingsGoalsGrid({ userId, goals, accounts, onEdit }: Props) {
   if (goals.length === 0) {
-    return <Text color="fg.muted">Sin metas de ahorro. ¡Crea una para comenzar!</Text>
+    return <Text color="#B0B0B0">Sin metas de ahorro. ¡Crea una para comenzar!</Text>
   }
 
   return (

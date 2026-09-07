@@ -12,7 +12,7 @@ interface Props {
 
 export function BudgetWidget({ budgets }: Props) {
   const topBudgets = [...budgets]
-    .sort((a, b) => safeRatio(b.spent, b.amount) - safeRatio(a.spent, a.amount))
+    .sort((a, b) => safeRatio(b.spent, b.limit_amount) - safeRatio(a.spent, a.limit_amount))
     .slice(0, 3)
 
   return (
@@ -36,9 +36,15 @@ export function BudgetWidget({ budgets }: Props) {
             {topBudgets.map((budget, idx) => (
               <VStack key={budget.id} gap={2} align="stretch" borderBottomWidth={idx < topBudgets.length - 1 ? "1px" : "0"} pb={idx < topBudgets.length - 1 ? "4" : "0"}>
                 <HStack justify="space-between">
-                  <Heading size="sm">{budget.category?.name || 'Sin categoría'}</Heading>
+                  <Heading size="sm">
+                    {budget.scope === 'total'
+                      ? 'Todos los gastos'
+                      : budget.scope === 'group'
+                        ? (budget.group?.name ?? 'Grupo')
+                        : (budget.category?.name ?? 'Sin categoría')}
+                  </Heading>
                   <Text fontSize="sm" fontWeight="medium">
-                    {formatCurrency(budget.amount, budget.currency)}
+                    {formatCurrency(budget.limit_amount, budget.currency)}
                   </Text>
                 </HStack>
                 <BudgetProgress budget={budget} />

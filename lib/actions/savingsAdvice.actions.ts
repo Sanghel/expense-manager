@@ -86,7 +86,11 @@ export async function buildSpendingSummary(
     insforgeAdmin.database
       .from('budgets')
       .select('category_id, amount, currency')
-      .eq('user_id', userId),
+      .eq('user_id', userId)
+      // The advisor maps budgets by category and reads a fixed amount; group
+      // and percentage budgets have neither, so they are excluded here.
+      .eq('scope', 'category')
+      .eq('amount_type', 'fixed'),
     insforgeAdmin.database
       .from('savings_goals')
       .select('name, target_amount, current_amount, currency, deadline, is_completed')

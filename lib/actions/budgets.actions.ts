@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { insforgeAdmin } from '@/lib/insforge-admin'
 import { getAllRatePairs } from '@/lib/actions/exchangeRates.actions'
+import { getCategoryGroups } from '@/lib/actions/categoryGroups.actions'
 import { buildConverter, type RateRow } from '@/lib/utils/currency-converter'
 import { resolvePeriod } from '@/lib/utils/budget-period'
 import { toNumber } from '@/lib/utils/numbers'
@@ -11,7 +12,13 @@ import {
   createBudgetSchema,
   type CreateBudgetInput,
 } from '@/lib/validations/budget'
-import type { BudgetWithSpent, Currency } from '@/types/database.types'
+import type {
+  BudgetAmountType,
+  BudgetScope,
+  BudgetWithSpent,
+  CategoryGroupWithMembers,
+  Currency,
+} from '@/types/database.types'
 
 function errorMessage(error: unknown, fallback: string): string {
   if (error instanceof Error && error.message) return error.message
@@ -60,42 +67,78 @@ export async function getBudgets(userId: string) {
       new Date(Math.max(...periods.map((p) => p.periodEnd.getTime())))
     )
 
-    const [{ data: transactions, error: transError }, ratePairs] = await Promise.all([
+    // Income rows are needed too: a percent_income budget derives its limit
+    // from the period's income, so the query can no longer filter by type.
+    const [{ data: transactions, error: transError }, ratePairs, groupsResult] = await Promise.all([
       insforgeAdmin.database
         .from('transactions')
         .select('category_id, amount, currency, date, type')
         .eq('user_id', userId)
-        .eq('type', 'expense')
         .gte('date', windowStart)
         .lte('date', windowEnd),
       getAllRatePairs(),
+      getCategoryGroups(userId),
     ])
 
     if (transError) throw transError
 
     const convert = buildConverter((ratePairs.success ? ratePairs.data : []) as RateRow[])
+    const groups = (groupsResult.success ? (groupsResult.data ?? []) : []) as CategoryGroupWithMembers[]
+    const groupById = new Map(groups.map((g) => [g.id, g]))
+    const groupMembers = new Map(groups.map((g) => [g.id, new Set(g.category_ids)]))
 
     const budgetsWithSpent = budgets.map((budget, index) => {
       const { periodStart, periodEnd } = periods[index]
+      const currency = budget.currency as Currency
+      const scope = (budget.scope ?? 'category') as BudgetScope
+      const amountType = (budget.amount_type ?? 'fixed') as BudgetAmountType
 
-      const spent = (transactions || [])
-        .filter((t) => {
-          if (t.category_id !== budget.category_id) return false
-          const transDate = new Date(t.date)
-          return transDate >= periodStart && transDate <= periodEnd
-        })
+      const inScope = (categoryId: string | null) => {
+        if (scope === 'total') return true
+        if (scope === 'group') {
+          return categoryId ? (groupMembers.get(budget.group_id)?.has(categoryId) ?? false) : false
+        }
+        return categoryId === budget.category_id
+      }
+
+      let spent = 0
+      let periodIncome = 0
+      let periodExpense = 0
+
+      for (const t of transactions ?? []) {
+        const transDate = new Date(t.date)
+        if (transDate < periodStart || transDate > periodEnd) continue
+
         // Converted into the budget's currency: a USD purchase used to be
         // summed 1:1 into a COP budget.
-        .reduce(
-          (sum, t) =>
-            sum + convert(toNumber(t.amount), t.currency as Currency, budget.currency as Currency),
-          0
-        )
+        const value = convert(toNumber(t.amount), t.currency as Currency, currency)
+
+        if (t.type === 'income') {
+          periodIncome += value
+          continue
+        }
+
+        periodExpense += value
+        if (inScope(t.category_id)) spent += value
+      }
+
+      const limit_amount =
+        amountType === 'fixed'
+          ? toNumber(budget.amount)
+          : (toNumber(budget.percent) / 100) *
+            (amountType === 'percent_income' ? periodIncome : periodExpense)
 
       return {
         ...budget,
-        amount: toNumber(budget.amount),
+        scope,
+        amount_type: amountType,
+        amount: budget.amount === null ? null : toNumber(budget.amount),
+        percent: budget.percent === null ? null : toNumber(budget.percent),
+        group: budget.group_id ? (groupById.get(budget.group_id) ?? null) : null,
         spent,
+        limit_amount,
+        periodIncome,
+        periodExpense,
         periodStart: getLocalDateString(periodStart),
         periodEnd: getLocalDateString(periodEnd),
       } as BudgetWithSpent
@@ -135,14 +178,16 @@ export async function createBudget(userId: string, data: CreateBudgetInput) {
 export async function updateBudget(
   id: string,
   userId: string,
-  data: Partial<CreateBudgetInput>
+  data: CreateBudgetInput
 ) {
   if (!userId) {
     console.error('updateBudget: userId is missing')
     return { success: false, error: 'Falta el identificador de usuario' }
   }
   try {
-    const validated = createBudgetSchema.partial().parse(data)
+    // Not `.partial()`: a schema with `superRefine` can't be partialised, and
+    // the form always submits the complete object on edit anyway.
+    const validated = createBudgetSchema.parse(data)
 
     const { data: budget, error } = await insforgeAdmin.database
       .from('budgets')

@@ -56,7 +56,7 @@ export function DashboardContent({
 
         <AccountsOverview accounts={initialAccounts} />
 
-        <MonthlyTrendChart transactions={initialTransactions} />
+        <MonthlyTrendChart transactions={initialTransactions} currency={initialPreferredCurrency} />
 
         <RecentTransactions transactions={initialTransactions} limit={10} />
 

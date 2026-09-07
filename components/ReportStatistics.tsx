@@ -1,113 +1,39 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { SimpleGrid, Box, Text, Spinner, Center } from '@chakra-ui/react'
-import { getTransactions } from '@/lib/actions/transactions.actions'
-import type { TransactionWithCategory } from '@/types/database.types'
-import type { ReportFiltersState } from '@/components/ReportFilters'
+import { SimpleGrid } from '@chakra-ui/react'
+import { StatCard } from '@/components/ui/StatCard'
 import { formatCurrency } from '@/lib/utils/currency'
-
-interface StatCardProps {
-  label: string
-  value: string
-  helpText?: string
-  color?: string
-}
-
-function StatCard({ label, value, helpText, color = '#3498DB' }: StatCardProps) {
-  return (
-    <Box p={6} bg="bg.subtle" borderRadius="lg" border="1px solid" borderColor="border">
-      <Text fontSize="sm" fontWeight="600" color="fg.muted" mb={2}>
-        {label}
-      </Text>
-      <Text fontSize="2xl" fontWeight="bold" color={color}>
-        {value}
-      </Text>
-      {helpText && <Text fontSize="xs" color="fg.muted" mt={2}>{helpText}</Text>}
-    </Box>
-  )
-}
+import { safeRatio } from '@/lib/utils/numbers'
+import type { ReportDataset } from '@/lib/actions/reports.actions'
 
 interface Props {
-  userId: string
-  filters?: ReportFiltersState
+  totals: ReportDataset['totals']
+  currency: ReportDataset['currency']
 }
 
-function getDominantCurrency(transactions: TransactionWithCategory[]): string {
-  const counts = transactions.reduce<Record<string, number>>((acc, t) => {
-    acc[t.currency] = (acc[t.currency] || 0) + 1
-    return acc
-  }, {})
-  return Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'COP'
-}
-
-export function ReportStatistics({ userId, filters }: Props) {
-  const [stats, setStats] = useState({ totalIncome: 0, totalExpense: 0, netBalance: 0 })
-  const [currency, setCurrency] = useState('COP')
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    async function fetchData() {
-      const result = await getTransactions(userId, 500)
-
-      if (result.success && result.data) {
-        let transactions = result.data as TransactionWithCategory[]
-
-        if (filters?.startDate) {
-          transactions = transactions.filter((t) => t.date >= filters.startDate)
-        }
-        if (filters?.endDate) {
-          transactions = transactions.filter((t) => t.date <= filters.endDate)
-        }
-        if (filters?.transactionType && filters.transactionType !== 'all') {
-          transactions = transactions.filter((t) => t.type === filters.transactionType)
-        }
-        if (filters?.categoryIds && filters.categoryIds.length > 0) {
-          transactions = transactions.filter((t) => filters.categoryIds.includes(t.category_id || ''))
-        }
-
-        const dominant = getDominantCurrency(transactions)
-        setCurrency(dominant)
-
-        const filtered = transactions.filter((t) => t.currency === dominant)
-
-        let totalIncome = 0
-        let totalExpense = 0
-        filtered.forEach((t) => {
-          if (t.type === 'income') totalIncome += Number(t.amount)
-          else totalExpense += Number(t.amount)
-        })
-
-        setStats({ totalIncome, totalExpense, netBalance: totalIncome - totalExpense })
-      }
-      setLoading(false)
-    }
-    fetchData()
-  }, [userId, filters])
-
-  if (loading) {
-    return <Center py={10}><Spinner /></Center>
-  }
+export function ReportStatistics({ totals, currency }: Props) {
+  const savingsRate = safeRatio(totals.net, totals.income) * 100
 
   return (
-    <SimpleGrid columns={{ base: 1, md: 3 }} gap={6} mb={8}>
+    <SimpleGrid columns={{ base: 1, md: 3 }} gap={4} mb={6}>
       <StatCard
         label="Ingresos Totales"
-        value={formatCurrency(stats.totalIncome, currency)}
-        helpText={`En ${currency}`}
-        color="#2ECC71"
+        value={formatCurrency(totals.income, currency)}
+        helpText={`${totals.incomeCount} transacciones`}
       />
       <StatCard
         label="Gastos Totales"
-        value={formatCurrency(stats.totalExpense, currency)}
-        helpText={`En ${currency}`}
-        color="#E74C3C"
+        value={formatCurrency(totals.expense, currency)}
+        helpText={`${totals.expenseCount} transacciones`}
       />
       <StatCard
         label="Balance Neto"
-        value={formatCurrency(Math.abs(stats.netBalance), currency)}
-        helpText={`En ${currency}`}
-        color={stats.netBalance >= 0 ? '#2ECC71' : '#E74C3C'}
+        value={formatCurrency(totals.net, currency)}
+        helpText={
+          totals.income > 0
+            ? `Tasa de ahorro ${savingsRate.toFixed(0)}%`
+            : 'Sin ingresos en el periodo'
+        }
       />
     </SimpleGrid>
   )

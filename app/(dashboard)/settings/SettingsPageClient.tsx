@@ -15,6 +15,7 @@ import type {
   Account,
   AccountMovementWithAccounts,
   Category,
+  CategoryGroupWithMembers,
 } from '@/types/database.types'
 
 type Tab = 'general' | 'accounts' | 'categorias'
@@ -27,6 +28,7 @@ interface Props {
   initialMovements: AccountMovementWithAccounts[]
   activeTab: Tab
   initialCategories: Category[]
+  initialGroups?: CategoryGroupWithMembers[]
   gmailStatus: {
     connected: boolean
     connectedAt: string | null
@@ -42,6 +44,7 @@ export function SettingsPageClient({
   initialMovements,
   activeTab,
   initialCategories,
+  initialGroups = [],
   gmailStatus,
 }: Props) {
   const router = useRouter()
@@ -159,6 +162,7 @@ export function SettingsPageClient({
         <Tabs.Content value="categorias">
           {initialCategories.length >= 0 && (
             <CategoriesPageClient
+              initialGroups={initialGroups}
               userId={userId}
               initialCategories={initialCategories}
             />

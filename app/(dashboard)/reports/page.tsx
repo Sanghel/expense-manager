@@ -13,7 +13,7 @@ export default async function ReportsPage() {
 
   const { data: user } = await insforgeAdmin.database
     .from('users')
-    .select('id, preferred_currency')
+    .select('id')
     .eq('email', session.user.email)
     .single()
 
@@ -21,5 +21,7 @@ export default async function ReportsPage() {
     redirect('/login')
   }
 
-  return <ReportsContent userId={user.id} preferredCurrency={user.preferred_currency ?? 'COP'} />
+  // The preferred currency now comes from getReportDataset, alongside the data
+  // it converts, so it can never disagree with the figures on screen.
+  return <ReportsContent userId={user.id} />
 }

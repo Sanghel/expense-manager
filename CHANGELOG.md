@@ -1,5 +1,158 @@
 # Changelog
 
+## [3.10.0] — 2026-09-06
+
+### Added
+
+**Consejos de Ahorro por grupo e higiene de categorías**
+
+- La IA ahora ve los **grupos de categorías** con su gasto agregado y razona en "tipos de gasto", no solo por categoría fija.
+- El resumen incluye **mediana de ticket y número de transacciones** por categoría. Sin eso, el modelo identificaba los gastos hormiga por el nombre — el error clásico es tomar "Ropa" (mediana ~314.000) por gasto hormiga cuando el hormiga real es "Transporte" (mediana ~13.000 con 108 transacciones).
+- Nueva sección **Grupos sugeridos**, con botón "Crear grupo".
+- Nueva sección **Orden de tus categorías**: duplicados, solapamientos y gasto sin categorizar. Los hechos exactos (nombres duplicados, % sin categorizar) se calculan en código; el modelo solo aporta el juicio semántico.
+
+**Campanilla de recordatorios**
+
+- Nueva **campanilla** en el header, visible en toda la app, con un badge que cuenta lo **vencido + de hoy**. El panel agrupa en **Vencidos / Hoy / Próximos** (ventana de ±7 días) y permite **Registrar** (reutiliza el diálogo de pago), **Posponer** una semana, **Descartar** y **activar/desactivar** el recordatorio desde ahí.
+- Los recordatorios son reglas recurrentes, no instancias: `lib/reminders/pending.ts` las expande y descarta las ya atendidas cruzando contra las transacciones del día, igual que la tab de Recordatorios.
+- Al registrar un recordatorio **vencido**, la transacción se crea con la **fecha de la ocurrencia**, no la de hoy.
+
+**Presupuestos por grupo y por porcentaje**
+
+- Nuevos **grupos de categorías** (ej. "gastos hormiga" = Ropa + Meriendas + Salidas), gestionables en Configuración → Categorías. Una categoría puede pertenecer a varios grupos.
+- Un presupuesto ahora tiene **ámbito** (categoría / grupo / general) y **tipo de límite** (monto fijo / % de ingresos / % del gasto). Los porcentajes se resuelven a un límite **recalculado cada periodo**.
+
+**Metas de ahorro: historial y ritmo**
+
+- **Historial de aportes** colapsable en cada meta, con posibilidad de **eliminar un aporte** (revierte la meta y reintegra el saldo a la cuenta de origen).
+- **Ritmo de ahorro**: con fecha límite, la tarjeta muestra `Faltan X · N meses → Y/mes` y un badge **Al día / Atrasada / Vencida**.
+- Franja resumen con el total ahorrado convertido a la moneda preferida.
+- Botón para **marcar como completada o reabrir** una meta.
+
+**Balances de cuentas en Transacciones**
+
+- Balance total convertido y grilla por cuenta en `/movimientos?tab=transacciones`.
+- Columna **Cuenta** en la tabla, línea en la tarjeta móvil y **filtro por cuenta**.
+
+**Reportes ampliados**
+
+- Nuevas gráficas: **waffle** de reparto del gasto (por grupo si existen), **polar bar** de consumo de presupuesto, **radar** del perfil de gasto contra el periodo anterior, **calendario** de intensidad diaria, **tasa de ahorro** mensual, **gasto fijo vs. variable**, **gastos hormiga**, y desgloses por **cuenta**, **origen** y **día de la semana**.
+
+### Changed
+
+- **Librería de gráficas: de Recharts a Nivo.** Se evaluó Mono Charts (`amicro.vercel.app/mono-charts`): es un registry copy-paste con 4 bloques de estética "dither" y **sin polar bar, radar ni waffle**, así que no cubría lo pedido.
+- Nueva paleta categórica de orden fijo en `components/charts/nivo-theme.ts`, **validada** contra la superficie oscura de la app (banda de luminosidad, croma, separación CVD, visión normal y contraste 3:1).
+- **Reportes: una sola petición.** `getReportDataset` reemplaza las cuatro llamadas independientes de 500 filas que hacía cada gráfica por su cuenta, y convierte todo a la moneda preferida en servidor.
+
+### Fixed
+
+- **Consejos de Ahorro: la generación fallaba de forma intermitente.** El prompt pide hasta 5 insights + 5 sugerencias + 3 metas con prosa en español y UUIDs, pero `max_tokens` era **1500**: con pocas categorías cabía y con muchas la respuesta se cortaba a mitad del JSON. Además nada miraba `stop_reason`, así que una truncación se reportaba como "JSON inválido" — la causa equivocada. Ahora el esquema Zod se pasa como `output_config.format` (`messages.parse` + `zodOutputFormat`), de modo que el modelo no puede devolver algo malformado, y una truncación se detecta y se reintenta.
+- **Consejos de Ahorro: una generación fallida borraba la anterior.** El `delete` iba antes del `insert`; ahora se actualiza la fila existente.
+- **Consejos de Ahorro: vuelve el botón "Regenerar"** (con confirmación). El cron solo corre el día 1, así que una ejecución fallida dejaba la página vacía todo el mes sin forma de reintentar.
+- **Metas de ahorro (el módulo estaba roto).** `current_amount + amount` concatenaba strings porque los `numeric` llegan como texto desde InsForge: la meta se guardaba con saldo casi nulo mientras la cuenta se debitaba el monto completo. Además la meta sumaba el monto **sin convertir** mientras el saldo de la cuenta sí se convertía, y los errores del aporte y del ajuste de saldo se descartaban devolviendo `success: true`.
+- El aporte ahora se resuelve en un orden compensable: si falta la tasa de cambio se aborta **antes** de escribir nada, y cada paso que falla revierte los anteriores.
+- Se elimina el `Math.min` que truncaba el aporte a la meta mientras la contribución y el débito registraban el monto completo.
+- `is_completed` pasa a ser derivado: subir el objetivo **reabre** la meta, que antes quedaba bloqueada para siempre.
+- La **fecha límite** de una meta ya se puede borrar.
+- **Presupuestos**: el periodo se calculaba con aritmética de fechas que desborda (uno que arrancaba el 31-ene producía un periodo empezando el 3 de marzo); el gasto se sumaba **sin convertir moneda** y sin coerción numérica; y la consulta traía todas las transacciones del usuario sin acotar.
+- Barras de progreso con `NaN%` / `Infinity` cuando el monto era 0.
+- El widget de presupuestos del dashboard enlazaba a `/dashboard/budgets`, una ruta inexistente.
+- Los mensajes de error de metas y presupuestos ya no son cadenas fijas en inglés: se propaga el error real.
+
+### Removed
+
+- **Recharts**.
+- **Módulo de tags** completo (ruta, componentes, acciones, validaciones y tipos). Era inalcanzable: los formularios de transacción nunca persistían tags, nada llamaba a sus acciones y la ruta ni siquiera aparecía en la navegación. Las tablas `tags` y `transaction_tags` quedan huérfanas en la base de datos.
+- `markGoalAsCompleted`, que no tenía ninguna llamada. Lo reemplaza `setGoalCompleted`, ya conectado a la UI.
+
+### Database
+
+Migraciones manuales aplicadas en InsForge:
+
+```sql
+-- Aportes de metas: monto realmente acreditado, en la moneda de la meta, al
+-- momento del aporte. Necesario para revertir con exactitud (las tasas cambian).
+ALTER TABLE savings_contributions
+  ADD COLUMN IF NOT EXISTS converted_amount numeric,
+  ADD COLUMN IF NOT EXISTS notes text;
+
+UPDATE savings_contributions SET converted_amount = amount WHERE converted_amount IS NULL;
+
+CREATE INDEX IF NOT EXISTS savings_contributions_goal_idx
+  ON savings_contributions (goal_id, created_at DESC);
+
+-- Grupos de categorías
+CREATE TABLE IF NOT EXISTS category_groups (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  name        text NOT NULL,
+  icon        text,
+  color       text,
+  created_at  timestamptz NOT NULL DEFAULT now()
+);
+CREATE UNIQUE INDEX IF NOT EXISTS category_groups_user_name_key
+  ON category_groups (user_id, upper(name));
+
+CREATE TABLE IF NOT EXISTS category_group_members (
+  group_id    uuid NOT NULL REFERENCES category_groups(id) ON DELETE CASCADE,
+  category_id uuid NOT NULL REFERENCES categories(id)      ON DELETE CASCADE,
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (group_id, category_id)
+);
+CREATE INDEX IF NOT EXISTS category_group_members_category_idx
+  ON category_group_members (category_id);
+
+-- Presupuestos: ámbito y tipo de límite. Aditivo: toda fila existente queda en
+-- scope='category' / amount_type='fixed'.
+ALTER TABLE budgets
+  ADD COLUMN IF NOT EXISTS scope       text NOT NULL DEFAULT 'category',
+  ADD COLUMN IF NOT EXISTS group_id    uuid REFERENCES category_groups(id) ON DELETE CASCADE,
+  ADD COLUMN IF NOT EXISTS amount_type text NOT NULL DEFAULT 'fixed',
+  ADD COLUMN IF NOT EXISTS percent     numeric(5,2);
+
+ALTER TABLE budgets ALTER COLUMN category_id DROP NOT NULL;
+ALTER TABLE budgets ALTER COLUMN amount      DROP NOT NULL;
+
+ALTER TABLE budgets ADD CONSTRAINT budgets_scope_chk
+  CHECK (scope IN ('category','group','total'));
+ALTER TABLE budgets ADD CONSTRAINT budgets_amount_type_chk
+  CHECK (amount_type IN ('fixed','percent_income','percent_expense'));
+
+ALTER TABLE budgets ADD CONSTRAINT budgets_scope_target_chk CHECK (
+  (scope = 'category' AND category_id IS NOT NULL AND group_id IS NULL) OR
+  (scope = 'group'    AND group_id   IS NOT NULL AND category_id IS NULL) OR
+  (scope = 'total'    AND category_id IS NULL    AND group_id IS NULL)
+);
+ALTER TABLE budgets ADD CONSTRAINT budgets_limit_chk CHECK (
+  (amount_type =  'fixed' AND amount IS NOT NULL AND amount > 0 AND percent IS NULL) OR
+  (amount_type <> 'fixed' AND percent IS NOT NULL AND percent > 0 AND percent <= 100)
+);
+ALTER TABLE budgets ADD CONSTRAINT budgets_no_trivial_pct_chk CHECK (
+  NOT (scope = 'total' AND amount_type = 'percent_expense')
+);
+
+CREATE INDEX IF NOT EXISTS budgets_user_scope_idx ON budgets (user_id, scope);
+
+-- Consejos de Ahorro: sugerencias de grupo y de higiene de categorías.
+ALTER TABLE ai_savings_advice
+  ADD COLUMN IF NOT EXISTS group_suggestions    jsonb NOT NULL DEFAULT '[]',
+  ADD COLUMN IF NOT EXISTS category_suggestions jsonb NOT NULL DEFAULT '[]';
+
+-- Descartar/posponer una ocurrencia de recordatorio. El UNIQUE no es opcional:
+-- ambas acciones usan upsert con onConflict.
+CREATE TABLE IF NOT EXISTS reminder_dismissals (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id         uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  reminder_id     uuid NOT NULL REFERENCES reminders(id) ON DELETE CASCADE,
+  occurrence_date date NOT NULL,
+  snoozed_until   date,
+  created_at      timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (reminder_id, occurrence_date)
+);
+```
+
+Opcional, tras eliminar el módulo de tags: `DROP TABLE transaction_tags; DROP TABLE tags;`
+
 ## [3.9.0] — 2026-06-20
 
 ### Added

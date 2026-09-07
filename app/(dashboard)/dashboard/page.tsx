@@ -8,7 +8,7 @@ import { getBudgets } from '@/lib/actions/budgets.actions'
 import { getUserProfile } from '@/lib/actions/users.actions'
 import { getAllRatePairs } from '@/lib/actions/exchangeRates.actions'
 import { getAccounts } from '@/lib/actions/accounts.actions'
-import type { TransactionWithCategory, Currency, Account } from '@/types/database.types'
+import type { TransactionWithCategory, Currency, Account, BudgetWithSpent, ExchangeRate } from '@/types/database.types'
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions)
@@ -45,9 +45,9 @@ export default async function DashboardPage() {
     <DashboardContent
       userId={user.id}
       initialTransactions={transactions as TransactionWithCategory[]}
-      initialBudgets={budgets as any[]}
+      initialBudgets={budgets as BudgetWithSpent[]}
       initialPreferredCurrency={preferredCurrency as Currency}
-      initialExchangeRates={exchangeRates as any[]}
+      initialExchangeRates={exchangeRates as ExchangeRate[]}
       initialAccounts={accounts}
     />
   )

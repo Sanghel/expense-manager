@@ -6,8 +6,17 @@ import { Header } from './Header'
 import { Sidebar } from './Sidebar'
 import { BottomNav } from './BottomNav'
 import { MobileNav } from './MobileNav'
+import type { ReminderOccurrence } from '@/lib/reminders/pending'
+import type { Account } from '@/types/database.types'
 
-export function DashboardShell({ children }: { children: React.ReactNode }) {
+interface Props {
+  children: React.ReactNode
+  userId: string | null
+  accounts: Account[]
+  notifications: ReminderOccurrence[]
+}
+
+export function DashboardShell({ children, userId, accounts, notifications }: Props) {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false)
   const [isCollapsed, setIsCollapsed] = useState(false)
 
@@ -28,7 +37,12 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     <Flex direction="row" h="100dvh" bg="#0f0f13">
       <Sidebar isCollapsed={isCollapsed} toggle={toggleSidebar} />
       <Flex direction="column" flex="1" minW={0} overflow="hidden" bg="#0f0f13">
-        <Header isCollapsed={isCollapsed} />
+        <Header
+          isCollapsed={isCollapsed}
+          userId={userId}
+          accounts={accounts}
+          notifications={notifications}
+        />
         <Box
           as="main"
           flex="1"

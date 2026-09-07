@@ -61,6 +61,25 @@ export async function getTransactionsByDate(userId: string, date: string) {
   }
 }
 
+/** Transactions in an inclusive date range, for reminder occurrence matching. */
+export async function getTransactionsBetween(userId: string, from: string, to: string) {
+  if (!userId) return { success: false, error: 'User ID is required' }
+  try {
+    const { data, error } = await insforgeAdmin.database
+      .from('transactions')
+      .select('id, description, category_id, date')
+      .eq('user_id', userId)
+      .gte('date', from)
+      .lte('date', to)
+
+    if (error) throw error
+    return { success: true, data: data ?? [] }
+  } catch (error) {
+    console.error('Get transactions between error:', error)
+    return { success: false, error: 'Failed to fetch transactions' }
+  }
+}
+
 export async function getTransactions(userId: string, limit = 50) {
   if (!userId) {
     console.error('getTransactions: userId is missing')

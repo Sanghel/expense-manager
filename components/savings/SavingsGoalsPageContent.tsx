@@ -6,15 +6,24 @@ import { useRouter } from 'next/navigation'
 import { FiPlus, FiTarget } from 'react-icons/fi'
 import { SavingsGoalForm } from '@/components/savings/SavingsGoalForm'
 import { SavingsGoalsGrid } from '@/components/savings/SavingsGoalsGrid'
-import type { Account, SavingsGoal } from '@/types/database.types'
+import { SavingsSummaryStrip } from '@/components/savings/SavingsSummaryStrip'
+import type { Account, Currency, ExchangeRate, SavingsGoal } from '@/types/database.types'
 
 interface Props {
   userId: string
   initialGoals: SavingsGoal[]
   accounts?: Account[]
+  preferredCurrency: Currency
+  exchangeRates: ExchangeRate[]
 }
 
-export function SavingsGoalsPageContent({ userId, initialGoals, accounts = [] }: Props) {
+export function SavingsGoalsPageContent({
+  userId,
+  initialGoals,
+  accounts = [],
+  preferredCurrency,
+  exchangeRates,
+}: Props) {
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingGoal, setEditingGoal] = useState<SavingsGoal | null>(null)
   const router = useRouter()
@@ -47,6 +56,12 @@ export function SavingsGoalsPageContent({ userId, initialGoals, accounts = [] }:
           router.refresh()
           handleClose()
         }}
+      />
+
+      <SavingsSummaryStrip
+        goals={initialGoals}
+        preferredCurrency={preferredCurrency}
+        exchangeRates={exchangeRates}
       />
 
       <SavingsGoalsGrid userId={userId} goals={initialGoals} accounts={accounts} onEdit={setEditingGoal} />

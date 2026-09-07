@@ -9,7 +9,7 @@ import { RecentTransactions } from './RecentTransactions'
 import { AccountsOverview } from './AccountsOverview'
 import { BudgetWidget } from '@/components/budgets/BudgetWidget'
 import { MonthSelector } from './MonthSelector'
-import type { TransactionWithCategory, Currency, Account } from '@/types/database.types'
+import type { TransactionWithCategory, Currency, Account, BudgetWithSpent, ExchangeRate } from '@/types/database.types'
 
 const MonthlyTrendChart = dynamic(
   () => import('./MonthlyTrendChart').then((m) => m.MonthlyTrendChart),
@@ -19,9 +19,9 @@ const MonthlyTrendChart = dynamic(
 interface Props {
   userId: string
   initialTransactions: TransactionWithCategory[]
-  initialBudgets: any[]
+  initialBudgets: BudgetWithSpent[]
   initialPreferredCurrency: Currency
-  initialExchangeRates: any[]
+  initialExchangeRates: ExchangeRate[]
   initialAccounts?: Account[]
 }
 
@@ -56,7 +56,7 @@ export function DashboardContent({
 
         <AccountsOverview accounts={initialAccounts} />
 
-        <MonthlyTrendChart transactions={initialTransactions} />
+        <MonthlyTrendChart transactions={initialTransactions} currency={initialPreferredCurrency} />
 
         <RecentTransactions transactions={initialTransactions} limit={10} />
 

@@ -283,6 +283,24 @@ export interface SavingsGoalSuggestion {
   rationale: string
 }
 
+/** A category group the model proposes creating. */
+export interface SavingsGroupSuggestion {
+  name: string
+  category_ids: string[]
+  category_names: string[]
+  rationale: string
+}
+
+export type CategorySuggestionKind = 'merge' | 'rename' | 'categorize' | 'review'
+
+/** How to tidy the categories themselves. */
+export interface SavingsCategorySuggestion {
+  kind: CategorySuggestionKind
+  title: string
+  detail: string
+  category_ids: string[]
+}
+
 export interface AiSavingsAdvice {
   id: string
   user_id: string
@@ -291,6 +309,8 @@ export interface AiSavingsAdvice {
   insights: SavingsInsight[]
   budget_suggestions: SavingsBudgetSuggestion[]
   goal_suggestions: SavingsGoalSuggestion[]
+  group_suggestions: SavingsGroupSuggestion[]
+  category_suggestions: SavingsCategorySuggestion[]
   generated_at: string
 }
 

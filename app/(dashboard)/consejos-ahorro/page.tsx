@@ -6,9 +6,10 @@ import { getSavingsAdvice, buildSpendingSummary } from '@/lib/actions/savingsAdv
 import { getBudgets } from '@/lib/actions/budgets.actions'
 import { getCategories } from '@/lib/actions/categories.actions'
 import { getSavingsGoals } from '@/lib/actions/savings.actions'
+import { getCategoryGroups } from '@/lib/actions/categoryGroups.actions'
 import { ConsejosAhorroPageClient } from './ConsejosAhorroPageClient'
 import type { ExistingBudget } from '@/components/savings/BudgetSuggestionsList'
-import type { Category, SavingsGoal } from '@/types/database.types'
+import type { Category, CategoryGroupWithMembers, SavingsGoal } from '@/types/database.types'
 
 export default async function ConsejosAhorroPage() {
   const session = await getServerSession(authOptions)
@@ -28,12 +29,13 @@ export default async function ConsejosAhorroPage() {
 
   const period = new Date().toISOString().slice(0, 7)
 
-  const [adviceRes, summary, budgetsRes, categoriesRes, goalsRes] = await Promise.all([
+  const [adviceRes, summary, budgetsRes, categoriesRes, goalsRes, groupsRes] = await Promise.all([
     getSavingsAdvice(user.id, period),
     buildSpendingSummary(user.id, period),
     getBudgets(user.id),
     getCategories(user.id),
     getSavingsGoals(user.id),
+    getCategoryGroups(user.id),
   ])
 
   const advice = adviceRes.success ? (adviceRes.data ?? null) : null
@@ -47,6 +49,7 @@ export default async function ConsejosAhorroPage() {
   }))
   const categories = (categoriesRes.success ? categoriesRes.data ?? [] : []) as Category[]
   const goals = (goalsRes.success ? goalsRes.data ?? [] : []) as SavingsGoal[]
+  const groups = (groupsRes.success ? groupsRes.data ?? [] : []) as CategoryGroupWithMembers[]
 
   return (
     <ConsejosAhorroPageClient
@@ -57,6 +60,7 @@ export default async function ConsejosAhorroPage() {
       budgets={budgets}
       categories={categories}
       goals={goals}
+      groups={groups}
     />
   )
 }

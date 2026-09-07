@@ -4,6 +4,13 @@
 
 ### Added
 
+**Consejos de Ahorro por grupo e higiene de categorías**
+
+- La IA ahora ve los **grupos de categorías** con su gasto agregado y razona en "tipos de gasto", no solo por categoría fija.
+- El resumen incluye **mediana de ticket y número de transacciones** por categoría. Sin eso, el modelo identificaba los gastos hormiga por el nombre — el error clásico es tomar "Ropa" (mediana ~314.000) por gasto hormiga cuando el hormiga real es "Transporte" (mediana ~13.000 con 108 transacciones).
+- Nueva sección **Grupos sugeridos**, con botón "Crear grupo".
+- Nueva sección **Orden de tus categorías**: duplicados, solapamientos y gasto sin categorizar. Los hechos exactos (nombres duplicados, % sin categorizar) se calculan en código; el modelo solo aporta el juicio semántico.
+
 **Campanilla de recordatorios**
 
 - Nueva **campanilla** en el header, visible en toda la app, con un badge que cuenta lo **vencido + de hoy**. El panel agrupa en **Vencidos / Hoy / Próximos** (ventana de ±7 días) y permite **Registrar** (reutiliza el diálogo de pago), **Posponer** una semana, **Descartar** y **activar/desactivar** el recordatorio desde ahí.
@@ -39,6 +46,9 @@
 
 ### Fixed
 
+- **Consejos de Ahorro: la generación fallaba de forma intermitente.** El prompt pide hasta 5 insights + 5 sugerencias + 3 metas con prosa en español y UUIDs, pero `max_tokens` era **1500**: con pocas categorías cabía y con muchas la respuesta se cortaba a mitad del JSON. Además nada miraba `stop_reason`, así que una truncación se reportaba como "JSON inválido" — la causa equivocada. Ahora el esquema Zod se pasa como `output_config.format` (`messages.parse` + `zodOutputFormat`), de modo que el modelo no puede devolver algo malformado, y una truncación se detecta y se reintenta.
+- **Consejos de Ahorro: una generación fallida borraba la anterior.** El `delete` iba antes del `insert`; ahora se actualiza la fila existente.
+- **Consejos de Ahorro: vuelve el botón "Regenerar"** (con confirmación). El cron solo corre el día 1, así que una ejecución fallida dejaba la página vacía todo el mes sin forma de reintentar.
 - **Metas de ahorro (el módulo estaba roto).** `current_amount + amount` concatenaba strings porque los `numeric` llegan como texto desde InsForge: la meta se guardaba con saldo casi nulo mientras la cuenta se debitaba el monto completo. Además la meta sumaba el monto **sin convertir** mientras el saldo de la cuenta sí se convertía, y los errores del aporte y del ajuste de saldo se descartaban devolviendo `success: true`.
 - El aporte ahora se resuelve en un orden compensable: si falta la tasa de cambio se aborta **antes** de escribir nada, y cada paso que falla revierte los anteriores.
 - Se elimina el `Math.min` que truncaba el aporte a la meta mientras la contribución y el débito registraban el monto completo.
@@ -122,6 +132,11 @@ ALTER TABLE budgets ADD CONSTRAINT budgets_no_trivial_pct_chk CHECK (
 );
 
 CREATE INDEX IF NOT EXISTS budgets_user_scope_idx ON budgets (user_id, scope);
+
+-- Consejos de Ahorro: sugerencias de grupo y de higiene de categorías.
+ALTER TABLE ai_savings_advice
+  ADD COLUMN IF NOT EXISTS group_suggestions    jsonb NOT NULL DEFAULT '[]',
+  ADD COLUMN IF NOT EXISTS category_suggestions jsonb NOT NULL DEFAULT '[]';
 
 -- Descartar/posponer una ocurrencia de recordatorio. El UNIQUE no es opcional:
 -- ambas acciones usan upsert con onConflict.

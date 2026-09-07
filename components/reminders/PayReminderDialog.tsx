@@ -18,6 +18,9 @@ interface Props {
   accounts: Account[]
   reminder: ReminderWithCategory
   onSuccess: () => void
+  /** Occurrence being settled. Defaults to today; an overdue one is recorded
+   *  on its own date rather than today's. */
+  date?: string
 }
 
 function pickInitialAccount(reminder: ReminderWithCategory, accounts: Account[]): Account | null {
@@ -30,7 +33,7 @@ function pickInitialAccount(reminder: ReminderWithCategory, accounts: Account[])
   return accounts[0] ?? null
 }
 
-export function PayReminderDialog({ isOpen, onClose, userId, accounts, reminder, onSuccess }: Props) {
+export function PayReminderDialog({ isOpen, onClose, userId, accounts, reminder, onSuccess, date }: Props) {
   const initialAccount = useMemo(() => pickInitialAccount(reminder, accounts), [reminder, accounts])
   const [accountId, setAccountId] = useState<string>(initialAccount?.id ?? '')
   const [amount, setAmount] = useState<number | undefined>(undefined)
@@ -39,8 +42,8 @@ export function PayReminderDialog({ isOpen, onClose, userId, accounts, reminder,
   const selectedAccount = accounts.find((a) => a.id === accountId) ?? null
   const currency = selectedAccount?.currency ?? 'COP'
   const isIncome = reminder.type === 'income'
-  const today = getLocalDateString()
-  const todayLabel = new Date(today + 'T12:00:00').toLocaleDateString('es-CO', {
+  const occurrenceDate = date ?? getLocalDateString()
+  const todayLabel = new Date(occurrenceDate + 'T12:00:00').toLocaleDateString('es-CO', {
     day: 'numeric', month: 'long', year: 'numeric',
   })
 
@@ -62,7 +65,7 @@ export function PayReminderDialog({ isOpen, onClose, userId, accounts, reminder,
       category_id: reminder.category_id,
       account_id: accountId || null,
       description: reminder.description,
-      date: today,
+      date: occurrenceDate,
     })
     setLoading(false)
     if (result.success) {

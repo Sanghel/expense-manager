@@ -21,12 +21,18 @@ import { useRouter } from 'next/navigation'
 import { FiLogOut, FiSettings } from 'react-icons/fi'
 import logo from '@/public/brand/gh_push_money_logo.png'
 import { CraftedByFooter } from './CraftedByFooter'
+import { NotificationsBell } from '@/components/notifications/NotificationsBell'
+import type { ReminderOccurrence } from '@/lib/reminders/pending'
+import type { Account } from '@/types/database.types'
 
 interface Props {
   isCollapsed: boolean
+  userId: string | null
+  accounts: Account[]
+  notifications: ReminderOccurrence[]
 }
 
-export function Header({ isCollapsed }: Props) {
+export function Header({ isCollapsed, userId, accounts, notifications }: Props) {
   const { data: session } = useSession()
   const router = useRouter()
 
@@ -65,39 +71,45 @@ export function Header({ isCollapsed }: Props) {
           )}
         </Box>
 
-        {session?.user && (
-          <MenuRoot>
-            <MenuTrigger asChild>
-              <Button variant="ghost" rounded="full" p={0} minW="auto" h="auto">
-                <AvatarRoot size="sm">
-                  <AvatarImage src={session.user.image ?? ''} />
-                  <AvatarFallback>
-                    {session.user.name?.charAt(0) ?? '?'}
-                  </AvatarFallback>
-                </AvatarRoot>
-              </Button>
-            </MenuTrigger>
-            <MenuPositioner>
-              <MenuContent minW="44">
-                <MenuItem
-                  value="settings"
-                  onClick={() => router.push('/settings')}
-                >
-                  <FiSettings />
-                  Configuración
-                </MenuItem>
-                <MenuItem
-                  value="logout"
-                  color="red.600"
-                  onClick={() => signOut()}
-                >
-                  <FiLogOut />
-                  Cerrar Sesión
-                </MenuItem>
-              </MenuContent>
-            </MenuPositioner>
-          </MenuRoot>
-        )}
+        <HStack gap={1} flexShrink={0}>
+          {userId && (
+            <NotificationsBell userId={userId} accounts={accounts} occurrences={notifications} />
+          )}
+
+          {session?.user && (
+            <MenuRoot>
+              <MenuTrigger asChild>
+                <Button variant="ghost" rounded="full" p={0} minW="auto" h="auto">
+                  <AvatarRoot size="sm">
+                    <AvatarImage src={session.user.image ?? ''} />
+                    <AvatarFallback>
+                      {session.user.name?.charAt(0) ?? '?'}
+                    </AvatarFallback>
+                  </AvatarRoot>
+                </Button>
+              </MenuTrigger>
+              <MenuPositioner>
+                <MenuContent minW="44">
+                  <MenuItem
+                    value="settings"
+                    onClick={() => router.push('/settings')}
+                  >
+                    <FiSettings />
+                    Configuración
+                  </MenuItem>
+                  <MenuItem
+                    value="logout"
+                    color="red.600"
+                    onClick={() => signOut()}
+                  >
+                    <FiLogOut />
+                    Cerrar Sesión
+                  </MenuItem>
+                </MenuContent>
+              </MenuPositioner>
+            </MenuRoot>
+          )}
+        </HStack>
       </Flex>
     </Box>
   )

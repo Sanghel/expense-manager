@@ -2,6 +2,7 @@
 
 import {
   Box,
+  Button,
   Heading,
   Text,
   HStack,
@@ -15,7 +16,7 @@ import {
 } from '@chakra-ui/react'
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiZap, FiInbox } from 'react-icons/fi'
+import { FiZap, FiInbox, FiRefreshCw } from 'react-icons/fi'
 import { Card } from '@/components/ui/Card'
 import { StatCard } from '@/components/ui/StatCard'
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
@@ -52,6 +53,7 @@ export function ConsejosAhorroPageClient({ userId, period, advice, summary, budg
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [generating, setGenerating] = useState(false)
+  const [confirmingRegenerate, setConfirmingRegenerate] = useState(false)
   const { currency } = summary
 
   const handleGenerate = async () => {
@@ -73,6 +75,7 @@ export function ConsejosAhorroPageClient({ userId, period, advice, summary, budg
       return
     }
     toaster.create({ title: 'Consejos actualizados', type: 'success', duration: 3000 })
+    setConfirmingRegenerate(false)
     startTransition(() => router.refresh())
   }
 
@@ -96,6 +99,50 @@ export function ConsejosAhorroPageClient({ userId, period, advice, summary, budg
             )}
           </Text>
         </Box>
+
+        {hasAdvice && (
+          // The cron only runs on the 1st of the month. Without this, a failed
+          // run left the page empty until the next month with no way to retry.
+          <HStack gap={2}>
+            {confirmingRegenerate ? (
+              <>
+                <Text fontSize="sm" color="#B0B0B0">
+                  ¿Regenerar? Reemplaza el análisis actual.
+                </Text>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  color="#B0B0B0"
+                  onClick={() => setConfirmingRegenerate(false)}
+                  disabled={loading}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  size="sm"
+                  bg="#4F46E5"
+                  color="white"
+                  _hover={{ bg: '#4338CA' }}
+                  onClick={handleGenerate}
+                  loading={loading}
+                >
+                  Sí, regenerar
+                </Button>
+              </>
+            ) : (
+              <Button
+                size="sm"
+                variant="outline"
+                color="#B0B0B0"
+                onClick={() => setConfirmingRegenerate(true)}
+                loading={loading}
+              >
+                <FiRefreshCw />
+                Regenerar
+              </Button>
+            )}
+          </HStack>
+        )}
       </HStack>
 
       {!summary.hasData ? (

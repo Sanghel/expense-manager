@@ -7,12 +7,8 @@ import { deleteBudget } from '@/lib/actions/budgets.actions'
 import { toaster } from '@/lib/toaster'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { BudgetProgress } from './BudgetProgress'
-import type { Budget } from '@/types/database.types'
-
-interface BudgetWithSpent extends Budget {
-  spent: number
-  category: { name: string; type: string; icon: string | null }
-}
+import { formatCurrency } from '@/lib/utils/currency'
+import type { BudgetWithSpent } from '@/types/database.types'
 
 interface Props {
   userId: string
@@ -69,14 +65,14 @@ export function BudgetList({ userId, initialBudgets, onEdit }: Props) {
               <HStack justify="space-between">
                 <div>
                   <Heading size="sm">
-                    {budget.category?.icon && <>{budget.category.icon} </>}{budget.category?.name || 'Unknown'}
+                    {budget.category?.icon && <>{budget.category.icon} </>}{budget.category?.name || 'Sin categoría'}
                   </Heading>
                   <Text fontSize="xs" color="#B0B0B0" mt={1}>
                     {budget.period === 'monthly' ? 'Mensual' : 'Anual'} • {budget.start_date}
                   </Text>
                 </div>
                 <Text fontSize="lg" fontWeight="bold">
-                  {budget.amount.toLocaleString('es-CO', { maximumFractionDigits: 2 })} {budget.currency}
+                  {formatCurrency(budget.amount, budget.currency)}
                 </Text>
               </HStack>
 

@@ -8,7 +8,7 @@ import { getBudgets } from '@/lib/actions/budgets.actions'
 import { getAccounts } from '@/lib/actions/accounts.actions'
 import { getAllRatePairs } from '@/lib/actions/exchangeRates.actions'
 import { PlanificacionPageClient } from './PlanificacionPageClient'
-import type { SavingsGoal, Category, Account, Currency, ExchangeRate } from '@/types/database.types'
+import type { SavingsGoal, Category, Account, Currency, ExchangeRate, BudgetWithSpent } from '@/types/database.types'
 
 type Tab = 'metas' | 'presupuestos'
 
@@ -37,7 +37,7 @@ export default async function PlanificacionPage({
   const tab = (params.tab as Tab) || 'metas'
 
   let initialGoals: SavingsGoal[] | null = null
-  let initialBudgets: unknown[] | null = null
+  let initialBudgets: BudgetWithSpent[] | null = null
   let categories: Category[] = []
   let accounts: Account[] = []
   let exchangeRates: ExchangeRate[] = []
@@ -57,7 +57,7 @@ export default async function PlanificacionPage({
       getBudgets(user.id),
     ])
     categories = categoriesResult.success ? (categoriesResult.data ?? []) : []
-    initialBudgets = budgetsResult.success ? (budgetsResult.data ?? []) : []
+    initialBudgets = budgetsResult.success ? ((budgetsResult.data ?? []) as BudgetWithSpent[]) : []
   }
 
   return (

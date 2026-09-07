@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { insforgeAdmin } from '@/lib/insforge-admin'
 import { getAllRatePairs } from '@/lib/actions/exchangeRates.actions'
 import { savingsAdvicePayloadSchema } from '@/lib/validations/savingsAdvice'
+import { buildConverter, type RateRow } from '@/lib/utils/currency-converter'
 import type {
   AiSavingsAdvice,
   Currency,
@@ -31,25 +32,6 @@ function shiftPeriod(period: string, months: number): string {
   const [y, m] = period.split('-').map(Number)
   const d = new Date(Date.UTC(y, m - 1 + months, 1))
   return d.toISOString().slice(0, 7)
-}
-
-type RateRow = { from_currency: Currency; to_currency: Currency; rate: number }
-
-/** Builds an in-memory converter from the latest stored rate pairs. */
-function buildConverter(rates: RateRow[]) {
-  const map = new Map<string, number>()
-  for (const r of rates) {
-    if (r && r.from_currency && r.to_currency) {
-      map.set(`${r.from_currency}_${r.to_currency}`, r.rate)
-    }
-  }
-  return (amount: number, from: Currency, to: Currency): number => {
-    if (from === to) return amount
-    const rate = map.get(`${from}_${to}`)
-    // No rate available → fall back to the raw amount (same behaviour as
-    // convertCurrency in exchangeRates.actions).
-    return rate ? amount * rate : amount
-  }
 }
 
 // ---------------------------------------------------------------------------

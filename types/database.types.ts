@@ -129,6 +129,14 @@ export interface SavingsGoal {
   created_at: string
 }
 
+/** A budget with its current cycle resolved and spending aggregated. */
+export interface BudgetWithSpent extends Budget {
+  category: Category | null
+  spent: number
+  periodStart: string
+  periodEnd: string
+}
+
 export interface SavingsContribution {
   id: string
   goal_id: string

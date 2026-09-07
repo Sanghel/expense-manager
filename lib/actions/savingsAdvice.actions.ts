@@ -1,6 +1,7 @@
 'use server'
 
 import Anthropic from '@anthropic-ai/sdk'
+import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
 import { revalidatePath } from 'next/cache'
 import { insforgeAdmin } from '@/lib/insforge-admin'
 import { getAllRatePairs } from '@/lib/actions/exchangeRates.actions'
@@ -16,7 +17,19 @@ import type {
 
 const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
+  // The SDK already retries 408/409/429/5xx and connection errors; three
+  // attempts gives the monthly cron a bit more room than the default two,
+  // since a failed run leaves the user with no advice until next month.
+  maxRetries: 3,
 })
+
+/**
+ * Room for the largest response the prompt can ask for: 5 insights + 5 budget
+ * suggestions + 3 goals, each with Spanish prose and a UUID `category_id`
+ * (~25 tokens each). The previous 1500 fit a small account and truncated a
+ * large one mid-JSON — the intermittent failure this module was known for.
+ */
+const MAX_TOKENS = 8000
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -275,7 +288,7 @@ export async function generateSavingsAdvice(
   userId: string,
   period: string = currentPeriod()
 ): Promise<GenerateResult> {
-  if (!userId) return { success: false, error: 'User ID is required' }
+  if (!userId) return { success: false, error: 'Falta el identificador de usuario' }
 
   try {
     const summary = await buildSpendingSummary(userId, period)
@@ -285,40 +298,78 @@ export async function generateSavingsAdvice(
       return { success: true, skipped: true }
     }
 
-    const response = await client.messages.create({
+    // The schema is the contract, not a suggestion in the prompt: the model
+    // cannot return anything that fails it, so the old "strip ``` fences and
+    // hope JSON.parse works" path is gone.
+    const request = {
       model: 'claude-haiku-4-5',
-      max_tokens: 1500,
-      messages: [{ role: 'user', content: buildPrompt(summary) }],
-    })
+      max_tokens: MAX_TOKENS,
+      output_config: { format: zodOutputFormat(savingsAdvicePayloadSchema) },
+      messages: [{ role: 'user' as const, content: buildPrompt(summary) }],
+    }
 
-    const textContent = response.content.find((b) => b.type === 'text')
-    if (!textContent || textContent.type !== 'text') {
+    let response = await client.messages.parse(request)
+
+    // A truncated response is not a malformed one — it used to surface as
+    // "JSON inválido", which pointed at the wrong cause. Retry once asking for
+    // less, rather than failing the whole month.
+    if (response.stop_reason === 'max_tokens') {
+      console.warn(`generateSavingsAdvice: respuesta truncada para user=${userId}, reintentando más corto`)
+      response = await client.messages.parse({
+        ...request,
+        messages: [
+          {
+            role: 'user' as const,
+            content: `${buildPrompt(summary)}\n\nIMPORTANTE: sé más breve. Genera como máximo 3 insights, 3 sugerencias de presupuesto y 1 meta, con justificaciones de una sola frase.`,
+          },
+        ],
+      })
+
+      if (response.stop_reason === 'max_tokens') {
+        return {
+          success: false,
+          error: 'El análisis salió demasiado largo. Vuelve a intentarlo.',
+        }
+      }
+    }
+
+    if (response.stop_reason === 'refusal') {
+      return { success: false, error: 'El modelo no pudo procesar este análisis.' }
+    }
+
+    const payload = response.parsed_output
+    if (!payload) {
       return { success: false, error: 'No se recibió respuesta del modelo' }
     }
 
-    const clean = textContent.text.trim().replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '')
-    const payload = savingsAdvicePayloadSchema.parse(JSON.parse(clean))
+    const row = {
+      user_id: userId,
+      period,
+      currency: summary.currency,
+      insights: payload.insights,
+      budget_suggestions: payload.budget_suggestions,
+      goal_suggestions: payload.goal_suggestions,
+    }
 
-    // Refresh the cached row for (user, period): delete-then-insert, matching
-    // the pattern used by updateExchangeRates (avoids relying on upsert).
-    await insforgeAdmin.database
+    // Update in place when a row exists. The previous delete-then-insert left
+    // the user with nothing at all if the insert failed.
+    const { data: existing, error: existingError } = await insforgeAdmin.database
       .from('ai_savings_advice')
-      .delete()
+      .select('id')
       .eq('user_id', userId)
       .eq('period', period)
+      .maybeSingle()
 
-    const { error: insertError } = await insforgeAdmin.database
-      .from('ai_savings_advice')
-      .insert({
-        user_id: userId,
-        period,
-        currency: summary.currency,
-        insights: payload.insights,
-        budget_suggestions: payload.budget_suggestions,
-        goal_suggestions: payload.goal_suggestions,
-      })
+    if (existingError) throw existingError
 
-    if (insertError) throw insertError
+    const { error: writeError } = existing
+      ? await insforgeAdmin.database
+          .from('ai_savings_advice')
+          .update({ ...row, generated_at: new Date().toISOString() })
+          .eq('id', existing.id)
+      : await insforgeAdmin.database.from('ai_savings_advice').insert(row)
+
+    if (writeError) throw writeError
 
     revalidatePath('/consejos-ahorro')
     return {
@@ -331,10 +382,20 @@ export async function generateSavingsAdvice(
     }
   } catch (error) {
     console.error('generateSavingsAdvice error:', error)
-    if (error instanceof SyntaxError) {
-      return { success: false, error: 'El modelo no devolvió un JSON válido' }
+
+    if (error instanceof Anthropic.RateLimitError) {
+      return { success: false, error: 'La IA está saturada ahora mismo. Inténtalo en unos minutos.' }
     }
-    return { success: false, error: 'Error al generar consejos de ahorro' }
+    if (error instanceof Anthropic.AuthenticationError) {
+      return { success: false, error: 'La clave de la API de Anthropic no es válida.' }
+    }
+    if (error instanceof Anthropic.APIError) {
+      return { success: false, error: `Error de la IA (${error.status}): ${error.message}` }
+    }
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Error al generar consejos de ahorro',
+    }
   }
 }
 

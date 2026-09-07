@@ -20,8 +20,18 @@ import { TransactionsFilter, type FilterState } from '@/components/transactions/
 import { ExportTransactionsModal } from '@/components/transactions/ExportTransactionsModal'
 import { ImportTransactionsModal } from '@/components/transactions/ImportTransactionsModal'
 import { GmailSyncButton } from '@/components/transactions/GmailSyncButton'
+import { AccountsOverview } from '@/components/dashboard/AccountsOverview'
+import { StatCard } from '@/components/ui/StatCard'
 import { useDebounce } from '@/hooks/useDebounce'
-import type { Account, Category, TransactionWithCategory } from '@/types/database.types'
+import { getAccountsTotal } from '@/lib/utils/accounts'
+import { formatCurrency } from '@/lib/utils/currency'
+import type {
+  Account,
+  Category,
+  Currency,
+  ExchangeRate,
+  TransactionWithCategory,
+} from '@/types/database.types'
 
 const PAGE_SIZE = 10
 
@@ -30,16 +40,26 @@ interface Props {
   categories: Category[]
   initialTransactions: TransactionWithCategory[]
   accounts?: Account[]
+  preferredCurrency?: Currency
+  exchangeRates?: ExchangeRate[]
 }
 
 const defaultFilters: FilterState = {
   search: '',
   type: '',
   category_id: '',
+  account_id: '',
   month: '',
 }
 
-export function TransactionsPageClient({ userId, categories, initialTransactions, accounts = [] }: Props) {
+export function TransactionsPageClient({
+  userId,
+  categories,
+  initialTransactions,
+  accounts = [],
+  preferredCurrency = 'COP',
+  exchangeRates = [],
+}: Props) {
   const router = useRouter()
   const { open: isCreateOpen, onOpen: onCreateOpen, onClose: onCreateClose } = useDisclosure()
   const { open: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } = useDisclosure()
@@ -68,16 +88,29 @@ export function TransactionsPageClient({ userId, categories, initialTransactions
       }
       if (filters.type && t.type !== filters.type) return false
       if (filters.category_id && t.category_id !== filters.category_id) return false
+      if (filters.account_id && t.account_id !== filters.account_id) return false
       if (filters.month) {
         const txMonth = t.date.slice(0, 7)
         if (txMonth !== filters.month) return false
       }
       return true
     })
-  }, [transactions, debouncedSearch, filters.type, filters.category_id, filters.month])
+  }, [
+    transactions,
+    debouncedSearch,
+    filters.type,
+    filters.category_id,
+    filters.account_id,
+    filters.month,
+  ])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
+  const accountsTotal = useMemo(
+    () => getAccountsTotal(accounts, preferredCurrency, exchangeRates),
+    [accounts, preferredCurrency, exchangeRates]
+  )
 
   const handleEdit = useCallback((transaction: TransactionWithCategory) => {
     setEditingTransaction(transaction)
@@ -124,15 +157,31 @@ export function TransactionsPageClient({ userId, categories, initialTransactions
         </HStack>
       </HStack>
 
+      {accountsTotal !== null && (
+        <Box mb={{ base: 4, md: 6 }}>
+          <StatCard
+            label="Balance en cuentas"
+            value={formatCurrency(accountsTotal, preferredCurrency)}
+            helpText={`${accounts.length} ${accounts.length === 1 ? 'cuenta' : 'cuentas'}`}
+          />
+        </Box>
+      )}
+
+      <Box mb={{ base: 4, md: 6 }}>
+        <AccountsOverview accounts={accounts} />
+      </Box>
+
       <TransactionsFilter
         filters={filters}
         onChange={setFilters}
         categories={categories}
+        accounts={accounts}
       />
 
       <Card overflowX="auto">
         <TransactionsTable
           transactions={paginated}
+          accounts={accounts}
           userId={userId}
           onUpdate={() => router.refresh()}
           onEdit={handleEdit}

@@ -6,34 +6,25 @@ import { useRouter } from 'next/navigation'
 import { FiPieChart } from 'react-icons/fi'
 import { BudgetForm } from '@/components/budgets/BudgetForm'
 import { BudgetList } from '@/components/budgets/BudgetList'
-import type { Category } from '@/types/database.types'
-
-interface Budget {
-  id: string
-  category_id: string
-  amount: number
-  currency: 'COP' | 'USD' | 'VES'
-  period: 'monthly' | 'yearly'
-  start_date: string
-}
+import type { BudgetWithSpent, Category } from '@/types/database.types'
 
 interface Props {
   userId: string
   categories: Category[]
-  initialBudgets: any[]
+  initialBudgets: BudgetWithSpent[]
 }
 
 export function BudgetsPageClient({ userId, categories, initialBudgets }: Props) {
   const router = useRouter()
   const [isFormOpen, setIsFormOpen] = useState(false)
-  const [editingBudget, setEditingBudget] = useState<Budget | null>(null)
+  const [editingBudget, setEditingBudget] = useState<BudgetWithSpent | null>(null)
 
   const handleFormSuccess = useCallback(() => {
     router.refresh()
     setEditingBudget(null)
   }, [router])
 
-  const handleEdit = (budget: any) => {
+  const handleEdit = (budget: BudgetWithSpent) => {
     setEditingBudget(budget)
     setIsFormOpen(true)
   }

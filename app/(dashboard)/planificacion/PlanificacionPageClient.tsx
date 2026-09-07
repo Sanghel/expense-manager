@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { FiTarget, FiPieChart, FiClipboard } from 'react-icons/fi'
 import { SavingsGoalsPageContent } from '@/components/savings/SavingsGoalsPageContent'
 import { BudgetsPageClient } from '../budgets/BudgetsPageClient'
-import type { Account, SavingsGoal, Category, Currency, ExchangeRate } from '@/types/database.types'
+import type { Account, SavingsGoal, Category, Currency, ExchangeRate, BudgetWithSpent } from '@/types/database.types'
 
 type Tab = 'metas' | 'presupuestos'
 
@@ -14,7 +14,7 @@ interface Props {
   userId: string
   activeTab: Tab
   initialGoals: SavingsGoal[] | null
-  initialBudgets: unknown[] | null
+  initialBudgets: BudgetWithSpent[] | null
   categories: Category[]
   accounts?: Account[]
   preferredCurrency: Currency
@@ -104,8 +104,7 @@ export function PlanificacionPageClient({
           {initialBudgets !== null && (
             <BudgetsPageClient
               userId={userId}
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              initialBudgets={initialBudgets as any[]}
+              initialBudgets={initialBudgets}
               categories={categories}
             />
           )}

@@ -3,15 +3,16 @@
 import { Box, Flex, Text, HStack, IconButton } from '@chakra-ui/react'
 import { FiEdit2, FiTrash2 } from 'react-icons/fi'
 import { formatCurrency } from '@/lib/utils/currency'
-import type { TransactionWithCategory } from '@/types/database.types'
+import type { Account, TransactionWithCategory } from '@/types/database.types'
 
 interface Props {
   transaction: TransactionWithCategory
+  account?: Account | null
   onEdit: (t: TransactionWithCategory) => void
   onDelete: (id: string) => void
 }
 
-export function TransactionCardMobile({ transaction: t, onEdit, onDelete }: Props) {
+export function TransactionCardMobile({ transaction: t, account, onEdit, onDelete }: Props) {
   const isIncome = t.type === 'income'
   const amountColor = isIncome ? '#4ade80' : '#f87171'
   const amountPrefix = isIncome ? '+' : '-'
@@ -38,6 +39,14 @@ export function TransactionCardMobile({ transaction: t, onEdit, onDelete }: Prop
             <Text fontSize="xs" color="#6b7280">
               {new Date(t.date + 'T00:00:00').toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })}
             </Text>
+            {account && (
+              <>
+                <Text fontSize="xs" color="#4b5563">·</Text>
+                <Text fontSize="xs" color="#6b7280" lineClamp={1}>
+                  {account.icon ?? '💳'} {account.name}
+                </Text>
+              </>
+            )}
           </HStack>
         </Flex>
 

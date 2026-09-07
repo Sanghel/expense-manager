@@ -187,19 +187,6 @@ export interface SavingsContribution {
   created_at: string
 }
 
-export interface Tag {
-  id: string
-  user_id: string
-  name: string
-  color: string
-  created_at: string
-}
-
-export interface TransactionWithTags extends Transaction {
-  category: Category
-  tags?: Tag[]
-}
-
 export type LoanType = 'lent' | 'borrowed'
 export type LoanStatus = 'active' | 'settled'
 

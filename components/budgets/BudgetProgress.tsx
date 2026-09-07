@@ -6,14 +6,23 @@ import { safeRatio, toNumber } from '@/lib/utils/numbers'
 import type { BudgetWithSpent } from '@/types/database.types'
 
 interface Props {
-  budget: Pick<BudgetWithSpent, 'amount' | 'spent' | 'currency'>
+  budget: Pick<BudgetWithSpent, 'limit_amount' | 'spent' | 'currency' | 'amount_type'>
 }
 
 export function BudgetProgress({ budget }: Props) {
-  const amount = toNumber(budget.amount)
+  const limit = toNumber(budget.limit_amount)
   const spent = toNumber(budget.spent)
-  const percentage = safeRatio(spent, amount) * 100
-  const remaining = amount - spent
+  const percentage = safeRatio(spent, limit) * 100
+  const remaining = limit - spent
+
+  // A percentage budget resolves to 0 in a period with no income/expense yet.
+  if (limit <= 0 && budget.amount_type !== 'fixed') {
+    return (
+      <Text fontSize="xs" color="#B0B0B0">
+        Sin movimientos suficientes en este periodo para calcular el límite.
+      </Text>
+    )
+  }
 
   let bgColor = '#16A34A'
   if (percentage > 100) bgColor = '#DC2626'

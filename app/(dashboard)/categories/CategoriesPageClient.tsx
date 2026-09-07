@@ -27,11 +27,13 @@ import { useRouter } from 'next/navigation'
 import { toaster } from '@/lib/toaster'
 import { CategoryForm } from '@/components/categories/CategoryForm'
 import { CategoryEditForm } from '@/components/categories/CategoryEditForm'
-import type { Category, CategoryType } from '@/types/database.types'
+import { CategoryGroupsSection } from '@/components/categories/CategoryGroupsSection'
+import type { Category, CategoryGroupWithMembers, CategoryType } from '@/types/database.types'
 
 interface Props {
   userId: string
   initialCategories: Category[]
+  initialGroups?: CategoryGroupWithMembers[]
 }
 
 const TYPE_BADGE: Record<CategoryType, { label: string; palette: string }> = {
@@ -75,7 +77,7 @@ function CategorySection({
   )
 }
 
-export function CategoriesPageClient({ userId, initialCategories }: Props) {
+export function CategoriesPageClient({ userId, initialCategories, initialGroups = [] }: Props) {
   const [categories, setCategories] = useState<Category[]>(initialCategories)
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -194,6 +196,12 @@ export function CategoriesPageClient({ userId, initialCategories }: Props) {
           </Box>
         )}
       </VStack>
+
+      <CategoryGroupsSection
+        userId={userId}
+        categories={categories}
+        groups={initialGroups}
+      />
 
       {/* Modales */}
       <CategoryForm

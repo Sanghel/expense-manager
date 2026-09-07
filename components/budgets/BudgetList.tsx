@@ -16,6 +16,13 @@ interface Props {
   onEdit?: (budget: BudgetWithSpent) => void
 }
 
+function budgetTitle(budget: BudgetWithSpent): string {
+  if (budget.scope === 'total') return '🧾 Todos los gastos'
+  if (budget.scope === 'group') return `📦 ${budget.group?.name ?? 'Grupo eliminado'}`
+  const icon = budget.category?.icon ? `${budget.category.icon} ` : ''
+  return `${icon}${budget.category?.name ?? 'Sin categoría'}`
+}
+
 export function BudgetList({ userId, initialBudgets, onEdit }: Props) {
   const router = useRouter()
   const budgets = initialBudgets
@@ -64,15 +71,20 @@ export function BudgetList({ userId, initialBudgets, onEdit }: Props) {
             <VStack gap={3} align="stretch">
               <HStack justify="space-between">
                 <div>
-                  <Heading size="sm">
-                    {budget.category?.icon && <>{budget.category.icon} </>}{budget.category?.name || 'Sin categoría'}
-                  </Heading>
+                  <Heading size="sm">{budgetTitle(budget)}</Heading>
                   <Text fontSize="xs" color="#B0B0B0" mt={1}>
                     {budget.period === 'monthly' ? 'Mensual' : 'Anual'} • {budget.start_date}
+                    {budget.amount_type !== 'fixed' && (
+                      <>
+                        {' • '}
+                        {budget.percent}%{' '}
+                        {budget.amount_type === 'percent_income' ? 'de ingresos' : 'del gasto'}
+                      </>
+                    )}
                   </Text>
                 </div>
                 <Text fontSize="lg" fontWeight="bold">
-                  {formatCurrency(budget.amount, budget.currency)}
+                  {formatCurrency(budget.limit_amount, budget.currency)}
                 </Text>
               </HStack>
 

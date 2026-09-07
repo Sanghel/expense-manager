@@ -88,15 +88,42 @@ export interface Transaction {
   updated_at: string
 }
 
+/** What a budget is measured against. */
+export type BudgetScope = 'category' | 'group' | 'total'
+
+/** How the budget's limit is expressed. */
+export type BudgetAmountType = 'fixed' | 'percent_income' | 'percent_expense'
+
 export interface Budget {
   id: string
   user_id: string
-  category_id: string
-  amount: number
+  scope: BudgetScope
+  /** Set when scope is 'category'. */
+  category_id: string | null
+  /** Set when scope is 'group'. */
+  group_id: string | null
+  amount_type: BudgetAmountType
+  /** Set when amount_type is 'fixed'. */
+  amount: number | null
+  /** 0-100. Set when amount_type is a percentage. */
+  percent: number | null
   currency: Currency
   period: BudgetPeriod
   start_date: string // ISO date
   created_at: string
+}
+
+export interface CategoryGroup {
+  id: string
+  user_id: string
+  name: string
+  icon: string | null
+  color: string | null
+  created_at: string
+}
+
+export interface CategoryGroupWithMembers extends CategoryGroup {
+  category_ids: string[]
 }
 
 export interface ExchangeRate {
@@ -132,7 +159,17 @@ export interface SavingsGoal {
 /** A budget with its current cycle resolved and spending aggregated. */
 export interface BudgetWithSpent extends Budget {
   category: Category | null
+  group: CategoryGroup | null
   spent: number
+  /**
+   * The limit in the budget's currency for the active cycle. Equals `amount`
+   * for fixed budgets; for percentage budgets it is derived from the period's
+   * income or expense, so it is recomputed every cycle.
+   */
+  limit_amount: number
+  /** Income and expense of the active cycle, in the budget's currency. */
+  periodIncome: number
+  periodExpense: number
   periodStart: string
   periodEnd: string
 }

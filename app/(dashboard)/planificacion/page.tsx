@@ -5,10 +5,19 @@ import { insforgeAdmin } from '@/lib/insforge-admin'
 import { getSavingsGoals } from '@/lib/actions/savings.actions'
 import { getCategories } from '@/lib/actions/categories.actions'
 import { getBudgets } from '@/lib/actions/budgets.actions'
+import { getCategoryGroups } from '@/lib/actions/categoryGroups.actions'
 import { getAccounts } from '@/lib/actions/accounts.actions'
 import { getAllRatePairs } from '@/lib/actions/exchangeRates.actions'
 import { PlanificacionPageClient } from './PlanificacionPageClient'
-import type { SavingsGoal, Category, Account, Currency, ExchangeRate, BudgetWithSpent } from '@/types/database.types'
+import type {
+  SavingsGoal,
+  Category,
+  CategoryGroupWithMembers,
+  Account,
+  Currency,
+  ExchangeRate,
+  BudgetWithSpent,
+} from '@/types/database.types'
 
 type Tab = 'metas' | 'presupuestos'
 
@@ -41,6 +50,7 @@ export default async function PlanificacionPage({
   let categories: Category[] = []
   let accounts: Account[] = []
   let exchangeRates: ExchangeRate[] = []
+  let categoryGroups: CategoryGroupWithMembers[] = []
 
   if (tab === 'metas') {
     const [goalsResult, accountsResult, ratesResult] = await Promise.all([
@@ -52,12 +62,14 @@ export default async function PlanificacionPage({
     accounts = (accountsResult.success ? accountsResult.data : []) as Account[]
     exchangeRates = (ratesResult.success ? ratesResult.data : []) as ExchangeRate[]
   } else if (tab === 'presupuestos') {
-    const [categoriesResult, budgetsResult] = await Promise.all([
+    const [categoriesResult, budgetsResult, groupsResult] = await Promise.all([
       getCategories(user.id),
       getBudgets(user.id),
+      getCategoryGroups(user.id),
     ])
     categories = categoriesResult.success ? (categoriesResult.data ?? []) : []
     initialBudgets = budgetsResult.success ? ((budgetsResult.data ?? []) as BudgetWithSpent[]) : []
+    categoryGroups = groupsResult.success ? ((groupsResult.data ?? []) as CategoryGroupWithMembers[]) : []
   }
 
   return (
@@ -67,6 +79,7 @@ export default async function PlanificacionPage({
       initialGoals={initialGoals}
       initialBudgets={initialBudgets}
       categories={categories}
+      categoryGroups={categoryGroups}
       accounts={accounts}
       preferredCurrency={(user.preferred_currency as Currency) ?? 'COP'}
       exchangeRates={exchangeRates}

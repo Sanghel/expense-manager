@@ -15,6 +15,7 @@ interface Props {
   preferredCurrency?: Currency
   exchangeRates?: ExchangeRate[]
   accounts?: Account[]
+  variant?: 'default' | 'compact'
 }
 
 export const FinancialCards = memo(function FinancialCards({
@@ -23,6 +24,7 @@ export const FinancialCards = memo(function FinancialCards({
   preferredCurrency = 'COP',
   exchangeRates = [],
   accounts = [],
+  variant = 'default',
 }: Props) {
   const { summary } = useFinancialSummary(transactions, month, preferredCurrency, exchangeRates)
 
@@ -34,8 +36,9 @@ export const FinancialCards = memo(function FinancialCards({
   const displayBalance = accountsTotal ?? summary.balance
 
   return (
-    <SimpleGrid columns={{ base: 1, md: 3 }} gap={6}>
+    <SimpleGrid columns={{ base: 1, md: 3 }} gap={variant === 'compact' ? 3 : 6}>
       <StatCard
+        variant={variant}
         label="Balance Total"
         value={formatCurrency(displayBalance, preferredCurrency)}
         helpText={
@@ -45,11 +48,13 @@ export const FinancialCards = memo(function FinancialCards({
         }
       />
       <StatCard
+        variant={variant}
         label="Gastos"
         value={formatCurrency(summary.totalExpense, preferredCurrency)}
         helpText={`${summary.expenseCount} transacciones`}
       />
       <StatCard
+        variant={variant}
         label="Ingresos"
         value={formatCurrency(summary.totalIncome, preferredCurrency)}
         helpText={`${summary.incomeCount} transacciones`}

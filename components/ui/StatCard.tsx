@@ -6,15 +6,25 @@ interface StatCardProps {
   label: string
   value: string | number
   helpText?: string | ReactNode
+  /** `compact` trims the padding and the figure size for dense layouts. */
+  variant?: 'default' | 'compact'
 }
 
-export function StatCard({ label, value, helpText }: StatCardProps) {
+export function StatCard({ label, value, helpText, variant = 'default' }: StatCardProps) {
+  const compact = variant === 'compact'
+
   return (
-    <Card>
-      <StatRoot>
-        <StatLabel>{label}</StatLabel>
-        <StatValueText>{value}</StatValueText>
-        {helpText && <StatHelpText>{helpText}</StatHelpText>}
+    <Card p={compact ? { base: 3, md: 4 } : undefined}>
+      <StatRoot gap={compact ? 0 : undefined}>
+        <StatLabel fontSize={compact ? 'xs' : undefined}>{label}</StatLabel>
+        <StatValueText fontSize={compact ? { base: 'lg', md: 'xl' } : undefined}>
+          {value}
+        </StatValueText>
+        {helpText && (
+          <StatHelpText fontSize={compact ? 'xs' : undefined} mb={0}>
+            {helpText}
+          </StatHelpText>
+        )}
       </StatRoot>
     </Card>
   )

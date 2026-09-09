@@ -34,6 +34,12 @@
 - Balance total convertido y grilla por cuenta en `/movimientos?tab=transacciones`.
 - Columna **Cuenta** en la tabla, línea en la tarjeta móvil y **filtro por cuenta**.
 
+**Dashboard con gráficas**
+
+- La página de Reportes se pliega dentro del Dashboard y sale del menú (`/reports` redirige a `/dashboard`). El selector de mes que ya gobernaba las tarjetas gobierna ahora también las gráficas.
+- Tarjetas de totales y de cuentas en variante **compacta**, para dejar sitio a las gráficas sin alargar la página.
+- Seis gráficas visibles de entrada (reparto del gasto, gasto vs. presupuesto, tasa de ahorro, gastos hormiga, gasto por categoría y perfil de gasto) y el resto tras **"Ver más análisis"**.
+
 **Reportes ampliados**
 
 - Nuevas gráficas: **waffle** de reparto del gasto (por grupo si existen), **polar bar** de consumo de presupuesto, **radar** del perfil de gasto contra el periodo anterior, **calendario** de intensidad diaria, **tasa de ahorro** mensual, **gasto fijo vs. variable**, **gastos hormiga**, y desgloses por **cuenta**, **origen** y **día de la semana**.

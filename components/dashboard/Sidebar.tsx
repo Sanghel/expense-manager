@@ -7,7 +7,6 @@ import { CraftedByFooter } from './CraftedByFooter'
 import logo from '@/public/brand/gh_push_money_logo.png'
 import {
   FiHome,
-  FiBarChart2,
   FiSettings,
   FiTarget,
   FiCalendar,
@@ -24,7 +23,6 @@ const navItems: { href: string; label: string; icon: IconType }[] = [
   { href: '/movimientos', label: 'Movimientos', icon: FiLayers },
   { href: '/planificacion', label: 'Planificación', icon: FiTarget },
   { href: '/calendar', label: 'Calendario', icon: FiCalendar },
-  { href: '/reports', label: 'Reportes', icon: FiBarChart2 },
   { href: '/consejos-ahorro', label: 'Consejos de Ahorro', icon: FiZap },
   { href: '/settings', label: 'Configuración', icon: FiSettings },
 ]

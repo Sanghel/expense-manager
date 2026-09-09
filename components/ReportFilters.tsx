@@ -105,7 +105,14 @@ export function ReportFilters({ userId, onFilterChange }: Props) {
   }
 
   return (
-    <VStack align="stretch" gap={4} bg="bg.subtle" p={6} borderRadius="lg" mb={8}>
+    <VStack
+      align="stretch"
+      gap={3}
+      bg="bg.subtle"
+      p={{ base: 3, md: 4 }}
+      borderRadius="lg"
+      mb={{ base: 4, md: 6 }}
+    >
       <Text fontWeight="bold" fontSize="lg">
         Filtros
       </Text>

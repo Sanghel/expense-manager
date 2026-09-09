@@ -16,6 +16,11 @@ export interface User {
   name: string | null
   avatar_url: string | null
   preferred_currency: Currency
+  /**
+   * Gates the whole Gmail integration for this user. Changed only in the
+   * database — there is deliberately no UI to flip it.
+   */
+  gmail_sync_enabled: boolean
   gmail_refresh_token: string | null
   gmail_connected_at: string | null
   gmail_last_synced_at: string | null

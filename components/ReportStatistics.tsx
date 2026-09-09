@@ -15,7 +15,7 @@ export function ReportStatistics({ totals, currency }: Props) {
   const savingsRate = safeRatio(totals.net, totals.income) * 100
 
   return (
-    <SimpleGrid columns={{ base: 1, md: 3 }} gap={4} mb={6}>
+    <SimpleGrid columns={{ base: 1, md: 3 }} gap={4} mb={{ base: 4, md: 6 }}>
       <StatCard
         label="Ingresos Totales"
         value={formatCurrency(totals.income, currency)}

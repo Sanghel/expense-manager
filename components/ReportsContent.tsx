@@ -72,10 +72,10 @@ export function ReportsContent({ userId }: Props) {
   }, [userId, startDate, endDate, transactionType, categoryKey])
 
   return (
-    <Box p={4}>
-      <HStack gap={2} mb={8}>
+    <Box>
+      <HStack gap={2} mb={{ base: 4, md: 6 }}>
         <Icon as={FiBarChart2} color="#6366f1" boxSize={6} />
-        <Heading size="lg">Reportes</Heading>
+        <Heading size={{ base: 'lg', md: 'xl' }}>Reportes</Heading>
       </HStack>
 
       <ReportFilters userId={userId} onFilterChange={setFilters} />
@@ -94,11 +94,11 @@ export function ReportsContent({ userId }: Props) {
 
           <SimpleGrid columns={{ base: 1, md: 2 }} gap={6}>
             <SpendShareWaffle
-              title={dataset.expenseByGroup.length > 0 ? '¿En qué se va cada 100?' : '¿En qué se va cada 100?'}
+              title="Reparto del Gasto"
               subtitle={
                 dataset.expenseByGroup.length > 0
-                  ? 'Por grupo de categorías · cada celda es 1 % del gasto'
-                  : 'Por categoría · cada celda es 1 % del gasto'
+                  ? 'De cada 100 que gastaste, cuánto se fue a cada grupo de categorías'
+                  : 'De cada 100 que gastaste, cuánto se fue a cada categoría'
               }
               data={
                 dataset.expenseByGroup.length > 0

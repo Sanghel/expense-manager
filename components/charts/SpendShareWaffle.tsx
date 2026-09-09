@@ -44,6 +44,11 @@ export function SpendShareWaffle({ data, total, currency, title, subtitle }: Pro
       : []),
   ]
 
+  // Nivo rebuilds each cell's datum and drops unknown fields, so `amount` was
+  // `undefined` inside the tooltip and rendered as "COP NaN". Look it back up
+  // by id instead of relying on the extra field surviving.
+  const amountById = new Map(slices.map((s) => [s.id, s.amount]))
+
   return (
     <ChartCard
       title={title}
@@ -77,9 +82,11 @@ export function SpendShareWaffle({ data, total, currency, title, subtitle }: Pro
           <div>
             <strong>{d.label}</strong>
             <br />
-            {formatCurrency((d as unknown as { amount: number }).amount, currency)}
+            {formatCurrency(amountById.get(d.id as string) ?? 0, currency)}
             <br />
-            <span style={{ opacity: 0.7 }}>{d.value.toFixed(1)}% del gasto</span>
+            <span style={{ opacity: 0.7 }}>
+              {d.value.toFixed(1)} % del gasto del periodo
+            </span>
           </div>
         )}
       />

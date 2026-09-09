@@ -5,11 +5,9 @@ import dynamic from 'next/dynamic'
 import { Box, Heading, VStack, HStack, Spinner, Icon } from '@chakra-ui/react'
 import { FiHome } from 'react-icons/fi'
 import { FinancialCards } from './FinancialCards'
-import { RecentTransactions } from './RecentTransactions'
 import { AccountsOverview } from './AccountsOverview'
-import { BudgetWidget } from '@/components/budgets/BudgetWidget'
 import { MonthSelector } from './MonthSelector'
-import type { TransactionWithCategory, Currency, Account, BudgetWithSpent, ExchangeRate } from '@/types/database.types'
+import type { TransactionWithCategory, Currency, Account, ExchangeRate } from '@/types/database.types'
 
 const MonthlyTrendChart = dynamic(
   () => import('./MonthlyTrendChart').then((m) => m.MonthlyTrendChart),
@@ -19,7 +17,6 @@ const MonthlyTrendChart = dynamic(
 interface Props {
   userId: string
   initialTransactions: TransactionWithCategory[]
-  initialBudgets: BudgetWithSpent[]
   initialPreferredCurrency: Currency
   initialExchangeRates: ExchangeRate[]
   initialAccounts?: Account[]
@@ -27,7 +24,6 @@ interface Props {
 
 export function DashboardContent({
   initialTransactions,
-  initialBudgets,
   initialPreferredCurrency,
   initialExchangeRates,
   initialAccounts = [],
@@ -57,10 +53,6 @@ export function DashboardContent({
         <AccountsOverview accounts={initialAccounts} />
 
         <MonthlyTrendChart transactions={initialTransactions} currency={initialPreferredCurrency} />
-
-        <RecentTransactions transactions={initialTransactions} limit={10} />
-
-        <BudgetWidget budgets={initialBudgets} />
       </VStack>
     </Box>
   )

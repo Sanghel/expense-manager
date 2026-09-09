@@ -138,6 +138,14 @@ ALTER TABLE ai_savings_advice
   ADD COLUMN IF NOT EXISTS group_suggestions    jsonb NOT NULL DEFAULT '[]',
   ADD COLUMN IF NOT EXISTS category_suggestions jsonb NOT NULL DEFAULT '[]';
 
+-- Habilita la integración con Gmail por usuario. Se cambia SOLO desde la base de
+-- datos: no hay UI para activarlo. Por defecto queda apagada para todos.
+ALTER TABLE users
+  ADD COLUMN IF NOT EXISTS gmail_sync_enabled boolean NOT NULL DEFAULT false;
+
+-- Habilitarlo para tu cuenta:
+-- UPDATE users SET gmail_sync_enabled = true WHERE email = 'tu-correo@ejemplo.com';
+
 -- Descartar/posponer una ocurrencia de recordatorio. El UNIQUE no es opcional:
 -- ambas acciones usan upsert con onConflict.
 CREATE TABLE IF NOT EXISTS reminder_dismissals (

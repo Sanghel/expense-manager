@@ -30,6 +30,7 @@ interface Props {
   initialCategories: Category[]
   initialGroups?: CategoryGroupWithMembers[]
   gmailStatus: {
+    enabled: boolean
     connected: boolean
     connectedAt: string | null
     lastSyncedAt: string | null
@@ -141,13 +142,17 @@ export function SettingsPageClient({
               <ExchangeRatesForm initialRates={initialRates} />
             </Box>
 
-            <Separator />
+            {gmailStatus.enabled && (
+              <>
+                <Separator />
 
-            <GmailConnectionPanel
-              connected={gmailStatus.connected}
-              connectedAt={gmailStatus.connectedAt}
-              lastSyncedAt={gmailStatus.lastSyncedAt}
-            />
+                <GmailConnectionPanel
+                  connected={gmailStatus.connected}
+                  connectedAt={gmailStatus.connectedAt}
+                  lastSyncedAt={gmailStatus.lastSyncedAt}
+                />
+              </>
+            )}
           </VStack>
         </Tabs.Content>
 

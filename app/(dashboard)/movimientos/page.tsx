@@ -8,14 +8,13 @@ import { getTransactions, getTransactionsByDate } from '@/lib/actions/transactio
 import { getLocalDateString } from '@/lib/utils/dates'
 import { getLoans } from '@/lib/actions/loans.actions'
 import { getReminders } from '@/lib/actions/reminders.actions'
-import { getAllRatePairs } from '@/lib/actions/exchangeRates.actions'
+import { getBudgets } from '@/lib/actions/budgets.actions'
 import { MovimientosPageClient } from './MovimientosPageClient'
 import type {
   TransactionWithCategory,
   Account,
   ReminderWithCategory,
-  Currency,
-  ExchangeRate,
+  BudgetWithSpent,
 } from '@/types/database.types'
 
 type Tab = 'transacciones' | 'prestamos' | 'recordatorios'
@@ -33,7 +32,7 @@ export default async function MovimientosPage({
 
   const { data: user, error: userError } = await insforgeAdmin.database
     .from('users')
-    .select('id, preferred_currency')
+    .select('id, preferred_currency, gmail_sync_enabled')
     .eq('email', session.user.email)
     .single()
 
@@ -58,15 +57,15 @@ export default async function MovimientosPage({
   let initialLoans: any[] | null = null
   let initialReminders: ReminderWithCategory[] | null = null
   let todaysTransactions: { description: string; category_id: string | null }[] = []
-  let exchangeRates: ExchangeRate[] = []
+  let budgets: BudgetWithSpent[] = []
 
   if (tab === 'transacciones') {
-    const [result, ratesResult] = await Promise.all([
+    const [result, budgetsResult] = await Promise.all([
       getTransactions(user.id, 500),
-      getAllRatePairs(),
+      getBudgets(user.id),
     ])
     initialTransactions = result.success ? ((result.data ?? []) as TransactionWithCategory[]) : []
-    exchangeRates = (ratesResult.success ? ratesResult.data : []) as ExchangeRate[]
+    budgets = (budgetsResult.success ? (budgetsResult.data ?? []) : []) as BudgetWithSpent[]
   } else if (tab === 'prestamos') {
     const result = await getLoans(user.id)
     initialLoans = result.success && result.data ? result.data : []
@@ -94,8 +93,8 @@ export default async function MovimientosPage({
       initialLoans={initialLoans}
       initialReminders={initialReminders}
       todaysTransactions={todaysTransactions}
-      preferredCurrency={(user.preferred_currency as Currency) ?? 'COP'}
-      exchangeRates={exchangeRates}
+      budgets={budgets}
+      gmailSyncEnabled={user.gmail_sync_enabled === true}
     />
   )
 }

@@ -83,6 +83,10 @@ export const nivoTheme: PartialTheme = {
       border: `1px solid ${BORDER}`,
       boxShadow: '0 8px 24px rgba(0, 0, 0, 0.5)',
       padding: '8px 10px',
+      // Without this the tooltip collapses to the width of its longest word and
+      // wraps mid-sentence ("4.9% del / gasto").
+      whiteSpace: 'nowrap' as const,
+      lineHeight: 1.5,
     },
   },
   annotations: {

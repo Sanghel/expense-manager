@@ -19,6 +19,7 @@ export async function GET(req: NextRequest) {
     const { data: users, error } = await insforgeAdmin.database
       .from('users')
       .select('id, email')
+      .eq('gmail_sync_enabled', true)
       .not('gmail_refresh_token', 'is', null)
     if (error) throw error
 

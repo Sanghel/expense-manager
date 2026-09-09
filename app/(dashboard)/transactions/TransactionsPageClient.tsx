@@ -20,8 +20,15 @@ import { TransactionsFilter, type FilterState } from '@/components/transactions/
 import { ExportTransactionsModal } from '@/components/transactions/ExportTransactionsModal'
 import { ImportTransactionsModal } from '@/components/transactions/ImportTransactionsModal'
 import { GmailSyncButton } from '@/components/transactions/GmailSyncButton'
+import { AccountsOverview } from '@/components/dashboard/AccountsOverview'
+import { BudgetWidget } from '@/components/budgets/BudgetWidget'
 import { useDebounce } from '@/hooks/useDebounce'
-import type { Account, Category, TransactionWithCategory } from '@/types/database.types'
+import type {
+  Account,
+  BudgetWithSpent,
+  Category,
+  TransactionWithCategory,
+} from '@/types/database.types'
 
 const PAGE_SIZE = 10
 
@@ -30,16 +37,26 @@ interface Props {
   categories: Category[]
   initialTransactions: TransactionWithCategory[]
   accounts?: Account[]
+  budgets?: BudgetWithSpent[]
+  gmailSyncEnabled?: boolean
 }
 
 const defaultFilters: FilterState = {
   search: '',
   type: '',
   category_id: '',
+  account_id: '',
   month: '',
 }
 
-export function TransactionsPageClient({ userId, categories, initialTransactions, accounts = [] }: Props) {
+export function TransactionsPageClient({
+  userId,
+  categories,
+  initialTransactions,
+  accounts = [],
+  budgets = [],
+  gmailSyncEnabled = false,
+}: Props) {
   const router = useRouter()
   const { open: isCreateOpen, onOpen: onCreateOpen, onClose: onCreateClose } = useDisclosure()
   const { open: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } = useDisclosure()
@@ -68,13 +85,21 @@ export function TransactionsPageClient({ userId, categories, initialTransactions
       }
       if (filters.type && t.type !== filters.type) return false
       if (filters.category_id && t.category_id !== filters.category_id) return false
+      if (filters.account_id && t.account_id !== filters.account_id) return false
       if (filters.month) {
         const txMonth = t.date.slice(0, 7)
         if (txMonth !== filters.month) return false
       }
       return true
     })
-  }, [transactions, debouncedSearch, filters.type, filters.category_id, filters.month])
+  }, [
+    transactions,
+    debouncedSearch,
+    filters.type,
+    filters.category_id,
+    filters.account_id,
+    filters.month,
+  ])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
@@ -101,7 +126,9 @@ export function TransactionsPageClient({ userId, categories, initialTransactions
           <Heading size={{ base: 'md', md: 'lg' }} color="white">Transacciones</Heading>
         </HStack>
         <HStack gap={2} justify="flex-end" flexWrap="wrap">
-          <GmailSyncButton userId={userId} categories={categories} accounts={accounts} />
+          {gmailSyncEnabled && (
+            <GmailSyncButton userId={userId} categories={categories} accounts={accounts} />
+          )}
           <Button variant="outline" onClick={onExportOpen} size={{ base: 'sm', md: 'md' }} aria-label="Exportar">
             <FiDownload />
             <Text display={{ base: 'none', md: 'inline' }}>Exportar</Text>
@@ -124,15 +151,27 @@ export function TransactionsPageClient({ userId, categories, initialTransactions
         </HStack>
       </HStack>
 
+      <Box mb={{ base: 4, md: 6 }}>
+        <AccountsOverview accounts={accounts} variant="compact" />
+      </Box>
+
+      {budgets.length > 0 && (
+        <Box mb={{ base: 4, md: 6 }}>
+          <BudgetWidget budgets={budgets} />
+        </Box>
+      )}
+
       <TransactionsFilter
         filters={filters}
         onChange={setFilters}
         categories={categories}
+        accounts={accounts}
       />
 
       <Card overflowX="auto">
         <TransactionsTable
           transactions={paginated}
+          accounts={accounts}
           userId={userId}
           onUpdate={() => router.refresh()}
           onEdit={handleEdit}

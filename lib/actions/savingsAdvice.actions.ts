@@ -1,21 +1,39 @@
 'use server'
 
 import Anthropic from '@anthropic-ai/sdk'
+import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
 import { revalidatePath } from 'next/cache'
 import { insforgeAdmin } from '@/lib/insforge-admin'
 import { getAllRatePairs } from '@/lib/actions/exchangeRates.actions'
+import { getCategoryGroups } from '@/lib/actions/categoryGroups.actions'
 import { savingsAdvicePayloadSchema } from '@/lib/validations/savingsAdvice'
+import { buildConverter, type RateRow } from '@/lib/utils/currency-converter'
 import type {
   AiSavingsAdvice,
+  CategoryGroupWithMembers,
   Currency,
   SavingsInsight,
   SavingsBudgetSuggestion,
   SavingsGoalSuggestion,
+  SavingsGroupSuggestion,
+  SavingsCategorySuggestion,
 } from '@/types/database.types'
 
 const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
+  // The SDK already retries 408/409/429/5xx and connection errors; three
+  // attempts gives the monthly cron a bit more room than the default two,
+  // since a failed run leaves the user with no advice until next month.
+  maxRetries: 3,
 })
+
+/**
+ * Room for the largest response the prompt can ask for: 5 insights + 5 budget
+ * suggestions + 3 goals, each with Spanish prose and a UUID `category_id`
+ * (~25 tokens each). The previous 1500 fit a small account and truncated a
+ * large one mid-JSON — the intermittent failure this module was known for.
+ */
+const MAX_TOKENS = 8000
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -31,25 +49,6 @@ function shiftPeriod(period: string, months: number): string {
   const [y, m] = period.split('-').map(Number)
   const d = new Date(Date.UTC(y, m - 1 + months, 1))
   return d.toISOString().slice(0, 7)
-}
-
-type RateRow = { from_currency: Currency; to_currency: Currency; rate: number }
-
-/** Builds an in-memory converter from the latest stored rate pairs. */
-function buildConverter(rates: RateRow[]) {
-  const map = new Map<string, number>()
-  for (const r of rates) {
-    if (r && r.from_currency && r.to_currency) {
-      map.set(`${r.from_currency}_${r.to_currency}`, r.rate)
-    }
-  }
-  return (amount: number, from: Currency, to: Currency): number => {
-    if (from === to) return amount
-    const rate = map.get(`${from}_${to}`)
-    // No rate available → fall back to the raw amount (same behaviour as
-    // convertCurrency in exchangeRates.actions).
-    return rate ? amount * rate : amount
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -71,9 +70,55 @@ export interface SpendingSummary {
   avgMonthlyExpense: number
   monthlySavingsCapacity: number
   monthsAnalyzed: number
-  categories: { category_id: string; name: string; current: number; previous: number; delta_pct: number | null }[]
+  categories: {
+    category_id: string
+    name: string
+    current: number
+    previous: number
+    delta_pct: number | null
+    /** Transactions this period. */
+    tx_count: number
+    /**
+     * Median transaction amount this period. This — not the category's name —
+     * is what identifies an "ant expense": a low median with a high count.
+     * Without it the model assumes e.g. clothing is an ant expense when its
+     * median ticket says otherwise.
+     */
+    median_ticket: number
+  }[]
   budgets: { category_id: string; name: string; budget_amount: number; spent: number; utilization_pct: number }[]
   goals: { name: string; target: number; current: number; progress_pct: number; deadline: string | null }[]
+  /** Existing category groups with their aggregated spend. */
+  groups: { group_id: string; name: string; category_ids: string[]; current: number; tx_count: number }[]
+  /**
+   * Facts about how the categories themselves are organised, computed here
+   * rather than inferred by the model — duplicate names and uncategorised
+   * totals are exact arithmetic, and asking the model to derive them would
+   * trade precision for nothing.
+   */
+  hygiene: {
+    duplicate_names: { name: string; category_ids: string[] }[]
+    uncategorized: { tx_count: number; amount: number; pct_of_expense: number }
+    /** Categories used 3 times or less in the window. */
+    rarely_used: { category_id: string; name: string; tx_count: number }[]
+    total_categories: number
+  }
+}
+
+function median(values: number[]): number {
+  if (values.length === 0) return 0
+  const sorted = [...values].sort((a, b) => a - b)
+  const mid = Math.floor(sorted.length / 2)
+  return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid]
+}
+
+/** Lowercased, unaccented, trimmed — so "Transporte " and "transporte" collide. */
+function normalizeName(name: string): string {
+  return name
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
 }
 
 export async function buildSpendingSummary(
@@ -94,22 +139,27 @@ export async function buildSpendingSummary(
   const currency = (user?.preferred_currency ?? 'COP') as Currency
 
   // Load the data we need in parallel
-  const [txRes, catRes, budgetRes, goalRes, ratePairs] = await Promise.all([
+  const [txRes, catRes, budgetRes, goalRes, ratePairs, groupsResult] = await Promise.all([
     insforgeAdmin.database
       .from('transactions')
       .select('amount, currency, type, category_id, date')
       .eq('user_id', userId)
       .gte('date', since),
-    insforgeAdmin.database.from('categories').select('id, name'),
+    insforgeAdmin.database.from('categories').select('id, name, type'),
     insforgeAdmin.database
       .from('budgets')
       .select('category_id, amount, currency')
-      .eq('user_id', userId),
+      .eq('user_id', userId)
+      // The advisor maps budgets by category and reads a fixed amount; group
+      // and percentage budgets have neither, so they are excluded here.
+      .eq('scope', 'category')
+      .eq('amount_type', 'fixed'),
     insforgeAdmin.database
       .from('savings_goals')
       .select('name, target_amount, current_amount, currency, deadline, is_completed')
       .eq('user_id', userId),
     getAllRatePairs(),
+    getCategoryGroups(userId),
   ])
 
   const convert = buildConverter((ratePairs.success ? ratePairs.data : []) as RateRow[])
@@ -133,6 +183,8 @@ export async function buildSpendingSummary(
   // Per-category expense, current vs previous period
   const current = new Map<string, number>()
   const previous = new Map<string, number>()
+  // Every expense amount of the period, per category, for the median ticket.
+  const amountsByCategory = new Map<string, number[]>()
   // Income/expense per month within the window, for the averages.
   const monthly = new Map<string, { income: number; expense: number }>()
 
@@ -154,6 +206,9 @@ export async function buildSpendingSummary(
         expense += amount
         const key = t.category_id ?? 'sin-categoria'
         current.set(key, (current.get(key) ?? 0) + amount)
+        const amounts = amountsByCategory.get(key) ?? []
+        amounts.push(amount)
+        amountsByCategory.set(key, amounts)
       }
     } else if (inPeriod(t.date, prevPeriod) && t.type === 'expense') {
       const key = t.category_id ?? 'sin-categoria'
@@ -174,12 +229,15 @@ export async function buildSpendingSummary(
     .map((key) => {
       const cur = current.get(key) ?? 0
       const prev = previous.get(key) ?? 0
+      const amounts = amountsByCategory.get(key) ?? []
       return {
         category_id: key,
         name: categoryName.get(key) ?? 'Sin categoría',
         current: Math.round(cur),
         previous: Math.round(prev),
         delta_pct: prev > 0 ? Math.round(((cur - prev) / prev) * 100) : null,
+        tx_count: amounts.length,
+        median_ticket: Math.round(median(amounts)),
       }
     })
     .sort((a, b) => b.current - a.current)
@@ -215,6 +273,49 @@ export async function buildSpendingSummary(
       deadline: g.deadline,
     }))
 
+  // Groups with their aggregated spend, so the model can reason in "kinds of
+  // spending" instead of only per fixed category.
+  const groupRows = (groupsResult.success ? (groupsResult.data ?? []) : []) as CategoryGroupWithMembers[]
+  const groups = groupRows.map((g) => {
+    const members = new Set(g.category_ids)
+    let spend = 0
+    let count = 0
+    for (const [key, amount] of current.entries()) {
+      if (!members.has(key)) continue
+      spend += amount
+      count += amountsByCategory.get(key)?.length ?? 0
+    }
+    return {
+      group_id: g.id,
+      name: g.name,
+      category_ids: g.category_ids,
+      current: Math.round(spend),
+      tx_count: count,
+    }
+  })
+
+  // Category hygiene — exact arithmetic, so it is computed here rather than
+  // asked of the model.
+  const allCategories = (catRes.data ?? []) as { id: string; name: string }[]
+  const byNormalized = new Map<string, string[]>()
+  for (const c of allCategories) {
+    const key = normalizeName(c.name)
+    byNormalized.set(key, [...(byNormalized.get(key) ?? []), c.id])
+  }
+  const duplicate_names = [...byNormalized.entries()]
+    .filter(([, ids]) => ids.length > 1)
+    .map(([key, ids]) => ({
+      name: allCategories.find((c) => normalizeName(c.name) === key)?.name ?? key,
+      category_ids: ids,
+    }))
+
+  const uncategorizedAmount = current.get('sin-categoria') ?? 0
+  const uncategorizedCount = amountsByCategory.get('sin-categoria')?.length ?? 0
+
+  const rarely_used = categories
+    .filter((c) => c.category_id !== 'sin-categoria' && c.tx_count > 0 && c.tx_count <= 3)
+    .map((c) => ({ category_id: c.category_id, name: c.name, tx_count: c.tx_count }))
+
   return {
     period,
     currency,
@@ -228,6 +329,17 @@ export async function buildSpendingSummary(
     categories,
     budgets,
     goals,
+    groups,
+    hygiene: {
+      duplicate_names,
+      uncategorized: {
+        tx_count: uncategorizedCount,
+        amount: Math.round(uncategorizedAmount),
+        pct_of_expense: expense > 0 ? Math.round((uncategorizedAmount / expense) * 100) : 0,
+      },
+      rarely_used,
+      total_categories: allCategories.length,
+    },
   }
 }
 
@@ -258,6 +370,16 @@ Reglas:
   debe exceder la capacidad de ahorro), "deadline" (fecha YYYY-MM-DD coherente con target/aporte) y
   "rationale". Si la capacidad de ahorro es <= 0, propón primero reducir gastos y sugiere metas
   pequeñas o ninguna.
+- Genera entre 0 y 3 "group_suggestions": grupos de categorías que convenga presupuestar
+  juntas. Usa SOLO category_id que aparezcan en el resumen y no propongas un grupo que ya
+  exista en "groups". Guíate por "median_ticket" y "tx_count", NO por el nombre de la
+  categoría: un gasto hormiga es mediana baja con muchas transacciones. Una categoría con
+  mediana alta y pocas transacciones es una compra grande, aunque suene a capricho.
+- Genera entre 0 y 4 "category_suggestions" a partir de "hygiene", sin inventar nada:
+  "merge" para los nombres duplicados que ya vienen en "duplicate_names" o para categorías
+  claramente solapadas; "categorize" si "uncategorized.pct_of_expense" es relevante;
+  "review" para las de "rarely_used". Si la higiene está bien, devuelve una lista vacía en
+  lugar de forzar sugerencias.
 - Sé breve y claro. Habla de "tú". No inventes cifras que no estén en el resumen.
 
 Responde ÚNICAMENTE con un JSON válido (sin markdown, sin explicaciones) con esta forma:
@@ -270,6 +392,12 @@ Responde ÚNICAMENTE con un JSON válido (sin markdown, sin explicaciones) con e
   ],
   "goal_suggestions": [
     { "name": "...", "target_amount": <número>, "monthly_contribution": <número>, "deadline": "YYYY-MM-DD", "rationale": "..." }
+  ],
+  "group_suggestions": [
+    { "name": "...", "category_ids": ["...", "..."], "category_names": ["...", "..."], "rationale": "..." }
+  ],
+  "category_suggestions": [
+    { "kind": "merge|rename|categorize|review", "title": "...", "detail": "...", "category_ids": ["..."] }
   ]
 }`
 }
@@ -282,6 +410,8 @@ interface GenerateResult {
     insights: SavingsInsight[]
     budget_suggestions: SavingsBudgetSuggestion[]
     goal_suggestions: SavingsGoalSuggestion[]
+    group_suggestions: SavingsGroupSuggestion[]
+    category_suggestions: SavingsCategorySuggestion[]
   }
 }
 
@@ -289,7 +419,7 @@ export async function generateSavingsAdvice(
   userId: string,
   period: string = currentPeriod()
 ): Promise<GenerateResult> {
-  if (!userId) return { success: false, error: 'User ID is required' }
+  if (!userId) return { success: false, error: 'Falta el identificador de usuario' }
 
   try {
     const summary = await buildSpendingSummary(userId, period)
@@ -299,40 +429,80 @@ export async function generateSavingsAdvice(
       return { success: true, skipped: true }
     }
 
-    const response = await client.messages.create({
+    // The schema is the contract, not a suggestion in the prompt: the model
+    // cannot return anything that fails it, so the old "strip ``` fences and
+    // hope JSON.parse works" path is gone.
+    const request = {
       model: 'claude-haiku-4-5',
-      max_tokens: 1500,
-      messages: [{ role: 'user', content: buildPrompt(summary) }],
-    })
+      max_tokens: MAX_TOKENS,
+      output_config: { format: zodOutputFormat(savingsAdvicePayloadSchema) },
+      messages: [{ role: 'user' as const, content: buildPrompt(summary) }],
+    }
 
-    const textContent = response.content.find((b) => b.type === 'text')
-    if (!textContent || textContent.type !== 'text') {
+    let response = await client.messages.parse(request)
+
+    // A truncated response is not a malformed one — it used to surface as
+    // "JSON inválido", which pointed at the wrong cause. Retry once asking for
+    // less, rather than failing the whole month.
+    if (response.stop_reason === 'max_tokens') {
+      console.warn(`generateSavingsAdvice: respuesta truncada para user=${userId}, reintentando más corto`)
+      response = await client.messages.parse({
+        ...request,
+        messages: [
+          {
+            role: 'user' as const,
+            content: `${buildPrompt(summary)}\n\nIMPORTANTE: sé más breve. Genera como máximo 3 insights, 3 sugerencias de presupuesto y 1 meta, con justificaciones de una sola frase.`,
+          },
+        ],
+      })
+
+      if (response.stop_reason === 'max_tokens') {
+        return {
+          success: false,
+          error: 'El análisis salió demasiado largo. Vuelve a intentarlo.',
+        }
+      }
+    }
+
+    if (response.stop_reason === 'refusal') {
+      return { success: false, error: 'El modelo no pudo procesar este análisis.' }
+    }
+
+    const payload = response.parsed_output
+    if (!payload) {
       return { success: false, error: 'No se recibió respuesta del modelo' }
     }
 
-    const clean = textContent.text.trim().replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '')
-    const payload = savingsAdvicePayloadSchema.parse(JSON.parse(clean))
+    const row = {
+      user_id: userId,
+      period,
+      currency: summary.currency,
+      insights: payload.insights,
+      budget_suggestions: payload.budget_suggestions,
+      goal_suggestions: payload.goal_suggestions,
+      group_suggestions: payload.group_suggestions,
+      category_suggestions: payload.category_suggestions,
+    }
 
-    // Refresh the cached row for (user, period): delete-then-insert, matching
-    // the pattern used by updateExchangeRates (avoids relying on upsert).
-    await insforgeAdmin.database
+    // Update in place when a row exists. The previous delete-then-insert left
+    // the user with nothing at all if the insert failed.
+    const { data: existing, error: existingError } = await insforgeAdmin.database
       .from('ai_savings_advice')
-      .delete()
+      .select('id')
       .eq('user_id', userId)
       .eq('period', period)
+      .maybeSingle()
 
-    const { error: insertError } = await insforgeAdmin.database
-      .from('ai_savings_advice')
-      .insert({
-        user_id: userId,
-        period,
-        currency: summary.currency,
-        insights: payload.insights,
-        budget_suggestions: payload.budget_suggestions,
-        goal_suggestions: payload.goal_suggestions,
-      })
+    if (existingError) throw existingError
 
-    if (insertError) throw insertError
+    const { error: writeError } = existing
+      ? await insforgeAdmin.database
+          .from('ai_savings_advice')
+          .update({ ...row, generated_at: new Date().toISOString() })
+          .eq('id', existing.id)
+      : await insforgeAdmin.database.from('ai_savings_advice').insert(row)
+
+    if (writeError) throw writeError
 
     revalidatePath('/consejos-ahorro')
     return {
@@ -341,14 +511,26 @@ export async function generateSavingsAdvice(
         insights: payload.insights as SavingsInsight[],
         budget_suggestions: payload.budget_suggestions as SavingsBudgetSuggestion[],
         goal_suggestions: payload.goal_suggestions as SavingsGoalSuggestion[],
+        group_suggestions: payload.group_suggestions as SavingsGroupSuggestion[],
+        category_suggestions: payload.category_suggestions as SavingsCategorySuggestion[],
       },
     }
   } catch (error) {
     console.error('generateSavingsAdvice error:', error)
-    if (error instanceof SyntaxError) {
-      return { success: false, error: 'El modelo no devolvió un JSON válido' }
+
+    if (error instanceof Anthropic.RateLimitError) {
+      return { success: false, error: 'La IA está saturada ahora mismo. Inténtalo en unos minutos.' }
     }
-    return { success: false, error: 'Error al generar consejos de ahorro' }
+    if (error instanceof Anthropic.AuthenticationError) {
+      return { success: false, error: 'La clave de la API de Anthropic no es válida.' }
+    }
+    if (error instanceof Anthropic.APIError) {
+      return { success: false, error: `Error de la IA (${error.status}): ${error.message}` }
+    }
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Error al generar consejos de ahorro',
+    }
   }
 }
 
@@ -362,7 +544,7 @@ export async function generateSavingsAdvice(
 export async function dismissSuggestion(
   userId: string,
   period: string,
-  kind: 'budget' | 'goal',
+  kind: 'budget' | 'goal' | 'group' | 'category',
   key: string
 ): Promise<{ success: boolean; error?: string }> {
   if (!userId) return { success: false, error: 'User ID is required' }
@@ -380,10 +562,15 @@ export async function dismissSuggestion(
     if (!data) return { success: true }
 
     const row = data as AiSavingsAdvice
+    // Budget suggestions are keyed by category_id; the rest by name/title.
     const patch =
       kind === 'budget'
         ? { budget_suggestions: row.budget_suggestions.filter((s) => s.category_id !== key) }
-        : { goal_suggestions: row.goal_suggestions.filter((s) => s.name !== key) }
+        : kind === 'goal'
+          ? { goal_suggestions: row.goal_suggestions.filter((s) => s.name !== key) }
+          : kind === 'group'
+            ? { group_suggestions: (row.group_suggestions ?? []).filter((s) => s.name !== key) }
+            : { category_suggestions: (row.category_suggestions ?? []).filter((s) => s.title !== key) }
 
     const { error: updateError } = await insforgeAdmin.database
       .from('ai_savings_advice')

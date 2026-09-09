@@ -2,6 +2,7 @@
 
 import {
   Box,
+  Button,
   Heading,
   Text,
   HStack,
@@ -15,17 +16,24 @@ import {
 } from '@chakra-ui/react'
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiZap, FiInbox } from 'react-icons/fi'
+import { FiZap, FiInbox, FiRefreshCw } from 'react-icons/fi'
 import { Card } from '@/components/ui/Card'
 import { StatCard } from '@/components/ui/StatCard'
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
 import { InsightsList } from '@/components/savings/InsightsList'
 import { BudgetSuggestionsList, type ExistingBudget } from '@/components/savings/BudgetSuggestionsList'
 import { SavingsGoalSuggestions } from '@/components/savings/SavingsGoalSuggestions'
+import { GroupSuggestionsList } from '@/components/savings/GroupSuggestionsList'
+import { CategoryHygieneList } from '@/components/savings/CategoryHygieneList'
 import { generateSavingsAdvice } from '@/lib/actions/savingsAdvice.actions'
 import { formatCurrency } from '@/lib/utils/currency'
 import { toaster } from '@/lib/toaster'
-import type { AiSavingsAdvice, Category, SavingsGoal } from '@/types/database.types'
+import type {
+  AiSavingsAdvice,
+  Category,
+  CategoryGroupWithMembers,
+  SavingsGoal,
+} from '@/types/database.types'
 import type { SpendingSummary } from '@/lib/actions/savingsAdvice.actions'
 
 interface Props {
@@ -36,6 +44,7 @@ interface Props {
   budgets: ExistingBudget[]
   categories: Category[]
   goals: SavingsGoal[]
+  groups: CategoryGroupWithMembers[]
 }
 
 // Fixed height for each scrollable column on desktop.
@@ -48,10 +57,20 @@ function periodLabel(period: string): string {
   return label.charAt(0).toUpperCase() + label.slice(1)
 }
 
-export function ConsejosAhorroPageClient({ userId, period, advice, summary, budgets, categories, goals }: Props) {
+export function ConsejosAhorroPageClient({
+  userId,
+  period,
+  advice,
+  summary,
+  budgets,
+  categories,
+  goals,
+  groups,
+}: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [generating, setGenerating] = useState(false)
+  const [confirmingRegenerate, setConfirmingRegenerate] = useState(false)
   const { currency } = summary
 
   const handleGenerate = async () => {
@@ -73,6 +92,7 @@ export function ConsejosAhorroPageClient({ userId, period, advice, summary, budg
       return
     }
     toaster.create({ title: 'Consejos actualizados', type: 'success', duration: 3000 })
+    setConfirmingRegenerate(false)
     startTransition(() => router.refresh())
   }
 
@@ -96,6 +116,50 @@ export function ConsejosAhorroPageClient({ userId, period, advice, summary, budg
             )}
           </Text>
         </Box>
+
+        {hasAdvice && (
+          // The cron only runs on the 1st of the month. Without this, a failed
+          // run left the page empty until the next month with no way to retry.
+          <HStack gap={2}>
+            {confirmingRegenerate ? (
+              <>
+                <Text fontSize="sm" color="#B0B0B0">
+                  ¿Regenerar? Reemplaza el análisis actual.
+                </Text>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  color="#B0B0B0"
+                  onClick={() => setConfirmingRegenerate(false)}
+                  disabled={loading}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  size="sm"
+                  bg="#4F46E5"
+                  color="white"
+                  _hover={{ bg: '#4338CA' }}
+                  onClick={handleGenerate}
+                  loading={loading}
+                >
+                  Sí, regenerar
+                </Button>
+              </>
+            ) : (
+              <Button
+                size="sm"
+                variant="outline"
+                color="#B0B0B0"
+                onClick={() => setConfirmingRegenerate(true)}
+                loading={loading}
+              >
+                <FiRefreshCw />
+                Regenerar
+              </Button>
+            )}
+          </HStack>
+        )}
       </HStack>
 
       {!summary.hasData ? (
@@ -182,6 +246,40 @@ export function ConsejosAhorroPageClient({ userId, period, advice, summary, budg
                   currency={currency}
                 />
               </Box>
+
+              {/* Cómo organizar el gasto — grupos e higiene de categorías */}
+              <Grid templateColumns={{ base: '1fr', lg: '1fr 1fr' }} gap={6}>
+                <GridItem>
+                  <Heading size="md" color="white" mb={2}>
+                    Grupos sugeridos
+                  </Heading>
+                  <Text fontSize="sm" color="#B0B0B0" mb={4}>
+                    Categorías que conviene presupuestar juntas, según cuánto y con qué
+                    frecuencia gastas en ellas.
+                  </Text>
+                  <GroupSuggestionsList
+                    userId={userId}
+                    period={period}
+                    suggestions={advice.group_suggestions ?? []}
+                    existingGroups={groups}
+                  />
+                </GridItem>
+
+                <GridItem>
+                  <Heading size="md" color="white" mb={2}>
+                    Orden de tus categorías
+                  </Heading>
+                  <Text fontSize="sm" color="#B0B0B0" mb={4}>
+                    Duplicados, solapamientos y gasto sin categorizar que distorsionan el
+                    análisis.
+                  </Text>
+                  <CategoryHygieneList
+                    userId={userId}
+                    period={period}
+                    suggestions={advice.category_suggestions ?? []}
+                  />
+                </GridItem>
+              </Grid>
             </VStack>
           )}
 

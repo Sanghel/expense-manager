@@ -1,12 +1,13 @@
 'use client'
 
 import { Box, Flex, Input, NativeSelectRoot, NativeSelectField } from '@chakra-ui/react'
-import type { Category } from '@/types/database.types'
+import type { Account, Category } from '@/types/database.types'
 
 export interface FilterState {
   search: string
   type: '' | 'income' | 'expense'
   category_id: string
+  account_id: string
   month: string
 }
 
@@ -14,9 +15,10 @@ interface Props {
   filters: FilterState
   onChange: (filters: FilterState) => void
   categories: Category[]
+  accounts?: Account[]
 }
 
-export function TransactionsFilter({ filters, onChange, categories }: Props) {
+export function TransactionsFilter({ filters, onChange, categories, accounts = [] }: Props) {
   const update = (partial: Partial<FilterState>) =>
     onChange({ ...filters, ...partial })
 
@@ -68,6 +70,22 @@ export function TransactionsFilter({ filters, onChange, categories }: Props) {
               ))}
             </NativeSelectField>
           </NativeSelectRoot>
+
+          {accounts.length > 0 && (
+            <NativeSelectRoot flexShrink={0} w={{ base: '140px', md: '180px' }} size="sm">
+              <NativeSelectField
+                value={filters.account_id}
+                onChange={(e) => update({ account_id: e.target.value })}
+              >
+                <option value="">Cuenta</option>
+                {accounts.map((acc) => (
+                  <option key={acc.id} value={acc.id}>
+                    {acc.icon ?? '💳'} {acc.name}
+                  </option>
+                ))}
+              </NativeSelectField>
+            </NativeSelectRoot>
+          )}
 
           <NativeSelectRoot flexShrink={0} w={{ base: '130px', md: '180px' }} size="sm">
             <NativeSelectField

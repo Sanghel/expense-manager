@@ -7,8 +7,9 @@ import { getAllRatePairs } from '@/lib/actions/exchangeRates.actions'
 import { getAccounts } from '@/lib/actions/accounts.actions'
 import { getAccountMovements } from '@/lib/actions/account_movements.actions'
 import { getCategories } from '@/lib/actions/categories.actions'
+import { getCategoryGroups } from '@/lib/actions/categoryGroups.actions'
 import { SettingsPageClient } from './SettingsPageClient'
-import type { User, ExchangeRate, Account, AccountMovementWithAccounts, Category } from '@/types/database.types'
+import type { User, ExchangeRate, Account, AccountMovementWithAccounts, Category, CategoryGroupWithMembers } from '@/types/database.types'
 
 type Tab = 'general' | 'accounts' | 'categorias'
 
@@ -53,15 +54,21 @@ export default async function SettingsPage({
   }
 
   const gmailStatus = {
+    enabled: user.gmail_sync_enabled === true,
     connected: !!user.gmail_refresh_token,
     connectedAt: user.gmail_connected_at,
     lastSyncedAt: user.gmail_last_synced_at,
   }
 
   let initialCategories: Category[] = []
+  let initialGroups: CategoryGroupWithMembers[] = []
   if (tab === 'categorias') {
-    const result = await getCategories(userRow.id)
+    const [result, groupsResult] = await Promise.all([
+      getCategories(userRow.id),
+      getCategoryGroups(userRow.id),
+    ])
     initialCategories = result.success ? (result.data ?? []) : []
+    initialGroups = groupsResult.success ? (groupsResult.data ?? []) : []
   }
 
   return (
@@ -73,6 +80,7 @@ export default async function SettingsPage({
       initialMovements={movements}
       activeTab={tab}
       initialCategories={initialCategories}
+      initialGroups={initialGroups}
       gmailStatus={gmailStatus}
     />
   )

@@ -6,7 +6,15 @@ import { useRouter } from 'next/navigation'
 import { FiTarget, FiPieChart, FiClipboard } from 'react-icons/fi'
 import { SavingsGoalsPageContent } from '@/components/savings/SavingsGoalsPageContent'
 import { BudgetsPageClient } from '../budgets/BudgetsPageClient'
-import type { Account, SavingsGoal, Category } from '@/types/database.types'
+import type {
+  Account,
+  SavingsGoal,
+  Category,
+  CategoryGroupWithMembers,
+  Currency,
+  ExchangeRate,
+  BudgetWithSpent,
+} from '@/types/database.types'
 
 type Tab = 'metas' | 'presupuestos'
 
@@ -14,9 +22,12 @@ interface Props {
   userId: string
   activeTab: Tab
   initialGoals: SavingsGoal[] | null
-  initialBudgets: unknown[] | null
+  initialBudgets: BudgetWithSpent[] | null
   categories: Category[]
+  categoryGroups?: CategoryGroupWithMembers[]
   accounts?: Account[]
+  preferredCurrency: Currency
+  exchangeRates: ExchangeRate[]
 }
 
 export function PlanificacionPageClient({
@@ -25,7 +36,10 @@ export function PlanificacionPageClient({
   initialGoals,
   initialBudgets,
   categories,
+  categoryGroups = [],
   accounts = [],
+  preferredCurrency,
+  exchangeRates,
 }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -86,7 +100,13 @@ export function PlanificacionPageClient({
 
         <Tabs.Content value="metas">
           {initialGoals !== null && (
-            <SavingsGoalsPageContent userId={userId} initialGoals={initialGoals} accounts={accounts} />
+            <SavingsGoalsPageContent
+              userId={userId}
+              initialGoals={initialGoals}
+              accounts={accounts}
+              preferredCurrency={preferredCurrency}
+              exchangeRates={exchangeRates}
+            />
           )}
         </Tabs.Content>
 
@@ -94,9 +114,9 @@ export function PlanificacionPageClient({
           {initialBudgets !== null && (
             <BudgetsPageClient
               userId={userId}
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              initialBudgets={initialBudgets as any[]}
+              initialBudgets={initialBudgets}
               categories={categories}
+              groups={categoryGroups}
             />
           )}
         </Tabs.Content>

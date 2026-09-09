@@ -1,25 +1,10 @@
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { insforgeAdmin } from '@/lib/insforge-admin'
-import { ReportsContent } from '@/components/ReportsContent'
 
-export default async function ReportsPage() {
-  const session = await getServerSession(authOptions)
-
-  if (!session?.user?.email) {
-    redirect('/login')
-  }
-
-  const { data: user } = await insforgeAdmin.database
-    .from('users')
-    .select('id, preferred_currency')
-    .eq('email', session.user.email)
-    .single()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  return <ReportsContent userId={user.id} preferredCurrency={user.preferred_currency ?? 'COP'} />
+/**
+ * Reports folded into the dashboard: the charts now follow the same month
+ * selector as the cards. Kept as a redirect so existing links and bookmarks
+ * don't 404.
+ */
+export default function ReportsPage() {
+  redirect('/dashboard')
 }

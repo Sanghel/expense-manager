@@ -13,6 +13,7 @@ import type {
   TransactionWithCategory,
   LoanWithAccount,
   ReminderWithCategory,
+  BudgetWithSpent,
 } from '@/types/database.types'
 
 type Tab = 'transacciones' | 'prestamos' | 'recordatorios'
@@ -26,6 +27,8 @@ interface Props {
   initialLoans: LoanWithAccount[] | null
   initialReminders: ReminderWithCategory[] | null
   todaysTransactions: { description: string; category_id: string | null }[]
+  budgets: BudgetWithSpent[]
+  gmailSyncEnabled: boolean
 }
 
 export function MovimientosPageClient({
@@ -37,6 +40,8 @@ export function MovimientosPageClient({
   initialLoans,
   initialReminders,
   todaysTransactions,
+  budgets,
+  gmailSyncEnabled,
 }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -138,6 +143,8 @@ export function MovimientosPageClient({
               categories={categories}
               initialTransactions={initialTransactions}
               accounts={accounts}
+              budgets={budgets}
+              gmailSyncEnabled={gmailSyncEnabled}
             />
           )}
         </Tabs.Content>

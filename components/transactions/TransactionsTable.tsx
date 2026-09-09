@@ -10,16 +10,18 @@ import { TransactionCardMobile } from './TransactionCardMobile'
 import { formatCurrency } from '@/lib/utils/currency'
 import { Badge, IconButton, HStack } from '@chakra-ui/react'
 import { FiEdit2, FiTrash2 } from 'react-icons/fi'
-import type { TransactionWithCategory } from '@/types/database.types'
+import type { Account, TransactionWithCategory } from '@/types/database.types'
 
 interface Props {
   transactions: TransactionWithCategory[]
   userId: string
   onUpdate: () => void
   onEdit: (transaction: TransactionWithCategory) => void
+  accounts?: Account[]
 }
 
-export function TransactionsTable({ transactions, userId, onUpdate, onEdit }: Props) {
+export function TransactionsTable({ transactions, userId, onUpdate, onEdit, accounts = [] }: Props) {
+  const accountById = new Map(accounts.map((a) => [a.id, a]))
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -54,6 +56,15 @@ export function TransactionsTable({ transactions, userId, onUpdate, onEdit }: Pr
       key: 'category',
       header: 'Categoría',
       render: (t) => <>{t.category?.icon ?? '🏷️'} {t.category?.name ?? 'Sin categoría'}</>,
+    },
+    {
+      key: 'account',
+      header: 'Cuenta',
+      render: (t) => {
+        const account = t.account_id ? accountById.get(t.account_id) : null
+        if (!account) return <Text as="span" color="#6b7280">—</Text>
+        return <>{account.icon ?? '💳'} {account.name}</>
+      },
     },
     {
       key: 'type',
@@ -110,6 +121,7 @@ export function TransactionsTable({ transactions, userId, onUpdate, onEdit }: Pr
               <TransactionCardMobile
                 key={t.id}
                 transaction={t}
+                account={t.account_id ? (accountById.get(t.account_id) ?? null) : null}
                 onEdit={onEdit}
                 onDelete={setSelectedId}
               />

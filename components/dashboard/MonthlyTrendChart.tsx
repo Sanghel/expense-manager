@@ -1,20 +1,12 @@
 'use client'
 
 import { useMemo, memo } from 'react'
-import { Box, Heading, Text } from '@chakra-ui/react'
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts'
-import { Card } from '@/components/ui/Card'
-import type { TransactionWithCategory } from '@/types/database.types'
+import { ResponsiveLine } from '@nivo/line'
+import { ChartCard } from '@/components/charts/ChartCard'
+import { nivoTheme, INCOME, EXPENSE } from '@/components/charts/nivo-theme'
 import { formatCurrency } from '@/lib/utils/currency'
+import { toNumber } from '@/lib/utils/numbers'
+import type { Currency, TransactionWithCategory } from '@/types/database.types'
 
 interface ChartDataPoint {
   month: string
@@ -24,77 +16,99 @@ interface ChartDataPoint {
 
 interface Props {
   transactions: TransactionWithCategory[]
+  currency?: Currency
 }
 
-export const MonthlyTrendChart = memo(function MonthlyTrendChart({ transactions }: Props) {
+function monthLabel(month: string): string {
+  return new Date(`${month}-01T12:00:00`).toLocaleDateString('es-CO', {
+    month: 'short',
+    year: '2-digit',
+  })
+}
+
+export const MonthlyTrendChart = memo(function MonthlyTrendChart({
+  transactions,
+  currency = 'COP',
+}: Props) {
   const chartData = useMemo<ChartDataPoint[]>(() => {
-    const grouped = transactions.reduce<Record<string, ChartDataPoint>>(
-      (acc, t) => {
-        const month = t.date.slice(0, 7) // YYYY-MM
-        if (!acc[month]) {
-          acc[month] = { month, income: 0, expense: 0 }
-        }
-        if (t.type === 'income') {
-          acc[month].income += Number(t.amount)
-        } else {
-          acc[month].expense += Number(t.amount)
-        }
-        return acc
-      },
-      {}
-    )
+    const grouped = transactions.reduce<Record<string, ChartDataPoint>>((acc, t) => {
+      const month = t.date.slice(0, 7) // YYYY-MM
+      if (!acc[month]) {
+        acc[month] = { month, income: 0, expense: 0 }
+      }
+      if (t.type === 'income') {
+        acc[month].income += toNumber(t.amount)
+      } else {
+        acc[month].expense += toNumber(t.amount)
+      }
+      return acc
+    }, {})
 
     return Object.values(grouped)
       .sort((a, b) => a.month.localeCompare(b.month))
       .slice(-6)
   }, [transactions])
 
-  if (chartData.length === 0) {
-    return (
-      <Card>
-        <Heading size="md" mb={4}>Tendencia Mensual</Heading>
-        <Text color="#B0B0B0">No hay suficientes datos para mostrar.</Text>
-      </Card>
-    )
-  }
+  const series = [
+    {
+      id: 'Ingresos',
+      data: chartData.map((d) => ({ x: monthLabel(d.month), y: Math.round(d.income) })),
+    },
+    {
+      id: 'Gastos',
+      data: chartData.map((d) => ({ x: monthLabel(d.month), y: Math.round(d.expense) })),
+    },
+  ]
 
   return (
-    <Card>
-      <Heading size="md" mb={4}>Tendencia Mensual</Heading>
-      <Box h={{ base: '220px', md: '300px' }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="month" />
-            <YAxis />
-            <Tooltip
-              formatter={(value) => [formatCurrency(Number(value), 'COP'), '']}
-              contentStyle={{
-                backgroundColor: '#1a1a23',
-                border: '1px solid #2d2d35',
-                borderRadius: '8px',
-                color: '#ffffff',
-              }}
-              labelStyle={{ color: '#B0B0B0' }}
-            />
-            <Legend />
-            <Line
-              type="monotone"
-              dataKey="income"
-              stroke="#2ECC71"
-              name="Ingresos"
-              strokeWidth={2}
-            />
-            <Line
-              type="monotone"
-              dataKey="expense"
-              stroke="#E74C3C"
-              name="Gastos"
-              strokeWidth={2}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </Box>
-    </Card>
+    <ChartCard
+      title="Tendencia Mensual"
+      height={280}
+      isEmpty={chartData.length === 0}
+      emptyMessage="No hay suficientes datos para mostrar."
+    >
+      <ResponsiveLine
+        data={series}
+        theme={nivoTheme}
+        colors={[INCOME, EXPENSE]}
+        margin={{ top: 12, right: 20, bottom: 56, left: 68 }}
+        yScale={{ type: 'linear', min: 0, max: 'auto' }}
+        curve="monotoneX"
+        lineWidth={2}
+        pointSize={8}
+        pointBorderWidth={2}
+        pointBorderColor={{ from: 'serieColor' }}
+        pointColor="#1a1a23"
+        enableGridX={false}
+        useMesh
+        enableCrosshair
+        crosshairType="x"
+        axisBottom={{ tickSize: 0, tickPadding: 8 }}
+        axisLeft={{
+          tickSize: 0,
+          tickPadding: 8,
+          tickValues: 5,
+          format: (v) => formatCurrency(Number(v), currency).replace(/[,.]\d{2}$/, ''),
+        }}
+        legends={[
+          {
+            anchor: 'bottom',
+            direction: 'row',
+            translateY: 48,
+            itemWidth: 90,
+            itemHeight: 16,
+            symbolSize: 10,
+            symbolShape: 'circle',
+          },
+        ]}
+        tooltip={({ point }) => (
+          <div>
+            <strong>{point.seriesId}</strong> · {String(point.data.x)}
+            <br />
+            {formatCurrency(Number(point.data.y), currency)}
+          </div>
+        )}
+      />
+    </ChartCard>
   )
 })

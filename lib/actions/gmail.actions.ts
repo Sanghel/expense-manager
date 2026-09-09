@@ -32,11 +32,30 @@ export interface SyncGmailSuccess {
   errors: number
 }
 
+/**
+ * Server-side gate for the Gmail integration. Hiding the button is cosmetic —
+ * the action is reachable directly, so it has to check for itself.
+ */
+async function gmailSyncEnabled(userId: string): Promise<boolean> {
+  const { data } = await insforgeAdmin.database
+    .from('users')
+    .select('gmail_sync_enabled')
+    .eq('id', userId)
+    .single()
+  return data?.gmail_sync_enabled === true
+}
+
+const GMAIL_DISABLED_MESSAGE =
+  'La sincronización con Gmail no está habilitada para esta cuenta.'
+
 export async function syncGmail(): Promise<
   SyncGmailSuccess | { success: false; error: string }
 > {
   try {
     const userId = await requireUserId()
+    if (!(await gmailSyncEnabled(userId))) {
+      return { success: false, error: GMAIL_DISABLED_MESSAGE }
+    }
     const result = await parseGmailForUser(userId)
     return {
       success: true,
@@ -66,6 +85,9 @@ export async function commitGmailTransactions(
 > {
   try {
     const userId = await requireUserId()
+    if (!(await gmailSyncEnabled(userId))) {
+      return { success: false, error: GMAIL_DISABLED_MESSAGE }
+    }
     if (!Array.isArray(items) || items.length === 0) {
       return { success: false, error: 'No hay transacciones para registrar' }
     }
@@ -106,6 +128,7 @@ export async function disconnectGmail(): Promise<
 }
 
 export async function getGmailStatus(): Promise<{
+  enabled: boolean
   connected: boolean
   connectedAt: string | null
   lastSyncedAt: string | null
@@ -113,10 +136,11 @@ export async function getGmailStatus(): Promise<{
   const userId = await requireUserId()
   const { data } = await insforgeAdmin.database
     .from('users')
-    .select('gmail_refresh_token, gmail_connected_at, gmail_last_synced_at')
+    .select('gmail_sync_enabled, gmail_refresh_token, gmail_connected_at, gmail_last_synced_at')
     .eq('id', userId)
     .single()
   return {
+    enabled: data?.gmail_sync_enabled === true,
     connected: !!data?.gmail_refresh_token,
     connectedAt: data?.gmail_connected_at ?? null,
     lastSyncedAt: data?.gmail_last_synced_at ?? null,

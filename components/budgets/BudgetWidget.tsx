@@ -2,25 +2,17 @@
 
 import { VStack, HStack, Heading, Text, Button, Box, Link } from '@chakra-ui/react'
 import { BudgetProgress } from './BudgetProgress'
-import type { Budget } from '@/types/database.types'
-
-interface BudgetWithSpent extends Budget {
-  spent: number
-  category: { name: string }
-}
+import { formatCurrency } from '@/lib/utils/currency'
+import { safeRatio } from '@/lib/utils/numbers'
+import type { BudgetWithSpent } from '@/types/database.types'
 
 interface Props {
-  budgets: any[]
+  budgets: BudgetWithSpent[]
 }
 
 export function BudgetWidget({ budgets }: Props) {
-  const topBudgets: BudgetWithSpent[] = (budgets as any[])
-    .map((b) => ({ ...b, spent: b.spent || 0 }))
-    .sort((a, b) => {
-      const aPercent = (a.spent / a.amount) * 100
-      const bPercent = (b.spent / b.amount) * 100
-      return bPercent - aPercent
-    })
+  const topBudgets = [...budgets]
+    .sort((a, b) => safeRatio(b.spent, b.limit_amount) - safeRatio(a.spent, a.limit_amount))
     .slice(0, 3)
 
   return (
@@ -28,7 +20,7 @@ export function BudgetWidget({ budgets }: Props) {
       <VStack gap={4} align="stretch">
         <HStack justify="space-between">
           <Heading size="md">Presupuestos del Mes</Heading>
-          <Link href="/dashboard/budgets" _hover={{ textDecoration: 'none' }}>
+          <Link href="/planificacion?tab=presupuestos" _hover={{ textDecoration: 'none' }}>
             <Button size="sm" variant="ghost">
               Ver todos →
             </Button>
@@ -44,9 +36,15 @@ export function BudgetWidget({ budgets }: Props) {
             {topBudgets.map((budget, idx) => (
               <VStack key={budget.id} gap={2} align="stretch" borderBottomWidth={idx < topBudgets.length - 1 ? "1px" : "0"} pb={idx < topBudgets.length - 1 ? "4" : "0"}>
                 <HStack justify="space-between">
-                  <Heading size="sm">{budget.category?.name || 'Unknown'}</Heading>
+                  <Heading size="sm">
+                    {budget.scope === 'total'
+                      ? 'Todos los gastos'
+                      : budget.scope === 'group'
+                        ? (budget.group?.name ?? 'Grupo')
+                        : (budget.category?.name ?? 'Sin categoría')}
+                  </Heading>
                   <Text fontSize="sm" fontWeight="medium">
-                    {budget.amount.toLocaleString('es-CO', { maximumFractionDigits: 0 })} {budget.currency}
+                    {formatCurrency(budget.limit_amount, budget.currency)}
                   </Text>
                 </HStack>
                 <BudgetProgress budget={budget} />

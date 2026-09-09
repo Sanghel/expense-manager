@@ -1,11 +1,13 @@
 'use server'
 
+import { endOfMonth, parseISO, startOfMonth, subMonths } from 'date-fns'
 import { insforgeAdmin } from '@/lib/insforge-admin'
 import { getAllRatePairs } from '@/lib/actions/exchangeRates.actions'
 import { getBudgets } from '@/lib/actions/budgets.actions'
 import { getCategoryGroups } from '@/lib/actions/categoryGroups.actions'
 import { buildConverter, type RateRow } from '@/lib/utils/currency-converter'
 import { safeRatio, toNumber } from '@/lib/utils/numbers'
+import { getLocalDateString } from '@/lib/utils/dates'
 import type {
   BudgetWithSpent,
   CategoryGroupWithMembers,
@@ -49,7 +51,7 @@ export interface ReportDataset {
   expenseByWeekday: { weekday: number; label: string; value: number }[]
   /** Every month of the filtered range. */
   monthly: { month: string; income: number; expense: number }[]
-  savingsRate: { month: string; rate: number }[]
+  savingsRate: { month: string; rate: number | null }[]
   cumulative: { date: string; balance: number }[]
   /** One entry per day with expenses, for the calendar heatmap. */
   daily: { day: string; value: number }[]
@@ -111,6 +113,9 @@ function sortDesc(list: NamedAmount[]): NamedAmount[] {
  * query, converts everything into the user's preferred currency, and returns
  * the series already aggregated.
  */
+/** Months of history behind the savings-rate trend, independent of the filter. */
+const TREND_MONTHS = 12
+
 export async function getReportDataset(
   userId: string,
   filters: ReportFiltersInput
@@ -120,7 +125,16 @@ export async function getReportDataset(
   try {
     const { prevStart, prevEnd } = shiftRange(filters.startDate, filters.endDate)
 
-    const [userRes, txRes, prevTxRes, categoriesRes, accountsRes, remindersRes, ratePairs, groupsResult, budgetsResult] =
+    // The savings rate is a trend, not a snapshot. Bound to the report filter it
+    // collapsed to a single point (the default filter is the current month), so
+    // the line chart rendered as one dot — indistinguishable from empty. It gets
+    // its own bounded 12-month window ending at the filter's end date.
+    const trendEnd = endOfMonth(parseISO(filters.endDate))
+    const trendStart = startOfMonth(subMonths(trendEnd, TREND_MONTHS - 1))
+    const trendStartKey = getLocalDateString(trendStart)
+    const trendEndKey = getLocalDateString(trendEnd)
+
+    const [userRes, txRes, prevTxRes, categoriesRes, accountsRes, remindersRes, trendTxRes, ratePairs, groupsResult, budgetsResult] =
       await Promise.all([
         insforgeAdmin.database.from('users').select('preferred_currency').eq('id', userId).single(),
         insforgeAdmin.database
@@ -143,6 +157,12 @@ export async function getReportDataset(
           .select('description, category_id')
           .eq('user_id', userId)
           .eq('is_active', true),
+        insforgeAdmin.database
+          .from('transactions')
+          .select('amount, currency, type, date')
+          .eq('user_id', userId)
+          .gte('date', trendStartKey)
+          .lte('date', trendEndKey),
         getAllRatePairs(),
         getCategoryGroups(userId),
         getBudgets(userId),
@@ -326,10 +346,24 @@ export async function getReportDataset(
           income: monthly.get(month)!.income,
           expense: monthly.get(month)!.expense,
         })),
-        savingsRate: monthKeys.map((month) => {
-          const { income, expense } = monthly.get(month)!
-          return { month, rate: safeRatio(income - expense, income) * 100 }
-        }),
+        savingsRate: (() => {
+          const trend = new Map<string, { income: number; expense: number }>()
+          for (const t of (trendTxRes.data ?? []) as RawTransaction[]) {
+            const month = t.date.slice(0, 7)
+            const bucket = trend.get(month) ?? { income: 0, expense: 0 }
+            if (t.type === 'income') bucket.income += amountOf(t)
+            else bucket.expense += amountOf(t)
+            trend.set(month, bucket)
+          }
+          return [...trend.entries()]
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([month, { income, expense }]) => ({
+              month,
+              // A month with no income has no meaningful savings rate — 0 % would
+              // read as "saved nothing" when the truth is "nothing came in".
+              rate: income > 0 ? safeRatio(income - expense, income) * 100 : null,
+            }))
+        })(),
         cumulative: (() => {
           const byDate = new Map<string, number>()
           for (const t of rows) {
@@ -368,8 +402,13 @@ export async function getReportDataset(
                   ? (b.group?.name ?? 'Grupo')
                   : (b.category?.name ?? 'Sin categoría'),
             percent: Math.round(safeRatio(b.spent, b.limit_amount) * 100),
+            hasLimit: toNumber(b.limit_amount) > 0,
           }))
-          .filter((b) => b.percent > 0)
+          // A budget sitting at 0 % is information, not noise — it used to be
+          // filtered out, so the chart looked empty for anyone who had budgets
+          // but no spend against them yet. Only budgets without a resolvable
+          // limit (a percentage budget in a period with no income) are dropped.
+          .filter((b) => b.hasLimit)
           .slice(0, 8),
         profile,
       },

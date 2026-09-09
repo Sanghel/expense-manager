@@ -89,6 +89,12 @@ export async function getBudgets(userId: string) {
 
     const budgetsWithSpent = budgets.map((budget, index) => {
       const { periodStart, periodEnd } = periods[index]
+      // Compared as YYYY-MM-DD strings, not Date objects: `new Date('2026-09-01')`
+      // parses as UTC midnight, which is Aug 31 19:00 in COP (UTC-5) and falls
+      // before a local-midnight periodStart, so the first day of every cycle was
+      // silently dropped from `spent`.
+      const periodStartKey = getLocalDateString(periodStart)
+      const periodEndKey = getLocalDateString(periodEnd)
       const currency = budget.currency as Currency
       const scope = (budget.scope ?? 'category') as BudgetScope
       const amountType = (budget.amount_type ?? 'fixed') as BudgetAmountType
@@ -106,8 +112,8 @@ export async function getBudgets(userId: string) {
       let periodExpense = 0
 
       for (const t of transactions ?? []) {
-        const transDate = new Date(t.date)
-        if (transDate < periodStart || transDate > periodEnd) continue
+        const transDate = String(t.date).slice(0, 10)
+        if (transDate < periodStartKey || transDate > periodEndKey) continue
 
         // Converted into the budget's currency: a USD purchase used to be
         // summed 1:1 into a COP budget.

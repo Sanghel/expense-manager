@@ -54,6 +54,7 @@ export default async function SettingsPage({
   }
 
   const gmailStatus = {
+    enabled: user.gmail_sync_enabled === true,
     connected: !!user.gmail_refresh_token,
     connectedAt: user.gmail_connected_at,
     lastSyncedAt: user.gmail_last_synced_at,

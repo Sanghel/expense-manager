@@ -6,7 +6,7 @@ import { ChartCard } from './ChartCard'
 import { nivoTheme, INCOME, EXPENSE, BRAND } from './nivo-theme'
 
 interface Props {
-  data: { month: string; rate: number }[]
+  data: { month: string; rate: number | null }[]
 }
 
 function monthLabel(month: string): string {
@@ -17,35 +17,43 @@ function monthLabel(month: string): string {
 }
 
 export function SavingsRateChart({ data }: Props) {
-  const average = data.length
-    ? data.reduce((sum, d) => sum + d.rate, 0) / data.length
+  // Months with no income carry no rate; averaging them in as 0 would drag the
+  // headline down for a month where simply nothing came in.
+  const rated = data.filter((d): d is { month: string; rate: number } => d.rate !== null)
+  const average = rated.length
+    ? rated.reduce((sum, d) => sum + d.rate, 0) / rated.length
     : 0
 
   const series = [
     {
       id: 'Tasa de ahorro',
-      data: data.map((d) => ({ x: monthLabel(d.month), y: Math.round(d.rate) })),
+      // `null` breaks the line across the gap instead of dropping to zero.
+      data: data.map((d) => ({
+        x: monthLabel(d.month),
+        y: d.rate === null ? null : Math.round(d.rate),
+      })),
     },
   ]
 
   return (
     <ChartCard
       title="Tasa de Ahorro"
-      subtitle="Qué porcentaje de lo que ingresas te queda cada mes"
+      subtitle="Qué porcentaje de lo que ingresas te queda cada mes · últimos 12 meses"
       headline={
         <Text fontSize="lg" fontWeight="bold" color={average >= 0 ? INCOME : EXPENSE}>
           {average.toFixed(0)}%
         </Text>
       }
       height={280}
-      isEmpty={data.length === 0}
+      isEmpty={rated.length === 0}
+      emptyMessage="Sin ingresos registrados en los últimos meses, así que no hay tasa de ahorro que calcular."
     >
       <ResponsiveLine
         data={series}
         theme={nivoTheme}
         colors={[BRAND]}
         margin={{ top: 16, right: 20, bottom: 48, left: 52 }}
-        yScale={{ type: 'linear', min: 'auto', max: 'auto' }}
+        yScale={{ type: 'linear', min: 'auto', max: 'auto', stacked: false }}
         curve="monotoneX"
         lineWidth={2}
         pointSize={8}

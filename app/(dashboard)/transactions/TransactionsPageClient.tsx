@@ -21,15 +21,12 @@ import { ExportTransactionsModal } from '@/components/transactions/ExportTransac
 import { ImportTransactionsModal } from '@/components/transactions/ImportTransactionsModal'
 import { GmailSyncButton } from '@/components/transactions/GmailSyncButton'
 import { AccountsOverview } from '@/components/dashboard/AccountsOverview'
-import { StatCard } from '@/components/ui/StatCard'
+import { BudgetWidget } from '@/components/budgets/BudgetWidget'
 import { useDebounce } from '@/hooks/useDebounce'
-import { getAccountsTotal } from '@/lib/utils/accounts'
-import { formatCurrency } from '@/lib/utils/currency'
 import type {
   Account,
+  BudgetWithSpent,
   Category,
-  Currency,
-  ExchangeRate,
   TransactionWithCategory,
 } from '@/types/database.types'
 
@@ -40,8 +37,8 @@ interface Props {
   categories: Category[]
   initialTransactions: TransactionWithCategory[]
   accounts?: Account[]
-  preferredCurrency?: Currency
-  exchangeRates?: ExchangeRate[]
+  budgets?: BudgetWithSpent[]
+  gmailSyncEnabled?: boolean
 }
 
 const defaultFilters: FilterState = {
@@ -57,8 +54,8 @@ export function TransactionsPageClient({
   categories,
   initialTransactions,
   accounts = [],
-  preferredCurrency = 'COP',
-  exchangeRates = [],
+  budgets = [],
+  gmailSyncEnabled = false,
 }: Props) {
   const router = useRouter()
   const { open: isCreateOpen, onOpen: onCreateOpen, onClose: onCreateClose } = useDisclosure()
@@ -107,11 +104,6 @@ export function TransactionsPageClient({
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
-  const accountsTotal = useMemo(
-    () => getAccountsTotal(accounts, preferredCurrency, exchangeRates),
-    [accounts, preferredCurrency, exchangeRates]
-  )
-
   const handleEdit = useCallback((transaction: TransactionWithCategory) => {
     setEditingTransaction(transaction)
     onEditOpen()
@@ -134,7 +126,9 @@ export function TransactionsPageClient({
           <Heading size={{ base: 'md', md: 'lg' }} color="white">Transacciones</Heading>
         </HStack>
         <HStack gap={2} justify="flex-end" flexWrap="wrap">
-          <GmailSyncButton userId={userId} categories={categories} accounts={accounts} />
+          {gmailSyncEnabled && (
+            <GmailSyncButton userId={userId} categories={categories} accounts={accounts} />
+          )}
           <Button variant="outline" onClick={onExportOpen} size={{ base: 'sm', md: 'md' }} aria-label="Exportar">
             <FiDownload />
             <Text display={{ base: 'none', md: 'inline' }}>Exportar</Text>
@@ -157,19 +151,15 @@ export function TransactionsPageClient({
         </HStack>
       </HStack>
 
-      {accountsTotal !== null && (
+      <Box mb={{ base: 4, md: 6 }}>
+        <AccountsOverview accounts={accounts} variant="compact" />
+      </Box>
+
+      {budgets.length > 0 && (
         <Box mb={{ base: 4, md: 6 }}>
-          <StatCard
-            label="Balance en cuentas"
-            value={formatCurrency(accountsTotal, preferredCurrency)}
-            helpText={`${accounts.length} ${accounts.length === 1 ? 'cuenta' : 'cuentas'}`}
-          />
+          <BudgetWidget budgets={budgets} />
         </Box>
       )}
-
-      <Box mb={{ base: 4, md: 6 }}>
-        <AccountsOverview accounts={accounts} />
-      </Box>
 
       <TransactionsFilter
         filters={filters}

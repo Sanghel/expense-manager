@@ -13,8 +13,10 @@ interface StatCardProps {
 export function StatCard({ label, value, helpText, variant = 'default' }: StatCardProps) {
   const compact = variant === 'compact'
 
+  // Spread conditionally: `p={undefined}` would still win over Card's own p={6}
+  // default and leave the card with no padding at all.
   return (
-    <Card p={compact ? { base: 3, md: 4 } : undefined}>
+    <Card {...(compact ? { p: { base: 3, md: 4 } } : {})}>
       <StatRoot gap={compact ? 0 : undefined}>
         <StatLabel fontSize={compact ? 'xs' : undefined}>{label}</StatLabel>
         <StatValueText fontSize={compact ? { base: 'lg', md: 'xl' } : undefined}>

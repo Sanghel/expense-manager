@@ -2,6 +2,7 @@
 
 import { ResponsiveBar } from '@nivo/bar'
 import { ChartCard } from './ChartCard'
+import { ChartTooltip } from './ChartTooltip'
 import { nivoTheme, EXPENSE, INCOME } from './nivo-theme'
 import { formatCurrency } from '@/lib/utils/currency'
 import type { Currency } from '@/types/database.types'
@@ -58,12 +59,11 @@ export function MonthlyComparisonChart({ data, currency }: Props) {
             symbolShape: 'circle',
           },
         ]}
-        tooltip={({ id, value, indexValue }) => (
-          <div>
-            <strong>{indexValue}</strong>
-            <br />
-            {id}: {formatCurrency(Number(value), currency)}
-          </div>
+        tooltip={({ id, value, indexValue, color }) => (
+          <ChartTooltip
+            title={indexValue}
+            rows={[{ color, label: id, value: formatCurrency(Number(value), currency) }]}
+          />
         )}
         role="img"
         ariaLabel="Comparación mensual de ingresos y gastos"

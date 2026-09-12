@@ -1,5 +1,20 @@
 # Changelog
 
+## [3.10.1] — 2026-09-12
+
+### Fixed
+
+**Tooltips de las gráficas: sin fondo, sin aire y partidos a media frase**
+
+- Nivo **no** aplica `theme.tooltip.container` a los tooltips propios: su `TooltipWrapper` omite explícitamente las claves `container`, `table`, `tableCell` y `chip` del tema, y solo sus `BasicTooltip`/`TableTooltip` internos las usan. Como 10 de las 11 gráficas definían su propio `tooltip={...}`, todas se renderizaban sin fondo, sin padding y sin `white-space: nowrap` — de ahí los montos partidos (`COP / 2.696.796,75`). "Perfil de Gasto" se salvaba justamente por **no** definir tooltip y caer en el `sliceTooltip` por defecto del radar.
+- Nuevo `components/charts/ChartTooltip.tsx`: aplica la superficie él mismo en vez de confiar en el tema, y usa la misma estructura de tabla del tooltip bueno (título, chip de color por serie, etiqueta y valor alineado a la derecha) con `min-width` para que deje de colapsarse. Las **11** gráficas lo usan ahora, el radar incluido.
+- El estilo del contenedor se extrae a `TOOLTIP_CONTAINER` en `nivo-theme.ts`, del que leen tanto `ChartTooltip` como `nivoTheme.tooltip.container`, para que no diverjan.
+- **Crosshair invisible**: las tres gráficas de línea activaban `enableCrosshair` pero el tema no definía `crosshair.line`, así que nivo caía a su negro por defecto, invisible sobre el fondo oscuro.
+
+### Database
+
+`scripts/sql/merge-savings-goals-manchester.sql` — operación **puntual de datos**, no una migración de esquema: fusiona las 4 metas de ahorro de una cuenta en una sola ("Manchester"). No toca `accounts.balance` ni `transactions`: el descuento de saldo vive solo en la server action `addFundsToGoal` y no hay triggers en `savings_goals`, `savings_contributions` ni `accounts`.
+
 ## [3.10.0] — 2026-09-06
 
 ### Added

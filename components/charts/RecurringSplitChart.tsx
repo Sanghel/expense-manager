@@ -2,6 +2,7 @@
 
 import { ResponsiveBar } from '@nivo/bar'
 import { ChartCard } from './ChartCard'
+import { ChartTooltip } from './ChartTooltip'
 import { nivoTheme, seriesColor } from './nivo-theme'
 import { formatCurrency } from '@/lib/utils/currency'
 import type { Currency } from '@/types/database.types'
@@ -63,16 +64,18 @@ export function RecurringSplitChart({ data, currency }: Props) {
             symbolShape: 'circle',
           },
         ]}
-        tooltip={({ id, value, data: d }) => (
-          <div>
-            <strong>{d.month}</strong>
-            <br />
-            {id}: {value}%
-            <br />
-            <span style={{ opacity: 0.7 }}>
-              {formatCurrency(id === 'Fijo' ? d._recurring : d._oneOff, currency)}
-            </span>
-          </div>
+        tooltip={({ id, value, data: d, color }) => (
+          <ChartTooltip
+            title={d.month}
+            rows={[
+              { color, label: id, value: `${value}%` },
+              {
+                muted: true,
+                label: 'Monto',
+                value: formatCurrency(id === 'Fijo' ? d._recurring : d._oneOff, currency),
+              },
+            ]}
+          />
         )}
         role="img"
         ariaLabel="Proporción de gasto fijo y variable por mes"

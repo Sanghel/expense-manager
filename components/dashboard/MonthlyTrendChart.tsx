@@ -3,6 +3,7 @@
 import { useMemo, memo } from 'react'
 import { ResponsiveLine } from '@nivo/line'
 import { ChartCard } from '@/components/charts/ChartCard'
+import { ChartTooltip } from '@/components/charts/ChartTooltip'
 import { nivoTheme, INCOME, EXPENSE } from '@/components/charts/nivo-theme'
 import { formatCurrency } from '@/lib/utils/currency'
 import { toNumber } from '@/lib/utils/numbers'
@@ -102,11 +103,16 @@ export const MonthlyTrendChart = memo(function MonthlyTrendChart({
           },
         ]}
         tooltip={({ point }) => (
-          <div>
-            <strong>{point.seriesId}</strong> · {String(point.data.x)}
-            <br />
-            {formatCurrency(Number(point.data.y), currency)}
-          </div>
+          <ChartTooltip
+            title={String(point.data.x)}
+            rows={[
+              {
+                color: point.seriesColor,
+                label: point.seriesId,
+                value: formatCurrency(Number(point.data.y), currency),
+              },
+            ]}
+          />
         )}
       />
     </ChartCard>

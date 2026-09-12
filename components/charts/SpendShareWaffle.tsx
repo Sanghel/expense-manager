@@ -2,6 +2,7 @@
 
 import { ResponsiveWaffle } from '@nivo/waffle'
 import { ChartCard } from './ChartCard'
+import { ChartTooltip } from './ChartTooltip'
 import { nivoTheme, seriesColor, TEXT_MUTED } from './nivo-theme'
 import { formatCurrency } from '@/lib/utils/currency'
 import { safeRatio } from '@/lib/utils/numbers'
@@ -79,15 +80,21 @@ export function SpendShareWaffle({ data, total, currency, title, subtitle }: Pro
           },
         ]}
         tooltip={({ data: d }) => (
-          <div>
-            <strong>{d.label}</strong>
-            <br />
-            {formatCurrency(amountById.get(d.id as string) ?? 0, currency)}
-            <br />
-            <span style={{ opacity: 0.7 }}>
-              {d.value.toFixed(1)} % del gasto del periodo
-            </span>
-          </div>
+          <ChartTooltip
+            title={d.label}
+            rows={[
+              {
+                color: d.color,
+                label: 'Monto',
+                value: formatCurrency(amountById.get(d.id as string) ?? 0, currency),
+              },
+              {
+                muted: true,
+                label: 'Del gasto del periodo',
+                value: `${d.value.toFixed(1)}%`,
+              },
+            ]}
+          />
         )}
       />
     </ChartCard>

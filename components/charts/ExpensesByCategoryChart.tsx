@@ -2,6 +2,7 @@
 
 import { ResponsiveBar } from '@nivo/bar'
 import { ChartCard } from './ChartCard'
+import { ChartTooltip } from './ChartTooltip'
 import { nivoTheme, EXPENSE, INCOME } from './nivo-theme'
 import { formatCurrency } from '@/lib/utils/currency'
 import { safeRatio } from '@/lib/utils/numbers'
@@ -58,16 +59,18 @@ export function ExpensesByCategoryChart({ type, data, currency }: Props) {
         }}
         labelSkipWidth={64}
         label={(d) => `${(safeRatio(Number(d.value), total) * 100).toFixed(0)}%`}
-        tooltip={({ data: d, value }) => (
-          <div>
-            <strong>{d.label}</strong>
-            <br />
-            {formatCurrency(Number(value), currency)}
-            <br />
-            <span style={{ opacity: 0.7 }}>
-              {(safeRatio(Number(value), total) * 100).toFixed(1)}% del total
-            </span>
-          </div>
+        tooltip={({ data: d, value, color }) => (
+          <ChartTooltip
+            title={d.label}
+            rows={[
+              { color, label: 'Monto', value: formatCurrency(Number(value), currency) },
+              {
+                muted: true,
+                label: 'Del total',
+                value: `${(safeRatio(Number(value), total) * 100).toFixed(1)}%`,
+              },
+            ]}
+          />
         )}
         role="img"
         ariaLabel={isIncome ? 'Ingresos por categoría' : 'Gastos por categoría'}

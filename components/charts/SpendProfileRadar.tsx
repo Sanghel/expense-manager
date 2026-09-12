@@ -2,6 +2,7 @@
 
 import { ResponsiveRadar } from '@nivo/radar'
 import { ChartCard } from './ChartCard'
+import { ChartTooltip } from './ChartTooltip'
 import { nivoTheme, CATEGORICAL_ALL_PAIRS } from './nivo-theme'
 import { formatCurrency } from '@/lib/utils/currency'
 import type { Currency } from '@/types/database.types'
@@ -44,6 +45,16 @@ export function SpendProfileRadar({ data, currency }: Props) {
         dotColor="#1a1a23"
         dotBorderColor={{ from: 'color' }}
         valueFormat={(v) => formatCurrency(Number(v), currency)}
+        sliceTooltip={({ index, data }) => (
+          <ChartTooltip
+            title={index}
+            rows={data.map((d) => ({
+              color: d.color,
+              label: d.id,
+              value: d.formattedValue,
+            }))}
+          />
+        )}
         legends={[
           {
             anchor: 'bottom',

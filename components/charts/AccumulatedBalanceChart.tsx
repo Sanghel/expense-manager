@@ -3,6 +3,7 @@
 import { ResponsiveLine } from '@nivo/line'
 import { Text } from '@chakra-ui/react'
 import { ChartCard } from './ChartCard'
+import { ChartTooltip } from './ChartTooltip'
 import { nivoTheme, BRAND, INCOME, EXPENSE } from './nivo-theme'
 import { formatCurrency } from '@/lib/utils/currency'
 import type { Currency } from '@/types/database.types'
@@ -69,11 +70,16 @@ export function AccumulatedBalanceChart({ data, currency }: Props) {
           format: (v) => formatCurrency(Number(v), currency).replace(/[,.]\d{2}$/, ''),
         }}
         tooltip={({ point }) => (
-          <div>
-            <strong>{String(point.data.x)}</strong>
-            <br />
-            {formatCurrency(Number(point.data.y), currency)}
-          </div>
+          <ChartTooltip
+            title={String(point.data.x)}
+            rows={[
+              {
+                color: point.seriesColor,
+                label: 'Balance',
+                value: formatCurrency(Number(point.data.y), currency),
+              },
+            ]}
+          />
         )}
       />
     </ChartCard>

@@ -3,6 +3,7 @@
 import { ResponsiveLine } from '@nivo/line'
 import { Text } from '@chakra-ui/react'
 import { ChartCard } from './ChartCard'
+import { ChartTooltip } from './ChartTooltip'
 import { nivoTheme, INCOME, EXPENSE, BRAND } from './nivo-theme'
 
 interface Props {
@@ -75,11 +76,16 @@ export function SavingsRateChart({ data }: Props) {
         axisBottom={{ tickSize: 0, tickPadding: 8 }}
         axisLeft={{ tickSize: 0, tickPadding: 8, tickValues: 5, format: (v) => `${v}%` }}
         tooltip={({ point }) => (
-          <div>
-            <strong>{String(point.data.x)}</strong>
-            <br />
-            {Number(point.data.y)}% ahorrado
-          </div>
+          <ChartTooltip
+            title={String(point.data.x)}
+            rows={[
+              {
+                color: point.seriesColor,
+                label: 'Ahorrado',
+                value: `${Number(point.data.y)}%`,
+              },
+            ]}
+          />
         )}
       />
     </ChartCard>

@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import type { PartialTheme } from '@nivo/theming'
 
 /**
@@ -50,6 +51,27 @@ export function seriesColor(index: number): string {
   return CATEGORICAL[index % CATEGORICAL.length]
 }
 
+/**
+ * Tooltip surface, shared by `ChartTooltip` and by nivo's own default
+ * tooltips. Nivo only applies `theme.tooltip.container` inside its built-in
+ * `BasicTooltip`/`TableTooltip`; custom `tooltip={...}` renderers get none of
+ * it, so `ChartTooltip` applies these values itself.
+ */
+export const TOOLTIP_CONTAINER: CSSProperties = {
+  background: '#18181d',
+  color: TEXT_PRIMARY,
+  fontSize: 12,
+  borderRadius: 8,
+  border: `1px solid ${BORDER}`,
+  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.5)',
+  padding: '8px 10px',
+  // Without this the tooltip collapses to the width of its longest word and
+  // wraps mid-sentence ("4.9% del / gasto").
+  whiteSpace: 'nowrap',
+  lineHeight: 1.5,
+  minWidth: 180,
+}
+
 export const nivoTheme: PartialTheme = {
   background: 'transparent',
   text: {
@@ -75,18 +97,15 @@ export const nivoTheme: PartialTheme = {
     text: { fontSize: 11, fill: TEXT_PRIMARY },
   },
   tooltip: {
-    container: {
-      background: '#18181d',
-      color: TEXT_PRIMARY,
-      fontSize: 12,
-      borderRadius: 8,
-      border: `1px solid ${BORDER}`,
-      boxShadow: '0 8px 24px rgba(0, 0, 0, 0.5)',
-      padding: '8px 10px',
-      // Without this the tooltip collapses to the width of its longest word and
-      // wraps mid-sentence ("4.9% del / gasto").
-      whiteSpace: 'nowrap' as const,
-      lineHeight: 1.5,
+    container: TOOLTIP_CONTAINER,
+  },
+  crosshair: {
+    // Without this nivo falls back to a black line, invisible on the dark surface.
+    line: {
+      stroke: TEXT_MUTED,
+      strokeWidth: 1,
+      strokeDasharray: '3 3',
+      strokeOpacity: 0.75,
     },
   },
   annotations: {

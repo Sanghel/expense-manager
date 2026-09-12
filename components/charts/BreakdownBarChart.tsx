@@ -2,6 +2,7 @@
 
 import { ResponsiveBar } from '@nivo/bar'
 import { ChartCard } from './ChartCard'
+import { ChartTooltip } from './ChartTooltip'
 import { nivoTheme, seriesColor } from './nivo-theme'
 import { formatCurrency } from '@/lib/utils/currency'
 import { safeRatio } from '@/lib/utils/numbers'
@@ -60,16 +61,18 @@ export function BreakdownBarChart({
           tickValues: 4,
           format: (v) => formatCurrency(Number(v), currency).replace(/[,.]\d{2}$/, ''),
         }}
-        tooltip={({ data: d, value }) => (
-          <div>
-            <strong>{d.label}</strong>
-            <br />
-            {formatCurrency(Number(value), currency)}
-            <br />
-            <span style={{ opacity: 0.7 }}>
-              {(safeRatio(Number(value), total) * 100).toFixed(1)}% del total
-            </span>
-          </div>
+        tooltip={({ data: d, value, color }) => (
+          <ChartTooltip
+            title={d.label}
+            rows={[
+              { color, label: 'Monto', value: formatCurrency(Number(value), currency) },
+              {
+                muted: true,
+                label: 'Del total',
+                value: `${(safeRatio(Number(value), total) * 100).toFixed(1)}%`,
+              },
+            ]}
+          />
         )}
         role="img"
         ariaLabel={title}

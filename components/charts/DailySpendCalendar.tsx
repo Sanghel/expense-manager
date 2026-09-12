@@ -2,6 +2,7 @@
 
 import { ResponsiveCalendar } from '@nivo/calendar'
 import { ChartCard } from './ChartCard'
+import { ChartTooltip } from './ChartTooltip'
 import { nivoTheme, SEQUENTIAL, BORDER } from './nivo-theme'
 import { formatCurrency } from '@/lib/utils/currency'
 import type { Currency } from '@/types/database.types'
@@ -33,12 +34,17 @@ export function DailySpendCalendar({ data, currency, from, to }: Props) {
         monthBorderColor={BORDER}
         dayBorderWidth={2}
         dayBorderColor="#0f0f13"
-        tooltip={({ day, value }) => (
-          <div>
-            <strong>{new Date(`${day}T12:00:00`).toLocaleDateString('es-CO')}</strong>
-            <br />
-            {formatCurrency(Number(value), currency)}
-          </div>
+        tooltip={({ day, value, color }) => (
+          <ChartTooltip
+            title={new Date(`${day}T12:00:00`).toLocaleDateString('es-CO')}
+            rows={[
+              {
+                color,
+                label: 'Gasto',
+                value: formatCurrency(Number(value), currency),
+              },
+            ]}
+          />
         )}
       />
     </ChartCard>

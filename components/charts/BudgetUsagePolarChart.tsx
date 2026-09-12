@@ -2,6 +2,7 @@
 
 import { ResponsiveRadialBar } from '@nivo/radial-bar'
 import { ChartCard } from './ChartCard'
+import { ChartTooltip } from './ChartTooltip'
 import { nivoTheme, seriesColor, EXPENSE, ACCENT } from './nivo-theme'
 
 interface Props {
@@ -61,11 +62,16 @@ export function BudgetUsagePolarChart({ data }: Props) {
           },
         ]}
         tooltip={({ bar }) => (
-          <div>
-            <strong>{bar.groupId}</strong>
-            <br />
-            {percentById.get(bar.groupId) ?? 0}% consumido
-          </div>
+          <ChartTooltip
+            title={bar.groupId}
+            rows={[
+              {
+                color: bar.color,
+                label: 'Consumido',
+                value: `${percentById.get(bar.groupId) ?? 0}%`,
+              },
+            ]}
+          />
         )}
       />
     </ChartCard>

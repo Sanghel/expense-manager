@@ -1,6 +1,6 @@
 # Changelog
 
-## [Sin publicar]
+## [3.10.1] — 2026-09-12
 
 ### Fixed
 

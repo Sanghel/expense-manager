@@ -20,11 +20,12 @@ import type {
 } from '@/types/database.types'
 
 type Tab = 'metas' | 'presupuestos'
+type Vista = 'grupos' | 'categorias'
 
 export default async function PlanificacionPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string }>
+  searchParams: Promise<{ tab?: string; vista?: string }>
 }) {
   const session = await getServerSession(authOptions)
 
@@ -44,6 +45,7 @@ export default async function PlanificacionPage({
 
   const params = await searchParams
   const tab = (params.tab as Tab) || 'metas'
+  const vista: Vista = params.vista === 'categorias' ? 'categorias' : 'grupos'
 
   let initialGoals: SavingsGoal[] | null = null
   let initialBudgets: BudgetWithSpent[] | null = null
@@ -76,6 +78,7 @@ export default async function PlanificacionPage({
     <PlanificacionPageClient
       userId={user.id}
       activeTab={tab}
+      vista={vista}
       initialGoals={initialGoals}
       initialBudgets={initialBudgets}
       categories={categories}

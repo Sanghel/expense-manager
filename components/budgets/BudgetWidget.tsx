@@ -46,7 +46,7 @@ export function BudgetWidget({ budgets }: Props) {
               const percentage = safeRatio(budget.spent, budget.limit_amount) * 100
               return (
                 <Grid key={budget.id} templateColumns="1.3fr 2fr 42px" gap={3} alignItems="center">
-                  <Text fontSize="xs" color="#e8e8ec" truncate>
+                  <Text fontSize="xs" color="#e8e8ec" truncate minW={0}>
                     {rowLabel(budget)}
                   </Text>
                   <BudgetProgress budget={budget} variant="bar" />

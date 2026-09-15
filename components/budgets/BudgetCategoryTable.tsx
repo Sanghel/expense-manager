@@ -12,9 +12,11 @@ interface Props {
   budgets: BudgetWithSpent[]
   onEdit: (budget: BudgetWithSpent) => void
   onDelete: (budgetId: string) => void
+  onCreate?: () => void
 }
 
-const COLS = '1.6fr 1fr 2.2fr 64px'
+// Última columna: dos Button size="xs" (minW 2rem c/u) + gap 1 (0.25rem) = 68px.
+const COLS = '1.6fr 1fr 2.2fr 72px'
 
 function label(budget: BudgetWithSpent): string {
   const icon = budget.category?.icon ? `${budget.category.icon} ` : ''
@@ -25,15 +27,34 @@ function pct(budget: BudgetWithSpent): number {
   return safeRatio(budget.spent, budget.limit_amount) * 100
 }
 
-export function BudgetCategoryTable({ budgets, onEdit, onDelete }: Props) {
+/** Base porcentual del tope, o null si el presupuesto es de monto fijo. */
+function percentBase(budget: BudgetWithSpent): string | null {
+  if (budget.amount_type === 'percent_income') return `${toNumber(budget.percent)}% de ingresos`
+  if (budget.amount_type === 'percent_expense') return `${toNumber(budget.percent)}% del gasto`
+  return null
+}
+
+/** Un presupuesto porcentual resuelve a 0 en un periodo sin movimientos. */
+function hasNoBasis(budget: BudgetWithSpent): boolean {
+  return budget.amount_type !== 'fixed' && toNumber(budget.limit_amount) <= 0
+}
+
+export function BudgetCategoryTable({ budgets, onEdit, onDelete, onCreate }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const ordered = sortByConsumption(budgets)
 
   if (ordered.length === 0) {
     return (
-      <Text color="#B0B0B0">
-        No hay presupuestos por categoría. Crea uno para empezar.
-      </Text>
+      <VStack align="start" gap={3}>
+        <Text color="#B0B0B0">
+          No hay presupuestos por categoría. Crea uno para empezar.
+        </Text>
+        {onCreate && (
+          <Button size="sm" bg="#4F46E5" color="white" _hover={{ bg: '#4338CA' }} onClick={onCreate}>
+            Nuevo Presupuesto
+          </Button>
+        )}
+      </VStack>
     )
   }
 
@@ -73,33 +94,40 @@ export function BudgetCategoryTable({ budgets, onEdit, onDelete }: Props) {
             alignItems="center"
             borderBottomWidth="1px"
             borderColor="#212128"
-            role="group"
             className="group"
             _hover={{ bg: '#17171c' }}
             transition="background 0.15s"
           >
-            <Text fontSize="sm" color="#e8e8ec" truncate>
+            <Text fontSize="sm" color="#e8e8ec" truncate minW={0}>
               {label(budget)}
             </Text>
             <Text fontSize="xs" color="#B0B0B0" textAlign="right">
               {formatCurrency(toNumber(budget.limit_amount), budget.currency)}
             </Text>
             <BudgetProgress budget={budget} variant="bar" />
-            <HStack justify="flex-end" gap={1}>
-              {/* Acciones al hover; el % cede el lugar */}
+            <HStack justify="flex-end" gap={1} position="relative">
+              {/* Acciones al hover o al enfocarlas con el teclado; el % cede el lugar.
+                  Las acciones van superpuestas (no en flujo) para que el % quede
+                  alineado a la derecha y la columna no tenga que sumar ambos anchos. */}
               <Text
                 fontSize="xs"
                 fontWeight="600"
                 color={progressColor(pct(budget))}
-                _groupHover={{ display: 'none' }}
+                _groupHover={{ visibility: 'hidden' }}
+                _groupFocusWithin={{ visibility: 'hidden' }}
               >
                 {pct(budget).toFixed(0)}%
               </Text>
               <HStack
                 gap={1}
-                display="none"
-                _groupHover={{ display: 'flex' }}
-                _groupFocusWithin={{ display: 'flex' }}
+                position="absolute"
+                right={0}
+                top="50%"
+                transform="translateY(-50%)"
+                opacity={0}
+                pointerEvents="none"
+                _groupHover={{ opacity: 1, pointerEvents: 'auto' }}
+                _groupFocusWithin={{ opacity: 1, pointerEvents: 'auto' }}
               >
                 <Button size="xs" variant="ghost" aria-label="Editar" onClick={() => onEdit(budget)}>
                   ✎
@@ -134,7 +162,7 @@ export function BudgetCategoryTable({ budgets, onEdit, onDelete }: Props) {
                 onClick={() => setExpandedId(isOpen ? null : budget.id)}
               >
                 <HStack justify="space-between" align="baseline" mb={1.5}>
-                  <Text fontSize="sm" fontWeight="600" color="white" truncate>
+                  <Text fontSize="sm" fontWeight="600" color="white" truncate minW={0}>
                     {label(budget)}
                   </Text>
                   <Text fontSize="sm" fontWeight="700" color={progressColor(percentage)}>
@@ -152,7 +180,13 @@ export function BudgetCategoryTable({ budgets, onEdit, onDelete }: Props) {
                 <VStack align="stretch" gap={2} mt={3} pt={3} borderTopWidth="1px" borderColor="#212128">
                   <Text fontSize="xs" color="#B0B0B0">
                     {budget.period === 'monthly' ? 'Mensual' : 'Anual'} · desde {budget.start_date}
+                    {percentBase(budget) ? ` · ${percentBase(budget)}` : ''}
                   </Text>
+                  {hasNoBasis(budget) && (
+                    <Text fontSize="xs" color="#B0B0B0">
+                      Sin movimientos suficientes en este periodo para calcular el límite.
+                    </Text>
+                  )}
                   <HStack gap={2}>
                     <Button size="sm" variant="outline" onClick={() => onEdit(budget)}>
                       Editar

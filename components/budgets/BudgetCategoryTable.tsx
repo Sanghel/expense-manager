@@ -74,6 +74,7 @@ export function BudgetCategoryTable({ budgets, onEdit, onDelete }: Props) {
             borderBottomWidth="1px"
             borderColor="#212128"
             role="group"
+            className="group"
             _hover={{ bg: '#17171c' }}
             transition="background 0.15s"
           >
@@ -94,7 +95,12 @@ export function BudgetCategoryTable({ budgets, onEdit, onDelete }: Props) {
               >
                 {pct(budget).toFixed(0)}%
               </Text>
-              <HStack gap={1} display="none" _groupHover={{ display: 'flex' }}>
+              <HStack
+                gap={1}
+                display="none"
+                _groupHover={{ display: 'flex' }}
+                _groupFocusWithin={{ display: 'flex' }}
+              >
                 <Button size="xs" variant="ghost" aria-label="Editar" onClick={() => onEdit(budget)}>
                   ✎
                 </Button>
@@ -124,6 +130,7 @@ export function BudgetCategoryTable({ budgets, onEdit, onDelete }: Props) {
                 as="button"
                 w="full"
                 textAlign="left"
+                aria-expanded={isOpen}
                 onClick={() => setExpandedId(isOpen ? null : budget.id)}
               >
                 <HStack justify="space-between" align="baseline" mb={1.5}>

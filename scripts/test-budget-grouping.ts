@@ -126,6 +126,19 @@ function check(name: string, ok: boolean, extra?: unknown) {
     r.members.length === 1 && r.members[0].budget.id === 'dentro' && r.residual === 600, r)
 }
 {
+  // Un miembro en otra moneda no es comparable: ni se lista ni se resta.
+  const g = budget({
+    id: 'g', scope: 'group', group_id: 'g1', currency: 'COP', spent: 1000, limit_amount: 1500,
+  })
+  const cats = [
+    budget({ id: 'cop', category_id: 'c1', currency: 'COP', spent: 400, limit_amount: 500 }),
+    budget({ id: 'usd', category_id: 'c2', currency: 'USD', spent: 300, limit_amount: 1000 }),
+  ]
+  const r = buildGroupBreakdown(g, cats, [grupoOcio])
+  check('breakdown: ignora miembros en otra moneda (ni en members ni en el residual)',
+    r.members.length === 1 && r.members[0].budget.id === 'cop' && r.residual === 600, r)
+}
+{
   const g = budget({ id: 'g', scope: 'group', group_id: 'inexistente', spent: 300, limit_amount: 500 })
   const r = buildGroupBreakdown(g, [], [grupoOcio])
   check('breakdown: grupo sin miembros -> residual = gasto del grupo',

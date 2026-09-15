@@ -191,3 +191,9 @@ existentes son `tsx` ejecutados a mano (`scripts/test-*-parser.ts`).
 - Mantener la paleta oscura existente (`#0F0F0F`, `#1A1A1A`, `#2d2d35`,
   `#B0B0B0`, acento `#4F46E5` / `#6366f1`) y los umbrales de color de
   `BudgetProgress` (verde ≤80%, amarillo >80%, rojo >100%).
+- Convención real del repo para el color del texto: `white` para la etiqueta
+  primaria de una fila (el nombre que identifica la fila) y `#e8e8ec` para
+  etiquetas densas o secundarias (filas de tabla compacta, desglose del
+  acordeón, widget del dashboard). `white` es lo que domina en el código
+  (127 usos frente a 3 de `#e8e8ec`, los tres de esta feature), así que no hay
+  que migrar los `color="white"` existentes a `#e8e8ec`.

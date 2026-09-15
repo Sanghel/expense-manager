@@ -10,7 +10,10 @@ export interface GroupBreakdownMember {
 export interface GroupBreakdown {
   /** El presupuesto de grupo. */
   group: BudgetWithSpent
-  /** Categorías miembro CON presupuesto propio, ordenadas por consumo desc. */
+  /**
+   * Categorías miembro CON presupuesto propio y en la misma moneda que el
+   * grupo, ordenadas por consumo desc.
+   */
   members: GroupBreakdownMember[]
   /**
    * Gasto del grupo que no cubre ninguna categoría con presupuesto propio.
@@ -47,8 +50,14 @@ export function buildGroupBreakdown(
   const memberIds = new Set(
     groups.find((g) => g.id === groupBudget.group_id)?.category_ids ?? []
   )
+  // `spent` viene en la moneda de cada presupuesto: restar o listar miembros de
+  // otra moneda produciría un residual sin sentido, formateado con la moneda
+  // del grupo. Solo entran los que comparten moneda con el grupo.
   const members = categoryBudgets.filter(
-    (b) => b.category_id !== null && memberIds.has(b.category_id)
+    (b) =>
+      b.category_id !== null &&
+      memberIds.has(b.category_id) &&
+      b.currency === groupBudget.currency
   )
   const membersSpent = members.reduce((acc, b) => acc + toNumber(b.spent), 0)
   const residual = toNumber(groupBudget.spent) - membersSpent

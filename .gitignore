@@ -53,3 +53,5 @@ public/workbox-*.js.map
 # PWA worker fallback files
 public/swe-worker-*.js
 public/fallback-*.js
+
+.superpowers/

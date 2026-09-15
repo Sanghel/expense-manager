@@ -1,5 +1,40 @@
 # Changelog
 
+## [3.11.0] — 2026-09-15
+
+### Added
+
+**Presupuestos separados por grupo y por categoría**
+
+- La pestaña Presupuestos se divide en dos sub-vistas, con la vista activa en la URL (`?tab=presupuestos&vista=grupos|categorias`, por defecto `grupos`). Antes los 22 presupuestos caían en una lista plana de cards a ancho completo, que mezclaba los dos ejes —el tope real del grupo y el reparto interno por categoría— y exigía scroll largo.
+- **Vista Grupos**: acordeón de filas a ancho completo. Son filas y no un grid de cards expandibles a propósito: una card que crece dentro de un grid desplaza a sus vecinas de columna y produce saltos de layout.
+- Al expandir, cada grupo lista sus categorías miembro **que tengan presupuesto propio**, más una fila residual **"Otras categorías del grupo"**. Sin esa fila, el desglose no sumaría el total del grupo —que sí incluye el gasto de las categorías sin presupuesto— y parecería un error de cálculo.
+- **Vista Categorías**: tabla densa en desktop (≥1024px) y filas de dos líneas en mobile, ambas ordenadas por porcentaje consumido descendente. Los dos layouts se eligen con CSS por breakpoint, no con `useBreakpointValue`, para que el HTML del servidor y el del cliente coincidan.
+- El botón "Nuevo Presupuesto" preselecciona el ámbito según la sub-vista activa, vía una prop `defaultScope` nueva en `BudgetForm` que solo aplica al crear.
+
+**Widget del dashboard: las cifras de grupo**
+
+- Pasa a mostrar **solo los presupuestos de grupo**, todos y no los 3 de mayor consumo, en una línea cada uno. Con cinco grupos entra completo sin scroll.
+- Conserva el comportamiento anterior como respaldo si no hay ningún presupuesto de grupo, para no dejar vacío un widget que antes daba información.
+
+### Changed
+
+- `BudgetProgress` acepta `variant: 'full' | 'bar'` y exporta `progressColor`, para que las vistas densas reutilicen la barra y los umbrales de color en vez de duplicarlos.
+- Nuevo `lib/utils/budget-grouping.ts` con la aritmética de agrupación (split por ámbito, orden por consumo, residual) como funciones puras, cubiertas por `scripts/test-budget-grouping.ts` siguiendo la convención `test-*.ts` del repo.
+
+### Fixed
+
+- **El residual de un grupo sumaba monedas distintas.** `getBudgets` calcula `spent` en la moneda de *cada* presupuesto, así que una categoría en USD dentro de un grupo en COP producía un residual sin significado, formateado además con la moneda del grupo. Ahora los miembros se filtran por la moneda del grupo antes de restar y de listarse.
+- **El residual podía salir negativo** cuando un presupuesto de categoría tiene `start_date` o periodo distintos al de su grupo: comparan ventanas de tiempo diferentes. Se normaliza a 0 y la fila se oculta, en vez de mostrar un número sin sentido.
+
+### Removed
+
+- `components/budgets/BudgetList.tsx`, reemplazado por las dos vistas nuevas. Su único consumidor era `BudgetsPageClient`.
+
+### Docs
+
+- `docs/specs/` y `docs/plans/` son nuevos en el repo: traen la spec de diseño y el plan de implementación de esta feature.
+
 ## [3.10.1] — 2026-09-12
 
 ### Fixed

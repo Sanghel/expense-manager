@@ -7,13 +7,31 @@ import type { BudgetWithSpent } from '@/types/database.types'
 
 interface Props {
   budget: Pick<BudgetWithSpent, 'limit_amount' | 'spent' | 'currency' | 'amount_type'>
+  /** 'full' (por defecto) = barra con encabezado y pie. 'bar' = solo la barra. */
+  variant?: 'full' | 'bar'
 }
 
-export function BudgetProgress({ budget }: Props) {
+/** Umbrales compartidos: verde ≤80%, amarillo >80%, rojo >100%. */
+export function progressColor(percentage: number): string {
+  if (percentage > 100) return '#DC2626'
+  if (percentage > 80) return '#EAB308'
+  return '#16A34A'
+}
+
+export function BudgetProgress({ budget, variant = 'full' }: Props) {
   const limit = toNumber(budget.limit_amount)
   const spent = toNumber(budget.spent)
   const percentage = safeRatio(spent, limit) * 100
   const remaining = limit - spent
+  const bgColor = progressColor(percentage)
+
+  const bar = (
+    <Box w="full" h="2" bg="#2A2A2A" borderRadius="md" overflow="hidden">
+      <Box h="full" w={`${Math.min(percentage, 100)}%`} bg={bgColor} transition="width 0.3s" />
+    </Box>
+  )
+
+  if (variant === 'bar') return bar
 
   // A percentage budget resolves to 0 in a period with no income/expense yet.
   if (limit <= 0 && budget.amount_type !== 'fixed') {
@@ -24,10 +42,6 @@ export function BudgetProgress({ budget }: Props) {
     )
   }
 
-  let bgColor = '#16A34A'
-  if (percentage > 100) bgColor = '#DC2626'
-  else if (percentage > 80) bgColor = '#EAB308'
-
   return (
     <Box>
       <HStack justify="space-between" mb={2}>
@@ -36,20 +50,7 @@ export function BudgetProgress({ budget }: Props) {
         </Text>
         {percentage > 100 && <Badge colorPalette="red">Excedido</Badge>}
       </HStack>
-      <Box
-        w="full"
-        h="2"
-        bg="#2A2A2A"
-        borderRadius="md"
-        overflow="hidden"
-      >
-        <Box
-          h="full"
-          w={`${Math.min(percentage, 100)}%`}
-          bg={bgColor}
-          transition="width 0.3s"
-        />
-      </Box>
+      {bar}
       <HStack fontSize="xs" color="#B0B0B0" justify="space-between" mt={2}>
         <Text>Gastado: {formatCurrency(spent, budget.currency)}</Text>
         <Text>Restante: {formatCurrency(Math.max(remaining, 0), budget.currency)}</Text>

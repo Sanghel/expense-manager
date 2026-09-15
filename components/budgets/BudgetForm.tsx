@@ -72,6 +72,8 @@ interface Props {
   // Pre-fills the create form (e.g. from an AI budget suggestion). Ignored when
   // editingBudget is set.
   prefill?: PrefillBudget | null
+  // Scope preseleccionado al CREAR (viene del sub-tab activo). Ignorado al editar.
+  defaultScope?: BudgetScope
 }
 
 const defaultForm = {
@@ -96,6 +98,7 @@ export function BudgetForm({
   onSuccess,
   editingBudget,
   prefill,
+  defaultScope,
 }: Props) {
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState(defaultForm)
@@ -126,10 +129,10 @@ export function BudgetForm({
           currency: prefill.currency ?? defaultForm.currency,
         })
       } else {
-        setFormData(defaultForm)
+        setFormData({ ...defaultForm, scope: defaultScope ?? defaultForm.scope })
       }
     }
-  }, [isOpen, editingBudget, prefill, categories])
+  }, [isOpen, editingBudget, prefill, categories, defaultScope])
 
   const isPercent = formData.amount_type !== 'fixed'
 

@@ -21,6 +21,7 @@ type Tab = 'metas' | 'presupuestos'
 interface Props {
   userId: string
   activeTab: Tab
+  vista: 'grupos' | 'categorias'
   initialGoals: SavingsGoal[] | null
   initialBudgets: BudgetWithSpent[] | null
   categories: Category[]
@@ -33,6 +34,7 @@ interface Props {
 export function PlanificacionPageClient({
   userId,
   activeTab,
+  vista,
   initialGoals,
   initialBudgets,
   categories,
@@ -52,7 +54,8 @@ export function PlanificacionPageClient({
   const handleTabChange = (tab: string) => {
     setPendingTab(tab)
     startTransition(() => {
-      router.push(`/planificacion?tab=${tab}`)
+      const qs = tab === 'presupuestos' ? `?tab=${tab}&vista=${vista}` : `?tab=${tab}`
+      router.push(`/planificacion${qs}`)
     })
   }
 
@@ -117,6 +120,7 @@ export function PlanificacionPageClient({
               initialBudgets={initialBudgets}
               categories={categories}
               groups={categoryGroups}
+              vista={vista}
             />
           )}
         </Tabs.Content>

@@ -34,7 +34,7 @@ description: "Task list for 001-ui-visual-refresh"
 
 **Purpose**: Versionar la documentación de la spec y crear las issues que numeran las ramas.
 
-- [ ] T001 Crear la rama `docs/001-ui-visual-refresh-spec` desde `develop`. Commitear `specs/001-ui-visual-refresh/` completo y `.specify/feature.json` con `docs: spec 001 refresco visual de la UI`. Abrir un PR a `develop` y hacer merge `--squash` tras la aprobación del dueño.
+- [X] T001 Crear la rama `docs/001-ui-visual-refresh-spec` desde `develop`. Commitear `specs/001-ui-visual-refresh/` completo y `.specify/feature.json` con `docs: spec 001 refresco visual de la UI`. Abrir un PR a `develop` y hacer merge `--squash` tras la aprobación del dueño.
 - [X] T002 Crear 3 issues en GitHub con `gh issue create`, una por historia. Títulos:
   - "UI: tarjetas de cuentas con nombre truncado y tooltip"
   - "UI: acciones con botones de icono Lucide"
@@ -93,7 +93,7 @@ description: "Task list for 001-ui-visual-refresh"
   - Quitar los imports que queden sin uso.
 - [X] T009 [US1] Ejecutar `pnpm type-check && pnpm lint && pnpm build` y corregir errores.
 - [X] T010 [US1] Validar [quickstart.md → PR 1](./quickstart.md) (pasos 1–7) con `pnpm dev` y el navegador integrado, en 375×812 y en escritorio. Revisar también un ancho de 360 px (Edge Case). Anotar el resultado en la descripción del PR.
-- [ ] T011 [US1] Commitear con `feat(settings): tarjetas de cuentas con nombre truncado, tooltip e icono circular fijo`. Hacer push y abrir un PR a `develop` con `Closes #A`, capturas de antes y después (móvil y escritorio) y una nota explícita: "Sin cambios de datos ni de acceso (principios III/IV)". Hacer merge `--squash` solo tras la aprobación del dueño.
+- [X] T011 [US1] Commitear con `feat(settings): tarjetas de cuentas con nombre truncado, tooltip e icono circular fijo`. Hacer push y abrir un PR a `develop` con `Closes #A`, capturas de antes y después (móvil y escritorio) y una nota explícita: "Sin cambios de datos ni de acceso (principios III/IV)". Hacer merge `--squash` solo tras la aprobación del dueño.
 
 **Checkpoint**: US1 en `develop`. `ActionIconButton`, `action-icons.ts` y `TruncatedText` quedan disponibles para US2 y US3.
 
@@ -122,8 +122,8 @@ description: "Task list for 001-ui-visual-refresh"
 - "¡Ya me pagaron!/¡Ya pagué!", "Pagar tarjeta", "Registrar pago/ingreso", "Abono", "Conectar Gmail" y "Desconectar".
 - Los toggles "Ver más / Ocultar".
 
-- [ ] T012 [US2] Crear la rama `feature/<#B>-icon-actions` desde `develop` actualizado.
-- [ ] T013 [US2] Completar `ACTION_ICONS` en `components/ui/action-icons.ts` con las claves y los iconos de `react-icons/lu` siguientes:
+- [X] T012 [US2] Crear la rama `feature/<#B>-icon-actions` desde `develop` actualizado.
+- [X] T013 [US2] Completar `ACTION_ICONS` en `components/ui/action-icons.ts` con las claves y los iconos de `react-icons/lu` siguientes:
 
   | Clave | Icono |
   |-------|-------|
@@ -154,61 +154,61 @@ description: "Task list for 001-ui-visual-refresh"
   | `apply` | `LuWandSparkles` |
 
   Antes de usar cada nombre, comprobar que existe en `node_modules/react-icons/lu/index.d.ts`. Si no existe, usar el equivalente más cercano y anotarlo en un comentario.
-- [ ] T014 [P] [US2] `app/(dashboard)/transactions/TransactionsPageClient.tsx`:
+- [X] T014 [P] [US2] `app/(dashboard)/transactions/TransactionsPageClient.tsx`:
   - "Exportar" (≈132) → `kind="export" label="Exportar transacciones"`.
   - "Importar" (≈136) → `kind="import" label="Importar extracto"`.
   - Paginación "Anterior"/"Siguiente" (≈182/193) → `prev`/`next` con `label="Página anterior"`/`"Página siguiente"`.
   - "Nueva Transacción" conserva el texto; cambiar su `FiPlus` por `LuPlus`.
-- [ ] T015 [P] [US2] `components/transactions/GmailSyncButton.tsx`: "Sincronizar correos" (≈54) → `kind="syncMail" label="Sincronizar correos"`, con `loading` ligado al estado de sincronización actual. Mantener el toaster de error y éxito existente.
-- [ ] T016 [P] [US2] `components/transactions/GmailSyncReviewModal.tsx`:
+- [X] T015 [P] [US2] `components/transactions/GmailSyncButton.tsx`: "Sincronizar correos" (≈54) → `kind="syncMail" label="Sincronizar correos"`, con `loading` ligado al estado de sincronización actual. Mantener el toaster de error y éxito existente.
+- [X] T016 [P] [US2] `components/transactions/GmailSyncReviewModal.tsx`:
   - "Editar" (≈271) → `edit`.
   - "Incluir/Excluir" (≈272) → `include`/`exclude` con `label` según el estado.
   - Sus 2 `IconButton` → `ActionIconButton`.
   - "Guardar todas" y "Descartar" (≈287–288) conservan el texto.
-- [ ] T017 [P] [US2] `components/transactions/ImportTransactionsModal.tsx`:
+- [X] T017 [P] [US2] `components/transactions/ImportTransactionsModal.tsx`:
   - "Plantilla" (≈257) → `kind="template" label="Descargar plantilla"`.
   - "Volver" (≈457) → `kind="back" label="Volver"`.
-- [ ] T018 [P] [US2] `components/transactions/ExportTransactionsModal.tsx`: los botones de formato (≈135/146/157) conservan el texto; cambiar sus iconos a `LuFileText`, `LuFileSpreadsheet` y `LuFileJson` (research R4).
-- [ ] T019 [P] [US2] `components/transactions/TransactionsTable.tsx` y `components/transactions/TransactionCardMobile.tsx`: sus `IconButton` de editar y eliminar → `ActionIconButton` con `kind="edit"` y `kind="delete" tone="danger"`, y `label` "Editar transacción" / "Eliminar transacción".
-- [ ] T020 [P] [US2] `app/(dashboard)/budgets/BudgetsPageClient.tsx`: "Editar"/"Eliminar" (≈143/146) → `edit`/`delete` con `label` "Editar presupuesto" / "Eliminar presupuesto". Las pills de vista (≈93) no cambian.
-- [ ] T021 [P] [US2] `components/budgets/BudgetGroupAccordion.tsx`: "Editar"/"Eliminar" (≈175/178) → `edit`/`delete` con `label` "Editar grupo" / "Eliminar grupo".
-- [ ] T022 [P] [US2] `components/budgets/BudgetCategoryTable.tsx`:
+- [X] T018 [P] [US2] `components/transactions/ExportTransactionsModal.tsx`: los botones de formato (≈135/146/157) conservan el texto; cambiar sus iconos a `LuFileText`, `LuFileSpreadsheet` y `LuFileJson` (research R4).
+- [X] T019 [P] [US2] `components/transactions/TransactionsTable.tsx` y `components/transactions/TransactionCardMobile.tsx`: sus `IconButton` de editar y eliminar → `ActionIconButton` con `kind="edit"` y `kind="delete" tone="danger"`, y `label` "Editar transacción" / "Eliminar transacción".
+- [X] T020 [P] [US2] `app/(dashboard)/budgets/BudgetsPageClient.tsx`: "Editar"/"Eliminar" (≈143/146) → `edit`/`delete` con `label` "Editar presupuesto" / "Eliminar presupuesto". Las pills de vista (≈93) no cambian.
+- [X] T021 [P] [US2] `components/budgets/BudgetGroupAccordion.tsx`: "Editar"/"Eliminar" (≈175/178) → `edit`/`delete` con `label` "Editar grupo" / "Eliminar grupo".
+- [X] T022 [P] [US2] `components/budgets/BudgetCategoryTable.tsx`:
   - Los botones con emoji "✎"/"🗑" (≈132/135) y "Editar"/"Eliminar" (≈191/194) → `edit`/`delete` con `label` "Editar presupuesto" / "Eliminar presupuesto".
   - `components/budgets/BudgetWidget.tsx`: "Ver todos →" (≈33) → `kind="viewAll" label="Ver todos los presupuestos"`.
-- [ ] T023 [P] [US2] `components/calendar/TransactionCalendar.tsx` y `components/calendar/RemindersCalendar.tsx`:
+- [X] T023 [P] [US2] `components/calendar/TransactionCalendar.tsx` y `components/calendar/RemindersCalendar.tsx`:
   - "← Anterior"/"Siguiente →" → `prev`/`next` con `label` "Mes anterior" / "Mes siguiente".
   - Sus `IconButton` existentes → `ActionIconButton`.
   - "Nueva Transacción", "Nuevo recordatorio" y "Registrar pago" conservan el texto (cambiar `FiPlus` por `LuPlus`).
   - En `components/calendar/CalendarPageContent.tsx`, las pestañas cambian el emoji por el icono y conservan el texto: `LuCalendar` en "Transacciones" y `LuBell` en "Programado".
-- [ ] T024 [P] [US2] `app/(dashboard)/consejos-ahorro/ConsejosAhorroPageClient.tsx`: "Regenerar" (≈150) → `kind="regenerate" label="Regenerar consejos"` con el mismo handler que abre la confirmación. "Sí, regenerar" y "Cancelar" conservan el texto.
-- [ ] T025 [P] [US2] `components/chat/ChatInterface.tsx` y `components/chat/FloatingChat.tsx`:
+- [X] T024 [P] [US2] `app/(dashboard)/consejos-ahorro/ConsejosAhorroPageClient.tsx`: "Regenerar" (≈150) → `kind="regenerate" label="Regenerar consejos"` con el mismo handler que abre la confirmación. "Sí, regenerar" y "Cancelar" conservan el texto.
+- [X] T025 [P] [US2] `components/chat/ChatInterface.tsx` y `components/chat/FloatingChat.tsx`:
   - "Limpiar" (≈313) → `kind="clear" label="Limpiar conversación"`.
   - "Descartar" (≈440) → `kind="discard" label="Descartar"`.
   - Los `<Button>` que solo tienen icono (cerrar ≈317, voz ≈485, enviar ≈522) → `close`, `mic`/`micOff` y `send`, con `label` "Cerrar chat", "Dictar mensaje"/"Detener dictado" y "Enviar mensaje".
   - El `IconButton` de `FloatingChat` → `ActionIconButton`.
   - "Confirmar" conserva el texto.
-- [ ] T026 [P] [US2] `components/settings/CronActionsPanel.tsx`: el botón con `buttonLabel` (≈80) → `kind="run" label={buttonLabel}`, con `loading` ligado a su estado. `components/settings/GmailConnectionPanel.tsx`: "Conectar Gmail" y "Desconectar" conservan el texto; solo se cambian sus iconos a `LuMail` y `LuUnplug`.
-- [ ] T027 [P] [US2] `components/settings/AccountsTab.tsx`: el `IconButton` "Eliminar" de la tabla de movimientos → `ActionIconButton kind="delete" tone="danger" label="Eliminar movimiento"`. "Nuevo Movimiento" conserva el texto.
-- [ ] T028 [P] [US2] `components/dashboard/RecentTransactions.tsx`: "Anterior"/"Siguiente" (≈66/75) → `prev`/`next` con `label` "Página anterior" / "Página siguiente". `components/dashboard/DashboardContent.tsx`: "Ver más / Ocultar" conserva el texto; cambiar su icono a `LuChevronDown`/`LuChevronUp`.
-- [ ] T029 [P] [US2] `components/loans/LoansTable.tsx` y `components/loans/LoanCards.tsx`: sus `IconButton` (4 y 3) → `ActionIconButton` con el mismo `aria-label`. "Abono" y "¡Ya me pagaron!/¡Ya pagué!" conservan el texto y cambian su icono a `LuCirclePlus`/`LuCircleCheck`. El toggle de historial de `LoanCards` conserva el texto.
-- [ ] T030 [P] [US2] Carpeta `components/savings/`:
+- [X] T026 [P] [US2] `components/settings/CronActionsPanel.tsx`: el botón con `buttonLabel` (≈80) → `kind="run" label={buttonLabel}`, con `loading` ligado a su estado. `components/settings/GmailConnectionPanel.tsx`: "Conectar Gmail" y "Desconectar" conservan el texto; solo se cambian sus iconos a `LuMail` y `LuUnplug`.
+- [X] T027 [P] [US2] `components/settings/AccountsTab.tsx`: el `IconButton` "Eliminar" de la tabla de movimientos → `ActionIconButton kind="delete" tone="danger" label="Eliminar movimiento"`. "Nuevo Movimiento" conserva el texto.
+- [X] T028 [P] [US2] `components/dashboard/RecentTransactions.tsx`: "Anterior"/"Siguiente" (≈66/75) → `prev`/`next` con `label` "Página anterior" / "Página siguiente". `components/dashboard/DashboardContent.tsx`: "Ver más / Ocultar" conserva el texto; cambiar su icono a `LuChevronDown`/`LuChevronUp`.
+- [X] T029 [P] [US2] `components/loans/LoansTable.tsx` y `components/loans/LoanCards.tsx`: sus `IconButton` (4 y 3) → `ActionIconButton` con el mismo `aria-label`. "Abono" y "¡Ya me pagaron!/¡Ya pagué!" conservan el texto y cambian su icono a `LuCirclePlus`/`LuCircleCheck`. El toggle de historial de `LoanCards` conserva el texto.
+- [X] T030 [P] [US2] Carpeta `components/savings/`:
   - `SavingsGoalCard.tsx`: sus 3 `IconButton` (el `title` nativo pasa a `label`) → `ActionIconButton`. El toggle "Aportes" conserva el texto; icono `LuHistory`.
   - `BudgetSuggestionsList.tsx`, `GroupSuggestionsList.tsx`, `CategoryHygieneList.tsx`, `SavingsGoalSuggestions.tsx` y `ContributionHistory.tsx`: su `IconButton` → `ActionIconButton`.
   - "Aplicar"/"Editar" de `BudgetSuggestionsList` (≈146) y "Editar meta" de `SavingsGoalSuggestions` (≈173) → `apply`/`edit`. "Crear meta" conserva el texto.
-- [ ] T031 [P] [US2] Categorías y recordatorios, pasar a `ActionIconButton` con el mismo `aria-label`:
+- [X] T031 [P] [US2] Categorías y recordatorios, pasar a `ActionIconButton` con el mismo `aria-label`:
   - Los 2 `IconButton` de `app/(dashboard)/categories/CategoriesPageClient.tsx`.
   - Los 2 de `components/categories/CategoryGroupsSection.tsx`.
   - Los 2 de `components/reminders/RemindersList.tsx`.
 
   En `components/reminders/RecordatoriosTab.tsx`, "Pagar" (≈89) conserva el texto; cambiar su icono a `LuCircleCheck`.
-- [ ] T032 [P] [US2] `components/notifications/NotificationsPanel.tsx`: sus 2 `IconButton` con `title` → `ActionIconButton` con `label` igual al `title`. "Registrar pago / ingreso" conserva el texto.
-- [ ] T033 [P] [US2] `components/ui/ConfirmDialog.tsx` y `components/ui/FormDialog.tsx`: el `IconButton` de cerrar → `ActionIconButton kind="close" label="Cerrar"`. No tocar `components/ui/DateInput.tsx`, que se reescribe en US3.
-- [ ] T034 [US2] Auditoría final:
+- [X] T032 [P] [US2] `components/notifications/NotificationsPanel.tsx`: sus 2 `IconButton` con `title` → `ActionIconButton` con `label` igual al `title`. "Registrar pago / ingreso" conserva el texto.
+- [X] T033 [P] [US2] `components/ui/ConfirmDialog.tsx` y `components/ui/FormDialog.tsx`: el `IconButton` de cerrar → `ActionIconButton kind="close" label="Cerrar"`. No tocar `components/ui/DateInput.tsx`, que se reescribe en US3.
+- [X] T034 [US2] Auditoría final:
   - `grep -rn "<IconButton" app components --include='*.tsx'` solo debe devolver `components/ui/ActionIconButton.tsx` y `components/ui/DateInput.tsx`.
   - `grep -rn "aria-label" components/ui/ActionIconButton.tsx`: confirmar que `label` es obligatoria en el tipo.
   - Revisar que el mismo tipo de acción no use iconos distintos (FR-010).
-- [ ] T035 [US2] Ejecutar `pnpm type-check && pnpm lint && pnpm build` y corregir errores.
-- [ ] T036 [US2] Validar [quickstart.md → PR 2](./quickstart.md) (pasos 1–5) en 375×812 y en escritorio, con navegación por teclado.
+- [X] T035 [US2] Ejecutar `pnpm type-check && pnpm lint && pnpm build` y corregir errores.
+- [X] T036 [US2] Validar [quickstart.md → PR 2](./quickstart.md) (pasos 1–5) en 375×812 y en escritorio, con navegación por teclado.
 - [ ] T037 [US2] Commitear con `feat(ui): acciones utilitarias como botones de icono Lucide con tooltip`. Abrir un PR a `develop` con `Closes #B`, la lista de pantallas tocadas, capturas y la nota "Sin cambios de datos ni de acceso (principios III/IV)". Hacer merge `--squash` tras la aprobación.
 
 **Checkpoint**: US2 en `develop`. Todas las acciones utilitarias son iconos con tooltip.

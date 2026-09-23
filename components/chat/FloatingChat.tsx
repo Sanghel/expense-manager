@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { Box, IconButton, Icon } from '@chakra-ui/react'
+import { Box } from '@chakra-ui/react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { BsStars } from 'react-icons/bs'
 import { ChatInterface } from './ChatInterface'
+import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import type { Account, Category } from '@/types/database.types'
 
 interface Props {
@@ -59,12 +59,14 @@ export function FloatingChat({ userId, categories, accounts = [] }: Props) {
         right="16px"
         zIndex={1001}
       >
-        <IconButton
-          aria-label={isOpen ? 'Cerrar chat IA' : 'Abrir chat IA'}
+        <ActionIconButton
+          kind="chat"
+          label={isOpen ? 'Cerrar chat IA' : 'Abrir chat IA'}
+          tone="primary"
+          size="lg"
           borderRadius="full"
           w={{ base: '46px', md: '56px' }}
           h={{ base: '46px', md: '56px' }}
-          colorPalette="brand"
           shadow="lg"
           onClick={() => setIsOpen((prev) => !prev)}
           css={{
@@ -72,14 +74,13 @@ export function FloatingChat({ userId, categories, accounts = [] }: Props) {
               ? 'var(--chakra-colors-brand-600)'
               : 'linear-gradient(135deg, var(--chakra-colors-brand-400), var(--chakra-colors-brand-600))',
             transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+            '& svg': { width: { base: '4', md: '5' }, height: { base: '4', md: '5' } },
             _hover: {
               transform: 'scale(1.08)',
               boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
             },
           }}
-        >
-          <Icon as={BsStars} boxSize={{ base: 4, md: 5 }} color="white" />
-        </IconButton>
+        />
       </Box>
     </>
   )

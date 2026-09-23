@@ -1,9 +1,8 @@
 'use client'
 
-import { Button, Text } from '@chakra-ui/react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiMail } from 'react-icons/fi'
+import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import { syncGmail } from '@/lib/actions/gmail.actions'
 import { toaster } from '@/lib/toaster'
 import { GmailSyncReviewModal } from './GmailSyncReviewModal'
@@ -51,16 +50,14 @@ export function GmailSyncButton({ userId, categories, accounts }: Props) {
 
   return (
     <>
-      <Button
+      <ActionIconButton
+        kind="syncMail"
+        label="Sincronizar correos"
         variant="outline"
+        size="md"
         onClick={handleClick}
-        size={{ base: 'sm', md: 'md' }}
         loading={loading}
-        aria-label="Sincronizar correos"
-      >
-        <FiMail />
-        <Text display={{ base: 'none', md: 'inline' }}>Sincronizar correos</Text>
-      </Button>
+      />
 
       {items && (
         <GmailSyncReviewModal

@@ -1,9 +1,10 @@
 'use client'
 
-import { VStack, HStack, Box, Text, Button, Icon, IconButton, useDisclosure } from '@chakra-ui/react'
+import { VStack, HStack, Box, Text, Button, Icon, useDisclosure } from '@chakra-ui/react'
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiTarget, FiTrendingUp, FiTrendingDown, FiX } from 'react-icons/fi'
+import { FiTarget, FiTrendingUp, FiTrendingDown } from 'react-icons/fi'
+import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import { SavingsGoalForm } from '@/components/savings/SavingsGoalForm'
 import { Card } from '@/components/ui/Card'
 import { dismissSuggestion } from '@/lib/actions/savingsAdvice.actions'
@@ -170,25 +171,32 @@ export function SavingsGoalSuggestions({ userId, period, suggestions, goals, cap
                   </HStack>
                 </Box>
                 <HStack gap={1} flexShrink={0}>
-                  <Button
-                    size="sm"
-                    bg="#4F46E5"
-                    color="white"
-                    _hover={{ bg: '#4338CA' }}
-                    onClick={() => handleCreate(s)}
-                  >
-                    {exists ? 'Editar meta' : 'Crear meta'}
-                  </Button>
-                  <IconButton
-                    aria-label="Descartar sugerencia"
+                  {exists ? (
+                    <ActionIconButton
+                      kind="edit"
+                      label="Editar meta"
+                      size="sm"
+                      variant="subtle"
+                      onClick={() => handleCreate(s)}
+                    />
+                  ) : (
+                    <Button
+                      size="sm"
+                      bg="#4F46E5"
+                      color="white"
+                      _hover={{ bg: '#4338CA' }}
+                      onClick={() => handleCreate(s)}
+                    >
+                      Crear meta
+                    </Button>
+                  )}
+                  <ActionIconButton
+                    kind="discard"
+                    label="Descartar sugerencia"
                     size="sm"
                     variant="ghost"
-                    color="#B0B0B0"
-                    _hover={{ color: '#ef4444', bg: '#2d2d35' }}
                     onClick={() => handleDismiss(s.name)}
-                  >
-                    <FiX />
-                  </IconButton>
+                  />
                 </HStack>
               </HStack>
             </Box>

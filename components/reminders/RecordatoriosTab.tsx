@@ -3,7 +3,7 @@
 import { VStack, HStack, Heading, Button, Box, Text, Badge } from '@chakra-ui/react'
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiPlus, FiCheckCircle } from 'react-icons/fi'
+import { LuCircleCheck, LuPlus } from 'react-icons/lu'
 import { ReminderForm } from '@/components/reminders/ReminderForm'
 import { RemindersList } from '@/components/reminders/RemindersList'
 import { PayReminderDialog } from '@/components/reminders/PayReminderDialog'
@@ -54,7 +54,7 @@ export function RecordatoriosTab({
           size={{ base: 'sm', md: 'md' }}
           aria-label="Nuevo recordatorio"
         >
-          <FiPlus />
+          <LuPlus />
           <Text as="span" display={{ base: 'none', md: 'inline' }}>Nuevo recordatorio</Text>
         </Button>
       </HStack>
@@ -94,7 +94,7 @@ export function RecordatoriosTab({
                   onClick={() => setPayingReminder(r)}
                   flexShrink={0}
                 >
-                  <FiCheckCircle />
+                  <LuCircleCheck />
                   Pagar
                 </Button>
               </HStack>

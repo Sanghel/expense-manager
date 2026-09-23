@@ -16,17 +16,15 @@ import {
   DialogTitle,
   DialogBody,
   DialogFooter,
-  DialogCloseTrigger,
-  IconButton,
-  Icon,
   useBreakpointValue,
 } from '@chakra-ui/react'
 import { useState } from 'react'
-import { FiPlus, FiX } from 'react-icons/fi'
+import { LuPlus } from 'react-icons/lu'
 import type { ReminderWithCategory, Account, Category, ReminderType } from '@/types/database.types'
 import { getLocalDateString } from '@/lib/utils/dates'
 import { reminderMatchesDate } from '@/lib/reminders/matches-date'
 import { TransactionForm } from '@/components/transactions/TransactionForm'
+import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import { ReminderForm } from '@/components/reminders/ReminderForm'
 
 const WEEKDAYS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
@@ -99,11 +97,11 @@ export function RemindersCalendar({ userId, reminders, categories, accounts, onR
 
   const monthHeader = (
     <HStack justifyContent="space-between" alignItems="center">
-      <Button onClick={handlePrevMonth} variant="ghost" size={{ base: 'sm', md: 'md' }}>← Anterior</Button>
+      <ActionIconButton kind="prev" label="Mes anterior" onClick={handlePrevMonth} />
       <Text fontSize={{ base: 'md', md: 'lg' }} fontWeight="bold">
         {MONTHS[month]} {year}
       </Text>
-      <Button onClick={handleNextMonth} variant="ghost" size={{ base: 'sm', md: 'md' }}>Siguiente →</Button>
+      <ActionIconButton kind="next" label="Mes siguiente" onClick={handleNextMonth} />
     </HStack>
   )
 
@@ -186,7 +184,7 @@ export function RemindersCalendar({ userId, reminders, categories, accounts, onR
             onClick={() => setCreateReminderDate(today)}
             w="full"
           >
-            <FiPlus /> Nuevo recordatorio
+            <LuPlus /> Nuevo recordatorio
           </Button>
         </VStack>
       )
@@ -296,18 +294,7 @@ export function RemindersCalendar({ userId, reminders, categories, accounts, onR
                     ? new Date(dialogDate + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })
                     : 'Programado del día'}
                 </DialogTitle>
-                <DialogCloseTrigger asChild>
-                  <IconButton
-                    aria-label="Cerrar"
-                    size="sm"
-                    variant="ghost"
-                    color="#B0B0B0"
-                    _hover={{ color: 'white', bg: '#2d2d35' }}
-                    onClick={() => setSelectedDay(null)}
-                  >
-                    <Icon as={FiX} />
-                  </IconButton>
-                </DialogCloseTrigger>
+                <ActionIconButton kind="close" label="Cerrar" onClick={() => setSelectedDay(null)} />
               </HStack>
             </DialogHeader>
             <DialogBody flex="1" minH="0" overflowY="auto">
@@ -347,7 +334,7 @@ export function RemindersCalendar({ userId, reminders, categories, accounts, onR
                             setSelectedDay(null)
                           }}
                         >
-                          <FiPlus />
+                          <LuPlus />
                           {item.type === 'income' ? 'Registrar ingreso' : 'Registrar pago'}
                         </Button>
                       )}
@@ -369,7 +356,7 @@ export function RemindersCalendar({ userId, reminders, categories, accounts, onR
                   }
                 }}
               >
-                <FiPlus />
+                <LuPlus />
                 Nuevo recordatorio
               </Button>
             </DialogFooter>

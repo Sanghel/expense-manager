@@ -10,11 +10,11 @@ import {
   Text,
   Badge,
   Button,
-  IconButton,
   Switch,
   Separator,
 } from '@chakra-ui/react'
-import { FiCheckCircle, FiClock, FiX } from 'react-icons/fi'
+import { LuCircleCheck } from 'react-icons/lu'
+import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import { PayReminderDialog } from '@/components/reminders/PayReminderDialog'
 import {
   dismissReminderOccurrence,
@@ -174,12 +174,11 @@ export function NotificationsPanel({
                           </VStack>
 
                           <HStack gap={0}>
-                            <IconButton
-                              aria-label="Posponer una semana"
-                              title="Posponer una semana"
+                            <ActionIconButton
+                              kind="postpone"
+                              label="Posponer una semana"
                               size="xs"
                               variant="ghost"
-                              color="#B0B0B0"
                               loading={busyKey === `snooze-${key}`}
                               onClick={() =>
                                 runAction(
@@ -194,15 +193,12 @@ export function NotificationsPanel({
                                   'Recordatorio pospuesto'
                                 )
                               }
-                            >
-                              <FiClock />
-                            </IconButton>
-                            <IconButton
-                              aria-label="Descartar"
-                              title="Descartar"
+                            />
+                            <ActionIconButton
+                              kind="discard"
+                              label="Descartar"
                               size="xs"
                               variant="ghost"
-                              color="#B0B0B0"
                               loading={busyKey === `dismiss-${key}`}
                               onClick={() =>
                                 runAction(
@@ -216,9 +212,7 @@ export function NotificationsPanel({
                                   'Recordatorio descartado'
                                 )
                               }
-                            >
-                              <FiX />
-                            </IconButton>
+                            />
                           </HStack>
                         </HStack>
 
@@ -230,7 +224,7 @@ export function NotificationsPanel({
                             _hover={{ bg: '#059669' }}
                             onClick={() => setSettling(occurrence)}
                           >
-                            <FiCheckCircle />
+                            <LuCircleCheck />
                             {isIncome ? 'Registrar ingreso' : 'Registrar pago'}
                           </Button>
 

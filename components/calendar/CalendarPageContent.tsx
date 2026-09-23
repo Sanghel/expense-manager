@@ -4,6 +4,7 @@ import { VStack, HStack, Heading, Box, Text, Button, Icon } from '@chakra-ui/rea
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { FiCalendar } from 'react-icons/fi'
+import { LuBell, LuCalendar } from 'react-icons/lu'
 import { TransactionCalendar } from '@/components/calendar/TransactionCalendar'
 import { RemindersCalendar } from '@/components/calendar/RemindersCalendar'
 import { RemindersList } from '@/components/reminders/RemindersList'
@@ -43,7 +44,8 @@ export function CalendarPageContent({ userId, initialTransactions, categories, a
           _hover={{ bg: activeTab === 'transactions' ? '#4338CA' : '#1a1a23' }}
           onClick={() => setActiveTab('transactions')}
         >
-          📅 Transacciones
+          <LuCalendar />
+          Transacciones
         </Button>
         <Box w="1px" bg="#2d2d35" h="full" />
         <Button
@@ -57,7 +59,8 @@ export function CalendarPageContent({ userId, initialTransactions, categories, a
           _hover={{ bg: activeTab === 'scheduled' ? '#4338CA' : '#1a1a23' }}
           onClick={() => setActiveTab('scheduled')}
         >
-          🔔 Programado
+          <LuBell />
+          Programado
         </Button>
       </HStack>
 

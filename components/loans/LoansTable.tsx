@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Box, VStack, HStack, Text, Badge, Button, IconButton } from '@chakra-ui/react'
-import { FiEdit2, FiTrash2, FiCheckCircle, FiPlusCircle } from 'react-icons/fi'
+import { Box, VStack, HStack, Text, Badge, Button } from '@chakra-ui/react'
+import { LuCircleCheck, LuCirclePlus } from 'react-icons/lu'
+import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import { formatCurrency } from '@/lib/utils/currency'
 import { DataTable, type ColumnDef } from '@/components/ui/DataTable'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
@@ -102,7 +103,7 @@ export function LoansTable({ loans, onEdit, onSettle, onDelete, onPayment }: Pro
                 onClick={() => onPayment(l)}
                 title="Registrar abono"
               >
-                <FiPlusCircle />
+                <LuCirclePlus />
                 <Text display={{ base: 'none', lg: 'inline' }} ml={1}>Abono</Text>
               </Button>
               <Button
@@ -113,28 +114,26 @@ export function LoansTable({ loans, onEdit, onSettle, onDelete, onPayment }: Pro
                 onClick={() => onSettle(l)}
                 title={settleLabel(l)}
               >
-                <FiCheckCircle />
+                <LuCircleCheck />
                 <Text display={{ base: 'none', lg: 'inline' }} ml={1}>{settleLabel(l)}</Text>
               </Button>
-              <IconButton
-                aria-label="Editar"
+              <ActionIconButton
+                kind="edit"
+                label="Editar"
                 size="xs"
                 variant="ghost"
                 onClick={() => onEdit(l)}
-              >
-                <FiEdit2 />
-              </IconButton>
+              />
             </>
           )}
-          <IconButton
-            aria-label="Eliminar"
+          <ActionIconButton
+            kind="delete"
+            tone="danger"
+            label="Eliminar"
             size="xs"
             variant="ghost"
-            color="#F43F5E"
             onClick={() => setConfirmLoan(l)}
-          >
-            <FiTrash2 />
-          </IconButton>
+          />
         </HStack>
       ),
     },
@@ -190,7 +189,7 @@ export function LoansTable({ loans, onEdit, onSettle, onDelete, onPayment }: Pro
                     flex={1}
                     onClick={() => onPayment(loan)}
                   >
-                    <FiPlusCircle />
+                    <LuCirclePlus />
                     Abono
                   </Button>
                   <Button
@@ -204,30 +203,27 @@ export function LoansTable({ loans, onEdit, onSettle, onDelete, onPayment }: Pro
                     overflow="hidden"
                     onClick={() => onSettle(loan)}
                   >
-                    <FiCheckCircle style={{ flexShrink: 0 }} />
+                    <LuCircleCheck style={{ flexShrink: 0 }} />
                     <Text overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
                       {settleLabel(loan)}
                     </Text>
                   </Button>
-                  <IconButton
-                    aria-label="Editar"
+                  <ActionIconButton
+                    kind="edit"
+                    label="Editar"
                     size="sm"
-                    variant="outline"
                     onClick={() => onEdit(loan)}
-                  >
-                    <FiEdit2 />
-                  </IconButton>
+                  />
                 </>
               )}
-              <IconButton
-                aria-label="Eliminar"
+              <ActionIconButton
+                kind="delete"
+                tone="danger"
+                label="Eliminar"
                 size="sm"
                 variant="ghost"
-                color="#F43F5E"
                 onClick={() => setConfirmLoan(loan)}
-              >
-                <FiTrash2 />
-              </IconButton>
+              />
             </HStack>
           </Box>
         ))}

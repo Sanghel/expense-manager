@@ -1,8 +1,9 @@
 'use client'
 
-import { VStack, HStack, Box, Text, Badge, IconButton, SimpleGrid, Icon } from '@chakra-ui/react'
+import { VStack, HStack, Box, Text, Badge, SimpleGrid, Icon } from '@chakra-ui/react'
 import { useState } from 'react'
-import { FiEdit2, FiTrash2, FiArrowUpRight, FiArrowDownLeft } from 'react-icons/fi'
+import { FiArrowUpRight, FiArrowDownLeft } from 'react-icons/fi'
+import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import { deleteReminder } from '@/lib/actions/reminders.actions'
 import { toaster } from '@/lib/toaster'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
@@ -106,24 +107,21 @@ export function RemindersList({ userId, reminders, categories, accounts = [], on
                   </HStack>
                 </VStack>
                 <HStack gap={1} flexShrink={0}>
-                  <IconButton
-                    aria-label="Editar"
+                  <ActionIconButton
+                    kind="edit"
+                    label="Editar"
                     size="xs"
                     variant="ghost"
-                    color="#B0B0B0"
                     onClick={() => { setEditingReminder(r); setIsFormOpen(true) }}
-                  >
-                    <FiEdit2 />
-                  </IconButton>
-                  <IconButton
-                    aria-label="Eliminar"
+                  />
+                  <ActionIconButton
+                    kind="delete"
+                    tone="danger"
+                    label="Eliminar"
                     size="xs"
                     variant="ghost"
-                    color="#ef4444"
                     onClick={() => setDeletingId(r.id)}
-                  >
-                    <FiTrash2 />
-                  </IconButton>
+                  />
                 </HStack>
               </HStack>
             </Box>

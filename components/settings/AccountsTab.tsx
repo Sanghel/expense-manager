@@ -9,11 +9,11 @@ import {
   Heading,
   SimpleGrid,
   Separator,
-  IconButton,
 } from '@chakra-ui/react'
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiPlus, FiTrash2 } from 'react-icons/fi'
+import { FiPlus } from 'react-icons/fi'
+import { LuPlus } from 'react-icons/lu'
 import { deleteAccount } from '@/lib/actions/accounts.actions'
 import { deleteAccountMovement } from '@/lib/actions/account_movements.actions'
 import { toaster } from '@/lib/toaster'
@@ -21,6 +21,7 @@ import { AccountForm } from './AccountForm'
 import { AccountMovementForm } from './AccountMovementForm'
 import { AccountCard } from './AccountCard'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import { DataTable, type ColumnDef } from '@/components/ui/DataTable'
 import { formatCurrency } from '@/lib/utils/currency'
 import type { Account, AccountMovementWithAccounts } from '@/types/database.types'
@@ -118,15 +119,14 @@ export function AccountsTab({ userId, initialAccounts, initialMovements }: Props
       key: 'actions',
       header: '',
       render: (m) => (
-        <IconButton
-          aria-label="Eliminar"
+        <ActionIconButton
+          kind="delete"
+          tone="danger"
+          label="Eliminar movimiento"
           size="sm"
           variant="ghost"
-          colorPalette="red"
           onClick={() => setDeletingMovementId(m.id)}
-        >
-          <FiTrash2 />
-        </IconButton>
+        />
       ),
     },
   ]
@@ -196,7 +196,7 @@ export function AccountsTab({ userId, initialAccounts, initialMovements }: Props
             onClick={() => setIsMovementFormOpen(true)}
             disabled={accounts.length < 2}
           >
-            <FiPlus />
+            <LuPlus />
             Nuevo Movimiento
           </Button>
         </HStack>

@@ -16,17 +16,17 @@ import {
   DialogTitle,
   DialogBody,
   DialogFooter,
-  DialogCloseTrigger,
-  IconButton,
   Icon,
   useBreakpointValue,
 } from '@chakra-ui/react'
-import { FiX, FiChevronDown, FiChevronRight, FiPlus } from 'react-icons/fi'
+import { FiChevronDown, FiChevronRight } from 'react-icons/fi'
+import { LuPlus } from 'react-icons/lu'
 import { useState } from 'react'
 import type { TransactionWithCategory, Account, Category } from '@/types/database.types'
 import { formatCurrency } from '@/lib/utils/currency'
 import { getLocalDateString } from '@/lib/utils/dates'
 import { TransactionForm } from '@/components/transactions/TransactionForm'
+import { ActionIconButton } from '@/components/ui/ActionIconButton'
 
 interface Props {
   userId: string
@@ -93,15 +93,11 @@ export function TransactionCalendar({ userId, initialTransactions, categories, a
 
   const monthHeader = (
     <HStack justifyContent="space-between" alignItems="center">
-      <Button onClick={handlePrevMonth} variant="ghost" size={{ base: 'sm', md: 'md' }}>
-        ← Anterior
-      </Button>
+      <ActionIconButton kind="prev" label="Mes anterior" onClick={handlePrevMonth} />
       <Text fontSize={{ base: 'md', md: 'lg' }} fontWeight="bold">
         {MONTHS[currentDate.getMonth()]} {currentDate.getFullYear()}
       </Text>
-      <Button onClick={handleNextMonth} variant="ghost" size={{ base: 'sm', md: 'md' }}>
-        Siguiente →
-      </Button>
+      <ActionIconButton kind="next" label="Mes siguiente" onClick={handleNextMonth} />
     </HStack>
   )
 
@@ -275,7 +271,7 @@ export function TransactionCalendar({ userId, initialTransactions, categories, a
                       width="full"
                       onClick={() => setCreateForDate(getDateStringForDay(day))}
                     >
-                      <FiPlus />
+                      <LuPlus />
                       Nueva Transacción
                     </Button>
                   </Box>
@@ -310,18 +306,7 @@ export function TransactionCalendar({ userId, initialTransactions, categories, a
                       ? new Date(selectedDay.date + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })
                       : 'Transacciones del día'}
                   </DialogTitle>
-                  <DialogCloseTrigger asChild>
-                    <IconButton
-                      aria-label="Cerrar"
-                      size="sm"
-                      variant="ghost"
-                      color="#B0B0B0"
-                      _hover={{ color: 'white', bg: '#2d2d35' }}
-                      onClick={() => setSelectedDay(null)}
-                    >
-                      <Icon as={FiX} />
-                    </IconButton>
-                  </DialogCloseTrigger>
+                  <ActionIconButton kind="close" label="Cerrar" onClick={() => setSelectedDay(null)} />
                 </HStack>
               </DialogHeader>
               <DialogBody flex="1" minH="0" overflowY="auto">
@@ -369,7 +354,7 @@ export function TransactionCalendar({ userId, initialTransactions, categories, a
                     setSelectedDay(null)
                   }}
                 >
-                  <FiPlus />
+                  <LuPlus />
                   Nueva Transacción
                 </Button>
               </DialogFooter>

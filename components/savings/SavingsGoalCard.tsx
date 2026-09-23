@@ -1,7 +1,8 @@
 'use client'
 
-import { Box, VStack, HStack, Text, Button, Badge, IconButton } from '@chakra-ui/react'
-import { FiEdit2, FiTrash2, FiCheckCircle, FiRotateCcw, FiChevronDown, FiChevronUp } from 'react-icons/fi'
+import { Box, VStack, HStack, Text, Button, Badge } from '@chakra-ui/react'
+import { LuChevronDown, LuChevronUp, LuHistory } from 'react-icons/lu'
+import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { deleteSavingsGoal, setGoalCompleted } from '@/lib/actions/savings.actions'
@@ -144,33 +145,29 @@ export function SavingsGoalCard({ goal, userId, accounts, onEdit }: Props) {
               + Añadir Fondos
             </Button>
             <HStack gap={1}>
-              <IconButton
-                aria-label={goal.is_completed ? 'Reabrir meta' : 'Marcar como completada'}
-                title={goal.is_completed ? 'Reabrir meta' : 'Marcar como completada'}
+              <ActionIconButton
+                kind={goal.is_completed ? 'reopen' : 'pay'}
+                label={goal.is_completed ? 'Reabrir meta' : 'Marcar como completada'}
                 size="sm"
                 variant="ghost"
                 loading={statusLoading}
                 onClick={toggleCompleted}
-              >
-                {goal.is_completed ? <FiRotateCcw /> : <FiCheckCircle />}
-              </IconButton>
-              <IconButton
-                aria-label="Editar"
+              />
+              <ActionIconButton
+                kind="edit"
+                label="Editar"
                 size="sm"
                 variant="ghost"
                 onClick={() => onEdit(goal)}
-              >
-                <FiEdit2 />
-              </IconButton>
-              <IconButton
-                aria-label="Eliminar"
+              />
+              <ActionIconButton
+                kind="delete"
+                tone="danger"
+                label="Eliminar"
                 size="sm"
                 variant="ghost"
-                colorPalette="red"
                 onClick={() => setShowDeleteConfirm(true)}
-              >
-                <FiTrash2 />
-              </IconButton>
+              />
             </HStack>
           </HStack>
 
@@ -183,8 +180,11 @@ export function SavingsGoalCard({ goal, userId, accounts, onEdit }: Props) {
               w="full"
               justifyContent="space-between"
             >
-              Aportes
-              {showHistory ? <FiChevronUp /> : <FiChevronDown />}
+              <HStack gap={1}>
+                <LuHistory />
+                Aportes
+              </HStack>
+              {showHistory ? <LuChevronUp /> : <LuChevronDown />}
             </Button>
             {showHistory && (
               <ContributionHistory

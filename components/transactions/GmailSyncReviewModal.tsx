@@ -1,11 +1,11 @@
 'use client'
 
 import {
-  Box, Button, HStack, VStack, Text, Table, IconButton, Badge, Stack,
+  Box, Button, HStack, VStack, Text, Table, Badge, Stack,
 } from '@chakra-ui/react'
 import { useState, useMemo, useRef } from 'react'
-import { FiEdit2, FiTrash2, FiCheck, FiX } from 'react-icons/fi'
 import { FormDialog } from '@/components/ui/FormDialog'
+import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import { TransactionEditForm } from './TransactionEditForm'
 import { commitGmailTransactions } from '@/lib/actions/gmail.actions'
 import { toaster } from '@/lib/toaster'
@@ -231,10 +231,16 @@ export function GmailSyncReviewModal({ isOpen, onClose, userId, items, categorie
                       <Table.Cell>{accountLabel(r.edited.account_id)}</Table.Cell>
                       <Table.Cell>
                         <HStack gap={1}>
-                          <IconButton aria-label="Editar" size="xs" variant="ghost" onClick={() => startEditing(idx)}><FiEdit2 /></IconButton>
-                          <IconButton aria-label={r.excluded ? 'Incluir' : 'Excluir'} size="xs" variant="ghost" color={r.excluded ? '#4ade80' : '#ef4444'} onClick={() => toggleExclude(idx)}>
-                            {r.excluded ? <FiCheck /> : <FiTrash2 />}
-                          </IconButton>
+                          <ActionIconButton kind="edit" label="Editar transacción" size="xs" onClick={() => startEditing(idx)} />
+                          <ActionIconButton
+                            kind={r.excluded ? 'include' : 'exclude'}
+                            label={r.excluded ? 'Incluir' : 'Excluir'}
+                            size="xs"
+                            tone={r.excluded ? 'neutral' : 'danger'}
+                        {...(r.excluded ? { colorPalette: 'green', color: 'green.400' } : {})}
+                            {...(r.excluded ? { colorPalette: 'green', color: 'green.400' } : {})}
+                            onClick={() => toggleExclude(idx)}
+                          />
                         </HStack>
                       </Table.Cell>
                     </Table.Row>
@@ -268,10 +274,16 @@ export function GmailSyncReviewModal({ isOpen, onClose, userId, items, categorie
                       <Text fontSize="sm">{accountLabel(r.edited.account_id)}</Text>
                     </HStack>
                     <HStack justify="flex-end" gap={2}>
-                      <Button size="sm" variant="outline" onClick={() => startEditing(idx)}><FiEdit2 /> Editar</Button>
-                      <Button size="sm" variant="outline" colorPalette={r.excluded ? 'green' : 'red'} onClick={() => toggleExclude(idx)}>
-                        {r.excluded ? <><FiCheck /> Incluir</> : <><FiX /> Excluir</>}
-                      </Button>
+                      <ActionIconButton kind="edit" label="Editar transacción" size="sm" variant="outline" onClick={() => startEditing(idx)} />
+                      <ActionIconButton
+                        kind={r.excluded ? 'include' : 'exclude'}
+                        label={r.excluded ? 'Incluir' : 'Excluir'}
+                        size="sm"
+                        variant="outline"
+                        tone={r.excluded ? 'neutral' : 'danger'}
+                        {...(r.excluded ? { colorPalette: 'green', color: 'green.400' } : {})}
+                        onClick={() => toggleExclude(idx)}
+                      />
                     </HStack>
                   </Stack>
                 </Box>

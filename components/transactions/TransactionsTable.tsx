@@ -8,8 +8,8 @@ import { DataTable, type ColumnDef } from '@/components/ui/DataTable'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { TransactionCardMobile } from './TransactionCardMobile'
 import { formatCurrency } from '@/lib/utils/currency'
-import { Badge, IconButton, HStack } from '@chakra-ui/react'
-import { FiEdit2, FiTrash2 } from 'react-icons/fi'
+import { Badge, HStack } from '@chakra-ui/react'
+import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import type { Account, TransactionWithCategory } from '@/types/database.types'
 
 interface Props {
@@ -90,18 +90,14 @@ export function TransactionsTable({ transactions, userId, onUpdate, onEdit, acco
       header: 'Acciones',
       render: (t) => (
         <HStack gap={1}>
-          <IconButton aria-label="Editar" size="sm" variant="ghost" onClick={() => onEdit(t)}>
-            <FiEdit2 />
-          </IconButton>
-          <IconButton
-            aria-label="Eliminar"
+          <ActionIconButton kind="edit" label="Editar transacción" size="sm" onClick={() => onEdit(t)} />
+          <ActionIconButton
+            kind="delete"
+            label="Eliminar transacción"
             size="sm"
-            variant="ghost"
-            colorPalette="red"
+            tone="danger"
             onClick={() => setSelectedId(t.id)}
-          >
-            <FiTrash2 />
-          </IconButton>
+          />
         </HStack>
       ),
     },

@@ -11,8 +11,10 @@ import {
 } from '@chakra-ui/react'
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiPlus, FiDownload, FiUpload, FiList } from 'react-icons/fi'
+import { FiList } from 'react-icons/fi'
+import { LuPlus } from 'react-icons/lu'
 import { Card } from '@/components/ui/Card'
+import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import { TransactionForm } from '@/components/transactions/TransactionForm'
 import { TransactionEditForm } from '@/components/transactions/TransactionEditForm'
 import { TransactionsTable } from '@/components/transactions/TransactionsTable'
@@ -129,14 +131,8 @@ export function TransactionsPageClient({
           {gmailSyncEnabled && (
             <GmailSyncButton userId={userId} categories={categories} accounts={accounts} />
           )}
-          <Button variant="outline" onClick={onExportOpen} size={{ base: 'sm', md: 'md' }} aria-label="Exportar">
-            <FiDownload />
-            <Text display={{ base: 'none', md: 'inline' }}>Exportar</Text>
-          </Button>
-          <Button variant="outline" onClick={onImportOpen} size={{ base: 'sm', md: 'md' }} aria-label="Importar">
-            <FiUpload />
-            <Text display={{ base: 'none', md: 'inline' }}>Importar</Text>
-          </Button>
+          <ActionIconButton kind="export" label="Exportar transacciones" onClick={onExportOpen} variant="outline" size="md" />
+          <ActionIconButton kind="import" label="Importar extracto" onClick={onImportOpen} variant="outline" size="md" />
           <Button
             bg="#4F46E5"
             color="white"
@@ -145,7 +141,7 @@ export function TransactionsPageClient({
             size={{ base: 'sm', md: 'md' }}
             aria-label="Nueva transacción"
           >
-            <FiPlus />
+            <LuPlus />
             <Text display={{ base: 'none', md: 'inline' }}>Nueva Transacción</Text>
           </Button>
         </HStack>
@@ -179,25 +175,25 @@ export function TransactionsPageClient({
 
         {totalPages > 1 && (
           <HStack justify="center" mt={4} gap={2}>
-            <Button
+            <ActionIconButton
+              kind="prev"
+              label="Página anterior"
               size="sm"
               variant="outline"
               disabled={page === 1}
               onClick={() => setPage((p) => p - 1)}
-            >
-              Anterior
-            </Button>
+            />
             <Text fontSize="sm" color="#B0B0B0">
               Página {page} de {totalPages}
             </Text>
-            <Button
+            <ActionIconButton
+              kind="next"
+              label="Página siguiente"
               size="sm"
               variant="outline"
               disabled={page === totalPages}
               onClick={() => setPage((p) => p + 1)}
-            >
-              Siguiente
-            </Button>
+            />
           </HStack>
         )}
       </Card>

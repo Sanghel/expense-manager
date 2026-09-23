@@ -4,6 +4,7 @@ import { Box, Button, HStack, Text, Badge } from '@chakra-ui/react'
 import { useState } from 'react'
 import { signIn, signOut } from 'next-auth/react'
 import { FiMail } from 'react-icons/fi'
+import { LuMail, LuUnplug } from 'react-icons/lu'
 import { disconnectGmail } from '@/lib/actions/gmail.actions'
 import { toaster } from '@/lib/toaster'
 
@@ -68,11 +69,12 @@ export function GmailConnectionPanel({ connected, connectedAt, lastSyncedAt }: P
       <HStack gap={2}>
         {connected ? (
           <Button onClick={handleDisconnect} loading={disconnecting} variant="outline">
+            <LuUnplug />
             Desconectar
           </Button>
         ) : (
           <Button onClick={handleConnect} bg="#4F46E5" color="white" _hover={{ bg: '#4338CA' }}>
-            <FiMail />
+            <LuMail />
             Conectar Gmail
           </Button>
         )}

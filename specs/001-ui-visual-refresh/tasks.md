@@ -35,12 +35,12 @@ description: "Task list for 001-ui-visual-refresh"
 **Purpose**: Versionar la documentación de la spec y crear las issues que numeran las ramas.
 
 - [ ] T001 Crear la rama `docs/001-ui-visual-refresh-spec` desde `develop`. Commitear `specs/001-ui-visual-refresh/` completo y `.specify/feature.json` con `docs: spec 001 refresco visual de la UI`. Abrir un PR a `develop` y hacer merge `--squash` tras la aprobación del dueño.
-- [ ] T002 Crear 3 issues en GitHub con `gh issue create`, una por historia. Títulos:
+- [X] T002 Crear 3 issues en GitHub con `gh issue create`, una por historia. Títulos:
   - "UI: tarjetas de cuentas con nombre truncado y tooltip"
   - "UI: acciones con botones de icono Lucide"
   - "UI: migrar controles de formulario a Combobox/DatePicker/NumberInput/ColorPicker de Chakra"
 
-  Cada issue enlaza `specs/001-ui-visual-refresh/spec.md` y la historia correspondiente. Anotar los números como `#A` (US1), `#B` (US2) y `#C` (US3). Las ramas de cada fase usan esos números.
+  Cada issue enlaza `specs/001-ui-visual-refresh/spec.md` y la historia correspondiente. Anotar los números como `#A` (US1), `#B` (US2) y `#C` (US3). **Creadas: #534 (US1), #535 (US2), #536 (US3).** Las ramas de cada fase usan esos números.
 
 ---
 
@@ -64,21 +64,21 @@ description: "Task list for 001-ui-visual-refresh"
 
 **Branch**: `feature/#A-account-cards-truncate` desde `develop` actualizado.
 
-- [ ] T003 [US1] Crear la rama `feature/<#A>-account-cards-truncate` desde `develop` actualizado (`git checkout develop && git pull && git checkout -b ...`).
-- [ ] T004 [P] [US1] Crear `components/ui/action-icons.ts`. Debe exportar el tipo `ActionKind` y `ACTION_ICONS: Record<ActionKind, IconType>` (`IconType` de `react-icons`), por ahora solo con `edit: LuPencil` y `delete: LuTrash2` de `react-icons/lu`. Añadir un comentario que diga que es la única fuente de iconos por acción (FR-010).
-- [ ] T005 [P] [US1] Crear `components/ui/TruncatedText.tsx` según el contrato `TruncatedText` de `contracts/ui-components.md`:
+- [X] T003 [US1] Crear la rama `feature/<#A>-account-cards-truncate` desde `develop` actualizado (`git checkout develop && git pull && git checkout -b ...`).
+- [X] T004 [P] [US1] Crear `components/ui/action-icons.ts`. Debe exportar el tipo `ActionKind` y `ACTION_ICONS: Record<ActionKind, IconType>` (`IconType` de `react-icons`), por ahora solo con `edit: LuPencil` y `delete: LuTrash2` de `react-icons/lu`. Añadir un comentario que diga que es la única fuente de iconos por acción (FR-010).
+- [X] T005 [P] [US1] Crear `components/ui/TruncatedText.tsx` según el contrato `TruncatedText` de `contracts/ui-components.md`:
   - Props: `children: string` más `TextProps` de Chakra. Usar `Text` con `truncate` y `minW={0}`.
   - Desbordamiento: detectarlo con `useRef` + `ResizeObserver` comparando `el.scrollWidth > el.clientWidth`, y recalcular al cambiar el tamaño o el texto.
   - Si desborda: envolver el texto en `Tooltip.Root` de Chakra (`Tooltip.Trigger asChild`, `Portal`, `Tooltip.Positioner`, `Tooltip.Content` con el texto completo), con `openDelay={300}`.
   - Apertura: controlar `open` para que también abra con clic o tap (toggle en `onClick`) y cerrar con `onPointerDownOutside` y `Escape`. Dar `tabIndex={0}` al trigger para que abra con foco.
   - Si no desborda: renderizar solo `Text`, sin tooltip y sin `tabIndex`.
-- [ ] T006 [US1] Crear `components/ui/ActionIconButton.tsx` según el contrato `ActionIconButton` (depende de T004):
+- [X] T006 [US1] Crear `components/ui/ActionIconButton.tsx` según el contrato `ActionIconButton` (depende de T004):
   - Props: `kind: ActionKind`, `label: string` (obligatoria), `onClick?`, `loading?`, `disabled?`, `tone?: 'neutral' | 'danger'`, `size?: 'xs' | 'sm' | 'md'` (default `'sm'`), `variant?: 'ghost' | 'outline' | 'subtle'` (default `'ghost'`) e `icon?: IconType` (override).
   - Render: `Tooltip.Root` (`openDelay={300}`, `closeDelay={100}`) que envuelve un `IconButton` con `aria-label={label}`, `loading={loading}` y `disabled={disabled || loading}`. Con `tone === 'danger'` usar `colorPalette="red"`; si no, `colorPalette="gray"`.
   - Área táctil mínima de 44 px en móvil: `minW={{ base: '11', md: 'auto' }}` y `minH={{ base: '11', md: 'auto' }}`.
   - El icono sale de `icon ?? ACTION_ICONS[kind]`.
   - El texto del tooltip es `label`. El tooltip se abre en hover y en foco de teclado. En táctil no se abre al tocar, porque tocar ejecuta la acción (spec FR-007, research R2). No añadir lógica de pulsación larga.
-- [ ] T007 [US1] Crear `components/settings/AccountCard.tsx` con las props `{ account: Account; onEdit(account); onDelete(accountId); extraAction?: ReactNode }`. Mover el markup de la tarjeta desde `components/settings/AccountsTab.tsx` (el `Box` dentro de `accounts.map`) y reorganizar el layout:
+- [X] T007 [US1] Crear `components/settings/AccountCard.tsx` con las props `{ account: Account; onEdit(account); onDelete(accountId); extraAction?: ReactNode }`. Mover el markup de la tarjeta desde `components/settings/AccountsTab.tsx` (el `Box` dentro de `accounts.map`) y reorganizar el layout:
   - Contenedor: `Box` con `borderWidth="1px"`, `borderRadius="xl"`, `p={4}`, `bg="bg.canvas"`, `borderColor="border.default"` y `_hover={{ borderColor: 'brand.500' }}`. Si `account.is_default`, el borde es `brand.500`.
   - Fila 1: `HStack gap={3} align="start"` con tres zonas:
     - (a) `Circle size="10" flexShrink={0} bg={account.color ?? 'brand.400'} fontSize="lg"` con `{account.icon ?? '💳'}`.
@@ -86,13 +86,13 @@ description: "Task list for 001-ui-visual-refresh"
     - (c) `HStack gap={0} flexShrink={0}` con `<ActionIconButton kind="edit" label={`Editar cuenta ${account.name}`} />` y `<ActionIconButton kind="delete" tone="danger" label={`Eliminar cuenta ${account.name}`} />`.
   - Fila 2: saldo con `<TruncatedText fontSize="xl" fontWeight="bold" color="text.primary">{formatCurrency(balance, currency)}</TruncatedText>`. Usar la misma expresión de saldo y moneda que el código actual; no cambiar el cálculo (principio IV).
   - Fila 3 (opcional): `extraAction`.
-- [ ] T008 [US1] En `components/settings/AccountsTab.tsx`, reemplazar el markup inline de la tarjeta por `<AccountCard account={acc} onEdit={(a) => { setEditingAccount(a); setIsAccountFormOpen(true) }} onDelete={setDeletingAccountId} extraAction={...} />`:
+- [X] T008 [US1] En `components/settings/AccountsTab.tsx`, reemplazar el markup inline de la tarjeta por `<AccountCard account={acc} onEdit={(a) => { setEditingAccount(a); setIsAccountFormOpen(true) }} onDelete={setDeletingAccountId} extraAction={...} />`:
   - Mover la acción "Pagar tarjeta" (≈línea 239, solo en cuentas tipo `card`) a `extraAction` sin cambiar su comportamiento.
   - Mantener `ConfirmDialog` para eliminar.
   - Mantener `SimpleGrid minChildWidth="260px" gap={3}`.
   - Quitar los imports que queden sin uso.
-- [ ] T009 [US1] Ejecutar `pnpm type-check && pnpm lint && pnpm build` y corregir errores.
-- [ ] T010 [US1] Validar [quickstart.md → PR 1](./quickstart.md) (pasos 1–7) con `pnpm dev` y el navegador integrado, en 375×812 y en escritorio. Revisar también un ancho de 360 px (Edge Case). Anotar el resultado en la descripción del PR.
+- [X] T009 [US1] Ejecutar `pnpm type-check && pnpm lint && pnpm build` y corregir errores.
+- [X] T010 [US1] Validar [quickstart.md → PR 1](./quickstart.md) (pasos 1–7) con `pnpm dev` y el navegador integrado, en 375×812 y en escritorio. Revisar también un ancho de 360 px (Edge Case). Anotar el resultado en la descripción del PR.
 - [ ] T011 [US1] Commitear con `feat(settings): tarjetas de cuentas con nombre truncado, tooltip e icono circular fijo`. Hacer push y abrir un PR a `develop` con `Closes #A`, capturas de antes y después (móvil y escritorio) y una nota explícita: "Sin cambios de datos ni de acceso (principios III/IV)". Hacer merge `--squash` solo tras la aprobación del dueño.
 
 **Checkpoint**: US1 en `develop`. `ActionIconButton`, `action-icons.ts` y `TruncatedText` quedan disponibles para US2 y US3.

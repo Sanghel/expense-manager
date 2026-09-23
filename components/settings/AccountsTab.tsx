@@ -8,30 +8,22 @@ import {
   Button,
   Heading,
   SimpleGrid,
-  Badge,
   Separator,
   IconButton,
 } from '@chakra-ui/react'
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi'
+import { FiPlus, FiTrash2 } from 'react-icons/fi'
 import { deleteAccount } from '@/lib/actions/accounts.actions'
 import { deleteAccountMovement } from '@/lib/actions/account_movements.actions'
 import { toaster } from '@/lib/toaster'
 import { AccountForm } from './AccountForm'
 import { AccountMovementForm } from './AccountMovementForm'
+import { AccountCard } from './AccountCard'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { DataTable, type ColumnDef } from '@/components/ui/DataTable'
 import { formatCurrency } from '@/lib/utils/currency'
 import type { Account, AccountMovementWithAccounts } from '@/types/database.types'
-
-const ACCOUNT_TYPE_LABELS: Record<string, string> = {
-  bank: 'Banco',
-  digital: 'Digital',
-  crypto: 'Crypto',
-  cash: 'Efectivo',
-  card: 'Tarjeta de Crédito',
-}
 
 interface Props {
   userId: string
@@ -164,98 +156,27 @@ export function AccountsTab({ userId, initialAccounts, initialMovements }: Props
         ) : (
           <SimpleGrid minChildWidth="260px" gap={3}>
             {accounts.map((acc) => (
-              <Box
+              <AccountCard
                 key={acc.id}
-                borderWidth="1px"
-                borderRadius="xl"
-                p={4}
-                bg="#1a1a23"
-                borderColor="#2d2d35"
-                _hover={{ borderColor: '#4F46E5' }}
-                transition="border-color 0.2s"
-              >
-                <VStack align="stretch" gap={2}>
-                  <HStack justify="space-between">
-                    <HStack gap={2}>
-                      <Box
-                        w="8"
-                        h="8"
-                        borderRadius="full"
-                        bg={acc.color ?? '#6366f1'}
-                        display="flex"
-                        alignItems="center"
-                        justifyContent="center"
-                        fontSize="md"
-                      >
-                        {acc.icon ?? '💳'}
-                      </Box>
-                      <VStack align="start" gap={0}>
-                        <Text fontWeight="semibold" fontSize="sm" color="white">{acc.name}</Text>
-                        <HStack gap={1} flexWrap="wrap">
-                          <Badge size="sm" variant="outline" colorPalette="gray">
-                            {ACCOUNT_TYPE_LABELS[acc.type] ?? acc.type}
-                          </Badge>
-                          {acc.is_default && (
-                            <Badge size="sm" colorPalette="purple">Por defecto</Badge>
-                          )}
-                        </HStack>
-                      </VStack>
-                    </HStack>
-                    <HStack gap={1}>
-                      <IconButton
-                        aria-label="Editar"
-                        size="xs"
-                        variant="ghost"
-                        color="#B0B0B0"
-                        onClick={() => { setEditingAccount(acc); setIsAccountFormOpen(true) }}
-                      >
-                        <FiEdit2 />
-                      </IconButton>
-                      <IconButton
-                        aria-label="Eliminar"
-                        size="xs"
-                        variant="ghost"
-                        color="#ef4444"
-                        onClick={() => setDeletingAccountId(acc.id)}
-                      >
-                        <FiTrash2 />
-                      </IconButton>
-                    </HStack>
-                  </HStack>
-                  {acc.type === 'card' && acc.credit_limit != null ? (
-                    <VStack align="stretch" gap={1}>
-                      <HStack justify="space-between">
-                        <Text fontSize="xs" color="#B0B0B0">Cupo disponible</Text>
-                        <Text fontWeight="bold" fontSize="md" color="white">
-                          {formatCurrency(acc.balance, acc.currency as any)}
-                        </Text>
-                      </HStack>
-                      <HStack justify="space-between">
-                        <Text fontSize="xs" color="#B0B0B0">Cupo total</Text>
-                        <Text fontSize="sm" color="#B0B0B0">
-                          {formatCurrency(acc.credit_limit, acc.currency as any)}
-                        </Text>
-                      </HStack>
-                      <Button
-                        size="xs"
-                        variant="outline"
-                        colorPalette="purple"
-                        mt={1}
-                        onClick={() => {
-                          setPreselectedToAccountId(acc.id)
-                          setIsMovementFormOpen(true)
-                        }}
-                      >
-                        Pagar tarjeta
-                      </Button>
-                    </VStack>
-                  ) : (
-                    <Text fontWeight="bold" fontSize="lg" color="white">
-                      {formatCurrency(acc.balance, acc.currency as any)}
-                    </Text>
-                  )}
-                </VStack>
-              </Box>
+                account={acc}
+                onEdit={(a) => { setEditingAccount(a); setIsAccountFormOpen(true) }}
+                onDelete={setDeletingAccountId}
+                extraAction={
+                  acc.type === 'card' && acc.credit_limit != null ? (
+                    <Button
+                      size="xs"
+                      variant="outline"
+                      colorPalette="purple"
+                      onClick={() => {
+                        setPreselectedToAccountId(acc.id)
+                        setIsMovementFormOpen(true)
+                      }}
+                    >
+                      Pagar tarjeta
+                    </Button>
+                  ) : undefined
+                }
+              />
             ))}
           </SimpleGrid>
         )}

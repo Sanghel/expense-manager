@@ -8,13 +8,13 @@ import {
   Text,
   Badge,
   Button,
-  IconButton,
   Spinner,
 } from '@chakra-ui/react'
-import { FiEdit2, FiTrash2, FiCheckCircle, FiPlusCircle, FiChevronDown, FiChevronUp } from 'react-icons/fi'
+import { LuCircleCheck, LuCirclePlus, LuChevronDown, LuChevronUp } from 'react-icons/lu'
 import { formatCurrency } from '@/lib/utils/currency'
 import { getLoanPayments, deleteLoanPayment } from '@/lib/actions/loans.actions'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import { toaster } from '@/lib/toaster'
 import type { LoanWithAccount, LoanPayment } from '@/types/database.types'
 
@@ -130,16 +130,15 @@ function PaymentHistory({
             <HStack gap={2}>
               <Text fontSize="xs" color="#B0B0B0">{p.date}</Text>
               {loan.status === 'active' && (
-                <IconButton
-                  aria-label="Eliminar abono"
-                  size="2xs"
+                <ActionIconButton
+                  kind="delete"
+                  tone="danger"
+                  label="Eliminar abono"
+                  size="xs"
                   variant="ghost"
-                  color="#F43F5E"
                   loading={deletingId === p.id}
                   onClick={() => setConfirmPayment(p)}
-                >
-                  <FiTrash2 />
-                </IconButton>
+                />
               )}
             </HStack>
           </HStack>
@@ -255,7 +254,7 @@ function LoanCard({
                 _hover={{ bg: '#EA580C' }}
                 onClick={onPayment}
               >
-                <FiPlusCircle />
+                <LuCirclePlus />
                 Abono
               </Button>
               <Button
@@ -265,28 +264,26 @@ function LoanCard({
                 _hover={{ bg: '#4338CA' }}
                 onClick={onSettle}
               >
-                <FiCheckCircle />
+                <LuCircleCheck />
                 {settleLabel(loan)}
               </Button>
-              <IconButton
-                aria-label="Editar"
+              <ActionIconButton
+                kind="edit"
+                label="Editar"
                 size="xs"
                 variant="ghost"
                 onClick={onEdit}
-              >
-                <FiEdit2 />
-              </IconButton>
+              />
             </>
           )}
-          <IconButton
-            aria-label="Eliminar"
+          <ActionIconButton
+            kind="delete"
+            tone="danger"
+            label="Eliminar"
             size="xs"
             variant="ghost"
-            color="#F43F5E"
             onClick={() => setConfirmDelete(true)}
-          >
-            <FiTrash2 />
-          </IconButton>
+          />
         </HStack>
       </Box>
 
@@ -305,7 +302,7 @@ function LoanCard({
         onClick={() => setExpanded((v) => !v)}
       >
         <HStack gap={1}>
-          {expanded ? <FiChevronUp /> : <FiChevronDown />}
+          {expanded ? <LuChevronUp /> : <LuChevronDown />}
           <Text fontSize="xs">{expanded ? 'Ocultar historial' : 'Ver historial de abonos'}</Text>
         </HStack>
       </Button>

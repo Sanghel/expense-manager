@@ -1,11 +1,7 @@
 'use client'
 
-import {
-  HStack,
-  Text,
-  NativeSelectRoot,
-  NativeSelectField,
-} from '@chakra-ui/react'
+import { HStack, Text } from '@chakra-ui/react'
+import { ComboboxField } from '@/components/ui/ComboboxField'
 import { useState } from 'react'
 import { updatePreferredCurrency } from '@/lib/actions/users.actions'
 import { toaster } from '@/lib/toaster'
@@ -44,21 +40,20 @@ export function CurrencySelector({ userId, current }: Props) {
 
   return (
     <HStack gap={4}>
-      <Text fontSize="sm" color="#B0B0B0" minW="32">
+      <Text fontSize="sm" color="text.secondary" minW="32" flexShrink={0}>
         Moneda preferida
       </Text>
-      <NativeSelectRoot w="56" disabled={loading}>
-        <NativeSelectField
-          value={value}
-          onChange={(e) => handleChange(e.target.value as Currency)}
-        >
-          {CURRENCIES.map((c) => (
-            <option key={c.value} value={c.value}>
-              {c.label}
-            </option>
-          ))}
-        </NativeSelectField>
-      </NativeSelectRoot>
+      <ComboboxField
+        label="Moneda preferida"
+        hideLabel
+        maxW="56"
+        value={value}
+        // Options only contain Currency values and clearing is disabled.
+        onChange={(v) => handleChange(v as Currency)}
+        options={CURRENCIES}
+        disabled={loading}
+        clearable={false}
+      />
     </HStack>
   )
 }

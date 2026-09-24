@@ -14,7 +14,8 @@ import {
   Icon,
   Text,
 } from '@chakra-ui/react'
-import { FiHome, FiChevronDown, FiChevronUp } from 'react-icons/fi'
+import { FiHome } from 'react-icons/fi'
+import { LuChevronDown, LuChevronUp } from 'react-icons/lu'
 import { FinancialCards } from './FinancialCards'
 import { AccountsOverview } from './AccountsOverview'
 import { MonthSelector } from './MonthSelector'
@@ -187,7 +188,7 @@ export function DashboardContent({
               color="#B0B0B0"
               onClick={() => setShowMore((v) => !v)}
             >
-              <Icon as={showMore ? FiChevronUp : FiChevronDown} />
+              <Icon as={showMore ? LuChevronUp : LuChevronDown} />
               {showMore ? 'Ocultar análisis adicional' : 'Ver más análisis'}
             </Button>
 

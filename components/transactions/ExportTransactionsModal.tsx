@@ -5,14 +5,11 @@ import {
   HStack,
   Text,
   Button,
-  FieldRoot,
-  FieldLabel,
-  NativeSelectRoot,
-  NativeSelectField,
   Separator,
 } from '@chakra-ui/react'
 import { useState } from 'react'
-import { FiDownload } from 'react-icons/fi'
+import { LuFileJson, LuFileSpreadsheet, LuFileText } from 'react-icons/lu'
+import { ComboboxField } from '@/components/ui/ComboboxField'
 import { FormDialog } from '@/components/ui/FormDialog'
 import { exportTransactions } from '@/lib/actions/export.actions'
 import { toaster } from '@/lib/toaster'
@@ -104,29 +101,20 @@ export function ExportTransactionsModal({ isOpen, onClose, userId }: Props) {
         </Text>
 
         <HStack gap={3} align="flex-end">
-          <FieldRoot flex={1}>
-            <FieldLabel fontSize="sm">Mes</FieldLabel>
-            <NativeSelectRoot>
-              <NativeSelectField value={month} onChange={(e) => setMonth(e.target.value)}>
-                <option value="">Todos</option>
-                {MONTHS.map((m) => (
-                  <option key={m.value} value={m.value}>{m.label}</option>
-                ))}
-              </NativeSelectField>
-            </NativeSelectRoot>
-          </FieldRoot>
-
-          <FieldRoot flex={1}>
-            <FieldLabel fontSize="sm">Año</FieldLabel>
-            <NativeSelectRoot>
-              <NativeSelectField value={year} onChange={(e) => setYear(e.target.value)}>
-                <option value="">Todos</option>
-                {YEARS.map((y) => (
-                  <option key={y} value={y}>{y}</option>
-                ))}
-              </NativeSelectField>
-            </NativeSelectRoot>
-          </FieldRoot>
+          <ComboboxField
+            label="Mes"
+            placeholder="Todos"
+            value={month}
+            onChange={setMonth}
+            options={MONTHS.map((m) => ({ value: String(m.value), label: m.label }))}
+          />
+          <ComboboxField
+            label="Año"
+            placeholder="Todos"
+            value={year}
+            onChange={setYear}
+            options={YEARS.map((y) => ({ value: String(y), label: String(y) }))}
+          />
         </HStack>
 
         <Separator />
@@ -139,7 +127,7 @@ export function ExportTransactionsModal({ isOpen, onClose, userId }: Props) {
             disabled={loading !== null && loading !== 'csv'}
             onClick={() => handleExport('csv')}
           >
-            <FiDownload />
+            <LuFileText />
             Exportar como CSV
           </Button>
 
@@ -150,7 +138,7 @@ export function ExportTransactionsModal({ isOpen, onClose, userId }: Props) {
             disabled={loading !== null && loading !== 'xlsx'}
             onClick={() => handleExport('xlsx')}
           >
-            <FiDownload />
+            <LuFileSpreadsheet />
             Exportar como Excel (.xlsx)
           </Button>
 
@@ -161,7 +149,7 @@ export function ExportTransactionsModal({ isOpen, onClose, userId }: Props) {
             disabled={loading !== null && loading !== 'json'}
             onClick={() => handleExport('json')}
           >
-            <FiDownload />
+            <LuFileJson />
             Exportar como JSON
           </Button>
         </VStack>

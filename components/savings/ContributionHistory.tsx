@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { HStack, VStack, Text, IconButton, Spinner } from '@chakra-ui/react'
-import { FiTrash2 } from 'react-icons/fi'
+import { HStack, VStack, Text, Spinner } from '@chakra-ui/react'
+import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import { getGoalContributions, deleteGoalContribution } from '@/lib/actions/savings.actions'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { toaster } from '@/lib/toaster'
@@ -94,15 +94,14 @@ export function ContributionHistory({ userId, goalId, goalCurrency, onChange }: 
                 {new Date(c.created_at).toLocaleDateString('es-ES')}
               </Text>
             </VStack>
-            <IconButton
-              aria-label="Eliminar aporte"
+            <ActionIconButton
+              kind="delete"
+              tone="danger"
+              label="Eliminar aporte"
               size="xs"
               variant="ghost"
-              colorPalette="red"
               onClick={() => setPendingDelete(c)}
-            >
-              <FiTrash2 />
-            </IconButton>
+            />
           </HStack>
         ))}
       </VStack>

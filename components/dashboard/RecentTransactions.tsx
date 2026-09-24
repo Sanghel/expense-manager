@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { Heading, Badge, Text, HStack, Button } from '@chakra-ui/react'
+import { Heading, Badge, Text, HStack } from '@chakra-ui/react'
 import { formatCurrency } from '@/lib/utils/currency'
 import { Card } from '@/components/ui/Card'
+import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import { DataTable, type ColumnDef } from '@/components/ui/DataTable'
 import type { TransactionWithCategory } from '@/types/database.types'
 
@@ -63,23 +64,23 @@ export function RecentTransactions({ transactions, limit = 10 }: Props) {
       />
       {totalPages > 1 && (
         <HStack justify="center" mt={4} gap={2}>
-          <Button
+          <ActionIconButton
+            kind="prev"
+            label="Página anterior"
             size="sm"
             variant="outline"
             disabled={page === 1}
             onClick={() => setPage((p) => p - 1)}
-          >
-            Anterior
-          </Button>
+          />
           <Text fontSize="sm" color="#B0B0B0">{page} / {totalPages}</Text>
-          <Button
+          <ActionIconButton
+            kind="next"
+            label="Página siguiente"
             size="sm"
             variant="outline"
             disabled={page === totalPages}
             onClick={() => setPage((p) => p + 1)}
-          >
-            Siguiente
-          </Button>
+          />
         </HStack>
       )}
     </Card>

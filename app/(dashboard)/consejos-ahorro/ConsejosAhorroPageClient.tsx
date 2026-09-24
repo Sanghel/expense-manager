@@ -16,10 +16,11 @@ import {
 } from '@chakra-ui/react'
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiZap, FiInbox, FiRefreshCw } from 'react-icons/fi'
+import { FiZap, FiInbox } from 'react-icons/fi'
 import { Card } from '@/components/ui/Card'
 import { StatCard } from '@/components/ui/StatCard'
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
+import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import { InsightsList } from '@/components/savings/InsightsList'
 import { BudgetSuggestionsList, type ExistingBudget } from '@/components/savings/BudgetSuggestionsList'
 import { SavingsGoalSuggestions } from '@/components/savings/SavingsGoalSuggestions'
@@ -147,16 +148,13 @@ export function ConsejosAhorroPageClient({
                 </Button>
               </>
             ) : (
-              <Button
-                size="sm"
+              <ActionIconButton
+                kind="regenerate"
+                label="Regenerar consejos"
                 variant="outline"
-                color="#B0B0B0"
                 onClick={() => setConfirmingRegenerate(true)}
                 loading={loading}
-              >
-                <FiRefreshCw />
-                Regenerar
-              </Button>
+              />
             )}
           </HStack>
         )}

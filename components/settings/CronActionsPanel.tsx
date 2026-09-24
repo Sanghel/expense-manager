@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Box, Button, Text, VStack, HStack, Badge } from '@chakra-ui/react'
+import { Box, Text, VStack, HStack, Badge } from '@chakra-ui/react'
+import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import { updateExchangeRates } from '@/lib/actions/exchangeRates.actions'
 
 type ActionStatus = 'idle' | 'loading' | 'success' | 'error'
@@ -77,17 +78,14 @@ function ActionRow({ label, description, buttonLabel, state, onAction }: ActionR
             </HStack>
           )}
         </Box>
-        <Button
+        <ActionIconButton
+          kind="run"
+          label={buttonLabel}
           size="sm"
           variant="outline"
-          colorPalette="brand"
           loading={state.status === 'loading'}
-          loadingText="Ejecutando..."
           onClick={onAction}
-          flexShrink={0}
-        >
-          {buttonLabel}
-        </Button>
+        />
       </HStack>
     </Box>
   )

@@ -1,4 +1,16 @@
-import { createSystem, defaultConfig, defineConfig } from '@chakra-ui/react'
+import { createSystem, defaultConfig, defineConfig, type SystemStyleObject } from '@chakra-ui/react'
+
+// Overrides of Chakra's default slot recipes. The merge combines `slots` arrays
+// index by index, so always pass the full default list or other slots lose
+// their styles.
+const defaultSlotRecipes = defaultConfig.theme?.slotRecipes ?? {}
+const extendSlotRecipe = (name: string, base: Record<string, SystemStyleObject>) => ({
+  slots: defaultSlotRecipes[name]?.slots ?? [],
+  base,
+})
+
+// Floating panels (combobox list, calendar, color picker) share the app's card look.
+const floatingPanel = { bg: 'bg.canvas', background: 'bg.canvas', borderWidth: '1px', borderColor: 'border.default', color: 'text.primary' }
 
 const config = defineConfig({
   theme: {
@@ -38,6 +50,17 @@ const config = defineConfig({
     },
     semanticTokens: {
       colors: {
+        // Full semantic palette so `colorPalette="brand"` works on any Chakra
+        // component (solid buttons, selected calendar days, focus rings…).
+        brand: {
+          solid: { value: '{colors.brand.500}' },
+          contrast: { value: 'white' },
+          fg: { value: '{colors.brand.300}' },
+          muted: { value: '{colors.brand.800}' },
+          subtle: { value: '{colors.brand.900}' },
+          emphasized: { value: '{colors.brand.700}' },
+          focusRing: { value: '{colors.brand.500}' },
+        },
         'bg.canvas': {
           value: '#1A1A23',
         },
@@ -69,6 +92,33 @@ const config = defineConfig({
           value: 'rgba(0, 0, 0, 0.5)',
         },
       },
+    },
+    slotRecipes: {
+      combobox: extendSlotRecipe('combobox', {
+        content: floatingPanel,
+        item: { _highlighted: { bg: 'brand.500/20' }, _selected: { color: 'brand.300' } },
+        input: { bg: 'bg.subtle', borderColor: 'border.default' },
+        empty: { color: 'text.secondary' },
+      }),
+      datePicker: extendSlotRecipe('datePicker', {
+        content: floatingPanel,
+        input: { bg: 'bg.subtle', borderColor: 'border.default' },
+      }),
+      numberInput: extendSlotRecipe('numberInput', {
+        input: { bg: 'bg.subtle', borderColor: 'border.default' },
+      }),
+      colorPicker: extendSlotRecipe('colorPicker', {
+        content: floatingPanel,
+        channelInput: { bg: 'bg.subtle', borderColor: 'border.default' },
+      }),
+      tooltip: extendSlotRecipe('tooltip', {
+        content: {
+          '--tooltip-bg': 'colors.bg.subtle',
+          color: 'text.primary',
+          borderWidth: '1px',
+          borderColor: 'border.default',
+        },
+      }),
     },
   },
 })

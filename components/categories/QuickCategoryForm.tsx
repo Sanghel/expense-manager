@@ -16,7 +16,8 @@ import {
   DialogBody,
   DialogCloseTrigger,
 } from '@chakra-ui/react'
-import { useState } from 'react'
+import { PortalContainerProvider } from '@/components/ui/FloatingPortal'
+import { useState, useRef } from 'react'
 import { createCategory } from '@/lib/actions/categories.actions'
 import { toaster } from '@/lib/toaster'
 import { FormInput } from '@/components/ui/FormInput'
@@ -34,6 +35,8 @@ interface Props {
 }
 
 export function QuickCategoryForm({ isOpen, onClose, userId, defaultType, onCreated }: Props) {
+  // Floating panels (combobox, pickers) render inside the dialog so they stay clickable.
+  const contentRef = useRef<HTMLDivElement>(null)
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
@@ -70,51 +73,53 @@ export function QuickCategoryForm({ isOpen, onClose, userId, defaultType, onCrea
     >
       <DialogBackdrop />
       <DialogPositioner>
-        <DialogContent tabIndex={-1} maxW="400px">
-          <DialogHeader>
-            <DialogTitle>Nueva Categoría</DialogTitle>
-          </DialogHeader>
-          <DialogCloseTrigger />
-          <DialogBody pb={6}>
-            <form onSubmit={handleSubmit}>
-              <VStack gap={4}>
-                <Box w="full" p={2} bg="#26262f" borderRadius="md">
-                  <Text fontSize="xs" color="#B0B0B0">
-                    Tipo: <Text as="span" color="white" fontWeight="medium">{typeLabel}</Text>
-                  </Text>
-                </Box>
+        <DialogContent ref={contentRef} tabIndex={-1} maxW="400px">
+          <PortalContainerProvider container={contentRef}>
+            <DialogHeader>
+              <DialogTitle>Nueva Categoría</DialogTitle>
+            </DialogHeader>
+            <DialogCloseTrigger />
+            <DialogBody pb={6}>
+              <form onSubmit={handleSubmit}>
+                <VStack gap={4}>
+                  <Box w="full" p={2} bg="#26262f" borderRadius="md">
+                    <Text fontSize="xs" color="#B0B0B0">
+                      Tipo: <Text as="span" color="white" fontWeight="medium">{typeLabel}</Text>
+                    </Text>
+                  </Box>
 
-                <FormInput
-                  label="Nombre"
-                  value={formData.name}
-                  onChange={(v) => setFormData({ ...formData, name: v })}
-                  placeholder="Ej: Transporte"
-                  required
-                />
+                  <FormInput
+                    label="Nombre"
+                    value={formData.name}
+                    onChange={(v) => setFormData({ ...formData, name: v })}
+                    placeholder="Ej: Transporte"
+                    required
+                  />
 
-                <HStack gap={4} w="full">
-                  <FieldRoot>
-                    <FieldLabel>Icono</FieldLabel>
-                    <IconPicker
-                      value={formData.icon}
-                      onChange={(icon) => setFormData({ ...formData, icon })}
-                    />
-                  </FieldRoot>
-                  <FieldRoot>
-                    <FieldLabel>Color</FieldLabel>
-                    <ColorPicker
-                      value={formData.color}
-                      onChange={(color) => setFormData({ ...formData, color })}
-                    />
-                  </FieldRoot>
-                </HStack>
+                  <HStack gap={4} w="full">
+                    <FieldRoot>
+                      <FieldLabel>Icono</FieldLabel>
+                      <IconPicker
+                        value={formData.icon}
+                        onChange={(icon) => setFormData({ ...formData, icon })}
+                      />
+                    </FieldRoot>
+                    <FieldRoot>
+                      <FieldLabel>Color</FieldLabel>
+                      <ColorPicker
+                        value={formData.color}
+                        onChange={(color) => setFormData({ ...formData, color })}
+                      />
+                    </FieldRoot>
+                  </HStack>
 
-                <PrimaryButton type="submit" width="full" loading={loading}>
-                  Crear y Seleccionar
-                </PrimaryButton>
-              </VStack>
-            </form>
-          </DialogBody>
+                  <PrimaryButton type="submit" width="full" loading={loading}>
+                    Crear y Seleccionar
+                  </PrimaryButton>
+                </VStack>
+              </form>
+            </DialogBody>
+          </PortalContainerProvider>
         </DialogContent>
       </DialogPositioner>
     </DialogRoot>

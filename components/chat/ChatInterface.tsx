@@ -11,13 +11,12 @@ import {
   Spinner,
   Separator,
   Icon,
-  NativeSelectRoot,
-  NativeSelectField,
 } from '@chakra-ui/react'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { FiCheck, FiMessageSquare } from 'react-icons/fi'
 import { ActionIconButton } from '@/components/ui/ActionIconButton'
+import { ComboboxField } from '@/components/ui/ComboboxField'
 import { categorizePurchase, type CategorizedTransaction } from '@/lib/actions/ai.actions'
 import { createTransaction } from '@/lib/actions/transactions.actions'
 import { toaster } from '@/lib/toaster'
@@ -406,23 +405,20 @@ export function ChatInterface({ userId, categories, accounts = [], onClose }: Pr
                             <Separator />
                             <HStack justify="space-between">
                               <Text fontSize="sm" color="#B0B0B0">Cuenta</Text>
-                              <NativeSelectRoot size="sm" w="auto" minW="150px">
-                                <NativeSelectField
-                                  value={msg.preview.account_id ?? ''}
-                                  onChange={(e) => updatePreviewAccount(msg.id, e.target.value || null)}
-                                  bg="#18181d"
-                                  borderColor="#2d2d35"
-                                  color="white"
-                                  fontSize="sm"
-                                >
-                                  <option value="">Sin cuenta</option>
-                                  {accounts.map((acc) => (
-                                    <option key={acc.id} value={acc.id}>
-                                      {acc.icon ?? '💳'} {acc.name}
-                                    </option>
-                                  ))}
-                                </NativeSelectField>
-                              </NativeSelectRoot>
+                              <ComboboxField
+                                label="Cuenta"
+                                hideLabel
+                                size="sm"
+                                maxW="200px"
+                                placeholder="Sin cuenta"
+                                value={msg.preview.account_id ?? ''}
+                                onChange={(v) => updatePreviewAccount(msg.id, v || null)}
+                                options={accounts.map((acc) => ({
+                                  value: acc.id,
+                                  label: acc.name,
+                                  icon: acc.icon ?? '💳',
+                                }))}
+                              />
                             </HStack>
                           </>
                         )}

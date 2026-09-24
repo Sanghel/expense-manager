@@ -1,34 +1,39 @@
 'use client'
 
-import { FieldRoot, FieldLabel, Input, Box, IconButton } from '@chakra-ui/react'
-import { FiX, FiCalendar } from 'react-icons/fi'
-import { useState, useEffect, useRef } from 'react'
+import { DatePicker, Field, Portal, Text, parseDate } from '@chakra-ui/react'
+import { LuCalendar } from 'react-icons/lu'
 
-function isoToDisplay(iso: string): string {
-  if (!iso || iso.length < 10) return ''
-  const [year, month, day] = iso.split('-')
-  if (!year || !month || !day) return ''
-  return `${day}/${month}/${year}`
+type DateValue = NonNullable<DatePicker.RootProps['value']>[number]
+
+const pad = (n: number) => String(n).padStart(2, '0')
+
+/** Calendar date → ISO `YYYY-MM-DD` (no time, no timezone: the day never shifts). */
+function toIso(d: { year: number; month: number; day: number }): string {
+  return `${d.year}-${pad(d.month)}-${pad(d.day)}`
 }
 
-function displayToIso(display: string): string {
-  const match = display.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
-  if (!match) return ''
+function isoToDate(iso: string): DateValue | undefined {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return undefined
+  try {
+    return parseDate(iso) as DateValue
+  } catch {
+    return undefined
+  }
+}
+
+/** Accepts DD/MM/YYYY typed by hand; anything else is not a date yet. */
+function parseDisplay(text: string): DateValue | undefined {
+  const match = text.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)
+  if (!match) return undefined
   const [, day, month, year] = match
-  return `${year}-${month}-${day}`
-}
-
-function autoFormatDate(raw: string): string {
-  const digits = raw.replace(/\D/g, '')
-  let result = ''
-  if (digits.length > 0) result += digits.substring(0, 2)
-  if (digits.length >= 3) result += '/' + digits.substring(2, 4)
-  if (digits.length >= 5) result += '/' + digits.substring(4, 8)
-  return result
+  const date = isoToDate(`${year}-${pad(Number(month))}-${pad(Number(day))}`)
+  // parseDate constrains out-of-range days (31/02 → 28/02); reject those instead.
+  return date && date.day === Number(day) && date.month === Number(month) ? date : undefined
 }
 
 interface Props {
   label: string
+  /** ISO `YYYY-MM-DD` or ''. */
   value: string
   onChange: (value: string) => void
   required?: boolean
@@ -37,127 +42,63 @@ interface Props {
   showClear?: boolean
 }
 
+/**
+ * Date field on Chakra's DatePicker: typed DD/MM/YYYY or picked from a Spanish
+ * calendar starting on Monday. Emits the same ISO string as before, or ''.
+ */
 export function DateInput({ label, value, onChange, required, disabled, optional, showClear = true }: Props) {
-  const [displayValue, setDisplayValue] = useState(() => isoToDisplay(value))
-  const hiddenDateRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    setDisplayValue(isoToDisplay(value))
-  }, [value])
-
-  const handleChange = (raw: string) => {
-    const formatted = autoFormatDate(raw)
-    setDisplayValue(formatted)
-    const iso = displayToIso(formatted)
-    if (iso) {
-      onChange(iso)
-    } else if (!formatted) {
-      onChange('')
-    }
-  }
-
-  const handleClear = () => {
-    setDisplayValue('')
-    onChange('')
-  }
-
-  const handlePickerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const iso = e.target.value
-    if (iso) {
-      setDisplayValue(isoToDisplay(iso))
-      onChange(iso)
-    }
-  }
-
-  const openPicker = () => {
-    const input = hiddenDateRef.current
-    if (!input) return
-    if (typeof input.showPicker === 'function') {
-      input.showPicker()
-    } else {
-      input.click()
-    }
-  }
-
-  const showClearBtn = showClear && displayValue && !disabled
-  const rightPadding = showClearBtn ? '16' : '10'
+  const date = isoToDate(value)
 
   return (
-    <FieldRoot required={required} w="full">
-      <FieldLabel>
-        {label}
-        {optional && <span style={{ color: '#B0B0B0', fontSize: '0.85em', marginLeft: '4px' }}>(opcional)</span>}
-      </FieldLabel>
-      <Box position="relative" w="full">
-        <Input
-          type="text"
-          value={displayValue}
-          onChange={(e) => handleChange(e.target.value)}
-          placeholder="DD/MM/YYYY"
-          disabled={disabled}
-          opacity={disabled ? 0.6 : 1}
-          cursor={disabled ? 'not-allowed' : undefined}
-          pr={rightPadding}
-          maxLength={10}
-        />
-        <input
-          ref={hiddenDateRef}
-          type="date"
-          value={value || ''}
-          onChange={handlePickerChange}
-          disabled={disabled}
-          aria-hidden="true"
-          tabIndex={-1}
-          style={{
-            position: 'absolute',
-            right: 0,
-            top: 0,
-            width: 1,
-            height: 1,
-            opacity: 0,
-            pointerEvents: 'none',
-          }}
-        />
-        <IconButton
-          aria-label="Abrir calendario"
-          variant="ghost"
-          size="xs"
-          position="absolute"
-          right={showClearBtn ? '8' : '1'}
-          top="50%"
-          transform="translateY(-50%)"
-          zIndex={2}
-          color="#B0B0B0"
-          _hover={{ color: 'white', bg: '#26262f' }}
-          onClick={openPicker}
-          disabled={disabled}
-          minW="auto"
-          h="auto"
-          p="1"
-        >
-          <FiCalendar />
-        </IconButton>
-        {showClearBtn && (
-          <IconButton
-            aria-label="Limpiar fecha"
-            variant="ghost"
-            size="xs"
-            position="absolute"
-            right="1"
-            top="50%"
-            transform="translateY(-50%)"
-            zIndex={2}
-            color="#B0B0B0"
-            _hover={{ color: 'white', bg: '#26262f' }}
-            onClick={handleClear}
-            minW="auto"
-            h="auto"
-            p="1"
-          >
-            <FiX />
-          </IconButton>
-        )}
-      </Box>
-    </FieldRoot>
+    <Field.Root required={required} disabled={disabled} w="full">
+      <DatePicker.Root
+        value={date ? [date] : []}
+        onValueChange={(e) => onChange(e.value[0] ? toIso(e.value[0]) : '')}
+        locale="es-CO"
+        startOfWeek={1}
+        format={(d) => `${pad(d.day)}/${pad(d.month)}/${d.year}`}
+        parse={(text) => parseDisplay(text)}
+        placeholder="DD/MM/AAAA"
+        colorPalette="brand"
+        width="full"
+      >
+        <DatePicker.Label>
+          {label}
+          {required && <Field.RequiredIndicator />}
+          {optional && (
+            <Text as="span" color="text.secondary" fontSize="0.85em" fontWeight="normal" ms={1}>
+              (opcional)
+            </Text>
+          )}
+        </DatePicker.Label>
+        <DatePicker.Control>
+          <DatePicker.Input />
+          <DatePicker.IndicatorGroup>
+            {showClear && value && <DatePicker.ClearTrigger aria-label="Limpiar fecha" />}
+            <DatePicker.Trigger aria-label="Abrir calendario">
+              <LuCalendar />
+            </DatePicker.Trigger>
+          </DatePicker.IndicatorGroup>
+        </DatePicker.Control>
+        <Portal>
+          <DatePicker.Positioner>
+            <DatePicker.Content colorPalette="brand">
+              <DatePicker.View view="day">
+                <DatePicker.Header />
+                <DatePicker.DayTable />
+              </DatePicker.View>
+              <DatePicker.View view="month">
+                <DatePicker.Header />
+                <DatePicker.MonthTable />
+              </DatePicker.View>
+              <DatePicker.View view="year">
+                <DatePicker.Header />
+                <DatePicker.YearTable />
+              </DatePicker.View>
+            </DatePicker.Content>
+          </DatePicker.Positioner>
+        </Portal>
+      </DatePicker.Root>
+    </Field.Root>
   )
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { FieldRoot, FieldLabel, NativeSelectRoot, NativeSelectField } from '@chakra-ui/react'
+import { ComboboxField } from './ComboboxField'
 import type { Account } from '@/types/database.types'
 
 interface Props {
@@ -27,21 +27,18 @@ export function AccountSelect({
   const filtered = excludeId ? accounts.filter((a) => a.id !== excludeId) : accounts
 
   return (
-    <FieldRoot required={required} w="full">
-      <FieldLabel>
-        {label}
-        {optional && <span style={{ color: '#888', fontWeight: 400, marginLeft: 4 }}>(opcional)</span>}
-      </FieldLabel>
-      <NativeSelectRoot>
-        <NativeSelectField value={value} onChange={(e) => onChange(e.target.value)}>
-          <option value="">{placeholder}</option>
-          {filtered.map((acc) => (
-            <option key={acc.id} value={acc.id}>
-              {acc.icon ?? '💳'} {acc.name} ({acc.currency})
-            </option>
-          ))}
-        </NativeSelectField>
-      </NativeSelectRoot>
-    </FieldRoot>
+    <ComboboxField
+      label={label}
+      value={value}
+      onChange={onChange}
+      options={filtered.map((acc) => ({
+        value: acc.id,
+        label: `${acc.name} (${acc.currency})`,
+        icon: acc.icon ?? '💳',
+      }))}
+      placeholder={placeholder}
+      optional={optional}
+      required={required}
+    />
   )
 }

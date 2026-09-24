@@ -1,5 +1,58 @@
 # Changelog
 
+## [3.12.0] — 2026-09-24
+
+### Added
+
+**Controles de formulario de Chakra en toda la app** ([#539](https://github.com/Sanghel/expense-manager/pull/539))
+
+- Todos los selectores pasan a un combobox con búsqueda (`ComboboxField`):
+  - El filtrado ignora mayúsculas y tildes ("credito" encuentra "Crédito").
+  - Se usa con el teclado (↑/↓, Enter, Esc) y muestra "Sin resultados" cuando no hay coincidencias.
+  - Si se cierra sin elegir, el texto vuelve a la opción actual.
+  - Los 6 wrappers existentes (`SelectField`, `CategorySelect`, `AccountSelect`, `CurrencySelect`, `FrequencySelect` y `CategoryGroupSelect`) conservan sus props, así que ninguno de sus ~25 consumidores cambió.
+  - También se migraron los selects en línea: filtros de transacciones, exportación, moneda preferida, cuenta en el chat y recordatorios.
+- La fecha (`DateInput`) y el mes del dashboard (`MonthSelector`) usan el DatePicker de Chakra:
+  - Calendario en español con la semana desde el lunes, formato DD/MM/AAAA y escritura manual.
+  - El valor ISO se construye con año, mes y día, sin `Date`, así que el día guardado no se desplaza por la zona horaria.
+- El porcentaje de alerta de presupuestos (`InputPercent`) usa un NumberInput de 0 a 100 con botones propios y ajusta el valor al rango al salir del campo.
+- El selector de color de categorías y cuentas usa el ColorPicker de Chakra: las 15 muestras de siempre más un área, un control de tono y un campo hex. Ya no abre el selector del sistema operativo y sigue guardando `#rrggbb` en minúsculas.
+- Ya no queda ningún control nativo del navegador visible. La única excepción es el campo de archivo oculto de la importación de extractos.
+
+**Acciones con botones de icono Lucide** ([#538](https://github.com/Sanghel/expense-manager/pull/538))
+
+- Las acciones utilitarias pasan a botones de icono (`ActionIconButton`) con tooltip y `aria-label` en español. Son unas 50 en 39 archivos, entre ellas:
+  - sincronizar correos, importar y exportar;
+  - paginación y cambio de mes en los calendarios;
+  - editar y eliminar, incluidos los ✎/🗑 hechos con emoji de presupuestos;
+  - las acciones del chat, del cron y de las notificaciones.
+- `ACTION_ICONS` es la única fuente del icono de cada acción, para que la misma acción use siempre el mismo icono. Los iconos salen de `react-icons/lu` (Lucide), sin dependencias nuevas.
+- Crear, guardar, confirmar y las acciones de negocio ("Abono", "¡Ya me pagaron!", "Pagar tarjeta", "Conectar Gmail"…) **conservan su texto**, porque un icono solo no deja claro qué hacen.
+
+**Tarjetas de cuentas legibles en Configuración** ([#537](https://github.com/Sanghel/expense-manager/pull/537))
+
+- `AccountCard` usa un layout de tres zonas, así que los nombres largos ya no deforman la tarjeta:
+  - un círculo 1:1 de tamaño fijo, que antes se encogía a óvalo;
+  - el nombre, que puede encogerse;
+  - las acciones, de ancho fijo.
+- `TruncatedText` recorta el nombre y el saldo con "…". Solo si el texto no cabe, muestra un tooltip con el texto completo, que se abre al pasar el cursor, con el foco del teclado o al tocar.
+
+### Changed
+
+- Tema:
+  - Paleta semántica `brand` completa (`solid`, `contrast`, `fg`, `muted`, `subtle`, `emphasized` y `focusRing`), para que `colorPalette="brand"` funcione en cualquier componente de Chakra.
+  - Los desplegables, el calendario, el selector de color y los tooltips usan los tokens de la app. Antes los tooltips salían blancos en modo oscuro.
+- Los botones de icono tienen un área táctil de 44 px en móvil.
+
+### Fixed
+
+- **En los diálogos no se podía hacer clic en los desplegables** ([#541](https://github.com/Sanghel/expense-manager/pull/541)). Un diálogo modal pone `pointer-events: none` en `<body>`, y los desplegables se renderizaban en un portal hijo de `<body>`. Ahora se renderizan dentro del contenido del diálogo (`FloatingPortal`).
+- El botón de cerrar de los diálogos vuelve a quedar a la derecha del título.
+
+### Docs
+
+- `specs/001-ui-visual-refresh/`: spec, plan, research, contratos, quickstart y tareas de la feature (spec-kit).
+
 ## [3.11.0] — 2026-09-15
 
 ### Added

@@ -1,6 +1,7 @@
 'use client'
 
-import { ColorPicker as ChakraColorPicker, HStack, Portal, Text, parseColor } from '@chakra-ui/react'
+import { ColorPicker as ChakraColorPicker, HStack, Text, parseColor } from '@chakra-ui/react'
+import { FloatingPortal } from '@/components/ui/FloatingPortal'
 import { useState } from 'react'
 
 const COLORS = [
@@ -82,7 +83,7 @@ export function ColorPicker({ value, onChange }: Props) {
           />
         </ChakraColorPicker.Trigger>
       </ChakraColorPicker.Control>
-      <Portal>
+      <FloatingPortal>
         <ChakraColorPicker.Positioner>
           <ChakraColorPicker.Content w="220px" colorPalette="brand">
             <ChakraColorPicker.SwatchGroup display="grid" gridTemplateColumns="repeat(5, 1fr)" gap={2}>
@@ -109,7 +110,7 @@ export function ColorPicker({ value, onChange }: Props) {
             </HStack>
           </ChakraColorPicker.Content>
         </ChakraColorPicker.Positioner>
-      </Portal>
+      </FloatingPortal>
     </ChakraColorPicker.Root>
   )
 }

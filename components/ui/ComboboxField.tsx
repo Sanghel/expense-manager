@@ -4,12 +4,12 @@ import {
   Combobox,
   Field,
   HStack,
-  Portal,
   Text,
   VisuallyHidden,
   useFilter,
   useListCollection,
 } from '@chakra-ui/react'
+import { FloatingPortal } from './FloatingPortal'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 
 export interface Option {
@@ -132,7 +132,7 @@ export function ComboboxField({
             {label}
             {required && <Field.RequiredIndicator />}
             {optional && (
-              <Text as="span" color="text.muted" fontWeight="normal" ms={1}>
+              <Text as="span" color="text.secondary" fontWeight="normal" ms={1}>
                 (opcional)
               </Text>
             )}
@@ -145,7 +145,7 @@ export function ComboboxField({
             <Combobox.Trigger aria-label={`Abrir ${label}`} />
           </Combobox.IndicatorGroup>
         </Combobox.Control>
-        <Portal>
+        <FloatingPortal>
           <Combobox.Positioner>
             <Combobox.Content colorPalette="brand">
               <Combobox.Empty>{emptyText}</Combobox.Empty>
@@ -162,7 +162,7 @@ export function ComboboxField({
               ))}
             </Combobox.Content>
           </Combobox.Positioner>
-        </Portal>
+        </FloatingPortal>
       </Combobox.Root>
       {helperText && <Field.HelperText>{helperText}</Field.HelperText>}
       {errorText && <Field.ErrorText>{errorText}</Field.ErrorText>}

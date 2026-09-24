@@ -1,6 +1,7 @@
 'use client'
 
-import { Box, Flex, Input, NativeSelectRoot, NativeSelectField } from '@chakra-ui/react'
+import { Box, Flex, Input } from '@chakra-ui/react'
+import { ComboboxField } from '@/components/ui/ComboboxField'
 import type { Account, Category } from '@/types/database.types'
 
 export interface FilterState {
@@ -46,60 +47,58 @@ export function TransactionsFilter({ filters, onChange, categories, accounts = [
 
         {/* Filters: horizontal scroll on mobile */}
         <Flex gap={2} overflowX="auto" pb={1} css={{ '&::-webkit-scrollbar': { display: 'none' } }}>
-          <NativeSelectRoot flexShrink={0} w={{ base: '120px', md: '140px' }} size="sm">
-            <NativeSelectField
+          <Box flexShrink={0} w={{ base: '130px', md: '140px' }}>
+            <ComboboxField
+              label="Tipo"
+              hideLabel
+              placeholder="Tipo"
+              size="sm"
               value={filters.type}
-              onChange={(e) => update({ type: e.target.value as FilterState['type'] })}
-            >
-              <option value="">Tipo</option>
-              <option value="income">Ingresos</option>
-              <option value="expense">Gastos</option>
-            </NativeSelectField>
-          </NativeSelectRoot>
+              onChange={(v) => update({ type: v as FilterState['type'] })}
+              options={[
+                { value: 'income', label: 'Ingresos' },
+                { value: 'expense', label: 'Gastos' },
+              ]}
+            />
+          </Box>
 
-          <NativeSelectRoot flexShrink={0} w={{ base: '150px', md: '190px' }} size="sm">
-            <NativeSelectField
+          <Box flexShrink={0} w={{ base: '170px', md: '200px' }}>
+            <ComboboxField
+              label="Categoría"
+              hideLabel
+              placeholder="Categoría"
+              size="sm"
               value={filters.category_id}
-              onChange={(e) => update({ category_id: e.target.value })}
-            >
-              <option value="">Categoría</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.icon} {cat.name}
-                </option>
-              ))}
-            </NativeSelectField>
-          </NativeSelectRoot>
+              onChange={(v) => update({ category_id: v })}
+              options={categories.map((cat) => ({ value: cat.id, label: cat.name, icon: cat.icon }))}
+            />
+          </Box>
 
           {accounts.length > 0 && (
-            <NativeSelectRoot flexShrink={0} w={{ base: '140px', md: '180px' }} size="sm">
-              <NativeSelectField
+            <Box flexShrink={0} w={{ base: '160px', md: '190px' }}>
+              <ComboboxField
+                label="Cuenta"
+                hideLabel
+                placeholder="Cuenta"
+                size="sm"
                 value={filters.account_id}
-                onChange={(e) => update({ account_id: e.target.value })}
-              >
-                <option value="">Cuenta</option>
-                {accounts.map((acc) => (
-                  <option key={acc.id} value={acc.id}>
-                    {acc.icon ?? '💳'} {acc.name}
-                  </option>
-                ))}
-              </NativeSelectField>
-            </NativeSelectRoot>
+                onChange={(v) => update({ account_id: v })}
+                options={accounts.map((acc) => ({ value: acc.id, label: acc.name, icon: acc.icon ?? '💳' }))}
+              />
+            </Box>
           )}
 
-          <NativeSelectRoot flexShrink={0} w={{ base: '130px', md: '180px' }} size="sm">
-            <NativeSelectField
+          <Box flexShrink={0} w={{ base: '140px', md: '180px' }}>
+            <ComboboxField
+              label="Mes"
+              hideLabel
+              placeholder="Mes"
+              size="sm"
               value={filters.month}
-              onChange={(e) => update({ month: e.target.value })}
-            >
-              <option value="">Mes</option>
-              {months.map((m) => (
-                <option key={m.value} value={m.value}>
-                  {m.label}
-                </option>
-              ))}
-            </NativeSelectField>
-          </NativeSelectRoot>
+              onChange={(v) => update({ month: v })}
+              options={months}
+            />
+          </Box>
         </Flex>
       </Flex>
     </Box>

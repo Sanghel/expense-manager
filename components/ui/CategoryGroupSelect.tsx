@@ -1,6 +1,6 @@
 'use client'
 
-import { FieldRoot, FieldLabel, FieldHelperText, NativeSelectRoot, NativeSelectField } from '@chakra-ui/react'
+import { ComboboxField } from './ComboboxField'
 import type { CategoryGroupWithMembers } from '@/types/database.types'
 
 interface Props {
@@ -12,23 +12,20 @@ interface Props {
 
 export function CategoryGroupSelect({ value, onChange, groups, required }: Props) {
   return (
-    <FieldRoot required={required} w="full">
-      <FieldLabel>Grupo de categorías</FieldLabel>
-      <NativeSelectRoot>
-        <NativeSelectField value={value} onChange={(e) => onChange(e.target.value)}>
-          <option value="">Seleccionar grupo...</option>
-          {groups.map((group) => (
-            <option key={group.id} value={group.id}>
-              {group.icon ?? '📦'} {group.name} ({group.category_ids.length})
-            </option>
-          ))}
-        </NativeSelectField>
-      </NativeSelectRoot>
-      {groups.length === 0 && (
-        <FieldHelperText>
-          Aún no tienes grupos. Créalos en Configuración → Categorías.
-        </FieldHelperText>
-      )}
-    </FieldRoot>
+    <ComboboxField
+      label="Grupo de categorías"
+      value={value}
+      onChange={onChange}
+      options={groups.map((group) => ({
+        value: group.id,
+        label: `${group.name} (${group.category_ids.length})`,
+        icon: group.icon ?? '📦',
+      }))}
+      placeholder="Seleccionar grupo..."
+      required={required}
+      helperText={
+        groups.length === 0 ? 'Aún no tienes grupos. Créalos en Configuración → Categorías.' : undefined
+      }
+    />
   )
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { Box, FieldRoot, FieldLabel, NativeSelectRoot, NativeSelectField } from '@chakra-ui/react'
+import { ComboboxField } from './ComboboxField'
 import type { Currency } from '@/types/database.types'
 
 interface Props {
@@ -19,22 +19,15 @@ const currencies: { value: Currency; short: string; full: string }[] = [
 
 export function CurrencySelect({ value, onChange, showFullLabel = false, required, disabled }: Props) {
   return (
-    <FieldRoot required={required} w="full">
-      <FieldLabel>Moneda</FieldLabel>
-      <Box w="full" opacity={disabled ? 0.6 : 1} cursor={disabled ? 'not-allowed' : undefined} pointerEvents={disabled ? 'none' : undefined}>
-        <NativeSelectRoot>
-          <NativeSelectField
-            value={value}
-            onChange={(e) => onChange(e.target.value as Currency)}
-          >
-            {currencies.map((c) => (
-              <option key={c.value} value={c.value}>
-                {showFullLabel ? c.full : c.short}
-              </option>
-            ))}
-          </NativeSelectField>
-        </NativeSelectRoot>
-      </Box>
-    </FieldRoot>
+    <ComboboxField
+      label="Moneda"
+      value={value}
+      // Options only contain Currency values and clearing is disabled.
+      onChange={(v) => onChange(v as Currency)}
+      options={currencies.map((c) => ({ value: c.value, label: showFullLabel ? c.full : c.short }))}
+      required={required}
+      disabled={disabled}
+      clearable={false}
+    />
   )
 }

@@ -1,6 +1,7 @@
 'use client'
 
-import { VStack, HStack, Text, Box, NativeSelectRoot, NativeSelectField, FieldRoot, FieldLabel } from '@chakra-ui/react'
+import { VStack, HStack, Text, Box } from '@chakra-ui/react'
+import { ComboboxField } from '@/components/ui/ComboboxField'
 import { useState, useEffect } from 'react'
 import { createReminder, updateReminder } from '@/lib/actions/reminders.actions'
 import { toaster } from '@/lib/toaster'
@@ -194,51 +195,41 @@ export function ReminderForm({ isOpen, onClose, userId, categories, accounts = [
           )}
 
           {formData.frequency === 'weekly' && (
-            <FieldRoot required w="full">
-              <FieldLabel>Día de la semana</FieldLabel>
-              <NativeSelectRoot>
-                <NativeSelectField
-                  value={String(formData.day_of_week)}
-                  onChange={(e) => setFormData({ ...formData, day_of_week: Number(e.target.value) })}
-                >
-                  {WEEKDAY_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </NativeSelectField>
-              </NativeSelectRoot>
-            </FieldRoot>
+            <ComboboxField
+              label="Día de la semana"
+              required
+              clearable={false}
+              value={String(formData.day_of_week)}
+              // The stored value is numeric: convert back, ignoring an empty selection.
+              onChange={(v) => v && setFormData({ ...formData, day_of_week: Number(v) })}
+              options={WEEKDAY_OPTIONS.map((opt) => ({ value: String(opt.value), label: opt.label }))}
+            />
           )}
 
           {(formData.frequency === 'monthly' || formData.frequency === 'yearly') && (
             <VStack w="full" gap={2} align="stretch">
               <HStack gap={3} w="full" align="flex-end">
-                <FieldRoot required flex={1}>
-                  <FieldLabel>Día del mes</FieldLabel>
-                  <NativeSelectRoot>
-                    <NativeSelectField
-                      value={String(formData.day_of_month)}
-                      onChange={(e) => setFormData({ ...formData, day_of_month: Number(e.target.value) })}
-                    >
-                      {DAY_OF_MONTH_OPTIONS.map((d) => (
-                        <option key={d} value={d}>{d}</option>
-                      ))}
-                    </NativeSelectField>
-                  </NativeSelectRoot>
-                </FieldRoot>
+                <Box flex={1}>
+                  <ComboboxField
+                    label="Día del mes"
+                    required
+                    clearable={false}
+                    value={String(formData.day_of_month)}
+                    onChange={(v) => v && setFormData({ ...formData, day_of_month: Number(v) })}
+                    options={DAY_OF_MONTH_OPTIONS.map((d) => ({ value: String(d), label: String(d) }))}
+                  />
+                </Box>
                 {formData.frequency === 'yearly' && (
-                  <FieldRoot required flex={2}>
-                    <FieldLabel>Mes</FieldLabel>
-                    <NativeSelectRoot>
-                      <NativeSelectField
-                        value={String(formData.month_of_year)}
-                        onChange={(e) => setFormData({ ...formData, month_of_year: Number(e.target.value) })}
-                      >
-                        {MONTH_OPTIONS.map((m) => (
-                          <option key={m.value} value={m.value}>{m.label}</option>
-                        ))}
-                      </NativeSelectField>
-                    </NativeSelectRoot>
-                  </FieldRoot>
+                  <Box flex={2}>
+                    <ComboboxField
+                      label="Mes"
+                      required
+                      clearable={false}
+                      value={String(formData.month_of_year)}
+                      onChange={(v) => v && setFormData({ ...formData, month_of_year: Number(v) })}
+                      options={MONTH_OPTIONS.map((m) => ({ value: String(m.value), label: m.label }))}
+                    />
+                  </Box>
                 )}
               </HStack>
               {formData.day_of_month > 28 && (

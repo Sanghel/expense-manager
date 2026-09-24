@@ -1,6 +1,6 @@
 'use client'
 
-import { FieldRoot, FieldLabel, NativeSelectRoot, NativeSelectField } from '@chakra-ui/react'
+import { ComboboxField } from './ComboboxField'
 
 interface Option {
   value: string
@@ -16,22 +16,18 @@ interface Props {
 }
 
 /**
- * Labeled dropdown built on Chakra's NativeSelect. Reusable across forms
- * (reminder type/frequency, account type, …).
+ * Labeled dropdown built on the searchable ComboboxField. Reusable across
+ * forms (reminder type/frequency, account type, …).
  */
 export function SelectField({ label, value, onChange, options, required }: Props) {
   return (
-    <FieldRoot required={required} w="full">
-      <FieldLabel>{label}</FieldLabel>
-      <NativeSelectRoot>
-        <NativeSelectField value={value} onChange={(e) => onChange(e.target.value)}>
-          {options.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </NativeSelectField>
-      </NativeSelectRoot>
-    </FieldRoot>
+    <ComboboxField
+      label={label}
+      value={value}
+      onChange={onChange}
+      options={options}
+      required={required}
+      clearable={false}
+    />
   )
 }

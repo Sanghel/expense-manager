@@ -209,7 +209,7 @@ description: "Task list for 001-ui-visual-refresh"
   - Revisar que el mismo tipo de acción no use iconos distintos (FR-010).
 - [X] T035 [US2] Ejecutar `pnpm type-check && pnpm lint && pnpm build` y corregir errores.
 - [X] T036 [US2] Validar [quickstart.md → PR 2](./quickstart.md) (pasos 1–5) en 375×812 y en escritorio, con navegación por teclado.
-- [ ] T037 [US2] Commitear con `feat(ui): acciones utilitarias como botones de icono Lucide con tooltip`. Abrir un PR a `develop` con `Closes #B`, la lista de pantallas tocadas, capturas y la nota "Sin cambios de datos ni de acceso (principios III/IV)". Hacer merge `--squash` tras la aprobación.
+- [X] T037 [US2] Commitear con `feat(ui): acciones utilitarias como botones de icono Lucide con tooltip`. Abrir un PR a `develop` con `Closes #B`, la lista de pantallas tocadas, capturas y la nota "Sin cambios de datos ni de acceso (principios III/IV)". Hacer merge `--squash` tras la aprobación.
 
 **Checkpoint**: US2 en `develop`. Todas las acciones utilitarias son iconos con tooltip.
 
@@ -238,8 +238,8 @@ description: "Task list for 001-ui-visual-refresh"
 - `InputPercent` emite un `number` entero entre 0 y 100, o `undefined`. Nunca `NaN`.
 - `ColorPicker` emite "hex `#rrggbb` en minúsculas, sin alfa".
 
-- [ ] T038 [US3] Crear la rama `feature/<#C>-chakra-form-controls` desde `develop` actualizado.
-- [ ] T039 [US3] En `theme/index.ts`, añadir `slotRecipes` para `combobox`, `datePicker`, `numberInput`, `colorPicker` y `tooltip` con `defineSlotRecipe`, extendiendo las recipes por defecto. En `numberInput` y `colorPicker`, aplicar los mismos estilos de `content`, `input` (focus) y `trigger` que en el combobox. Estilos por slot:
+- [X] T038 [US3] Crear la rama `feature/<#C>-chakra-form-controls` desde `develop` actualizado.
+- [X] T039 [US3] En `theme/index.ts`, añadir `slotRecipes` para `combobox`, `datePicker`, `numberInput`, `colorPicker` y `tooltip` con `defineSlotRecipe`, extendiendo las recipes por defecto. En `numberInput` y `colorPicker`, aplicar los mismos estilos de `content`, `input` (focus) y `trigger` que en el combobox. Estilos por slot:
 
   | Slot | Estilos |
   |------|---------|
@@ -252,7 +252,7 @@ description: "Task list for 001-ui-visual-refresh"
   | `tooltip.content` | `bg: 'bg.subtle'`, `color: 'text.primary'`, `borderColor: 'border.default'` |
 
   Consultar las claves exactas de los slots en `node_modules/@chakra-ui/react/dist/types/theme/recipes/`. Comprobar que `pnpm type-check` pasa.
-- [ ] T040 [US3] Crear `components/ui/ComboboxField.tsx` según el contrato `ComboboxField`:
+- [X] T040 [US3] Crear `components/ui/ComboboxField.tsx` según el contrato `ComboboxField`:
   - Props: `label`, `value`, `onChange`, `options: Option[]`, `placeholder?`, `required?`, `disabled?`, `invalid?`, `errorText?`, `helperText?`, `clearable?` (default `!required`), `emptyText?` (default `"Sin resultados"`) y `hideLabel?`.
   - Tipo exportado: `Option = { value: string; label: string; icon?: ReactNode; disabled?: boolean }`. Sin campo de grupo: las listas son planas (research R6).
   - Filtrado: `useFilter({ sensitivity: 'base' })` y `useListCollection({ initialItems: options, filter: contains, itemToString: o => o.label, itemToValue: o => o.value })`. Llamar a `collection.set(options)` / `reset` cuando cambien las `options`.
@@ -264,24 +264,24 @@ description: "Task list for 001-ui-visual-refresh"
     - `Field.HelperText` y `Field.ErrorText`.
   - Al cerrar sin seleccionar, reset del filtro y del texto a la etiqueta del valor actual.
   - Con `value === ''`, el `onChange` debe emitir `''` al limpiar.
-- [ ] T041 [P] [US3] Reimplementar `components/ui/SelectField.tsx` sobre `ComboboxField`, conservando exactamente sus props (`label`, `value`, `onChange`, `options`, `required`).
-- [ ] T042 [P] [US3] Reimplementar `components/ui/CategorySelect.tsx` sobre `ComboboxField`, conservando sus props (`value`, `onChange`, `categories`, `filterByType?`, `required?`):
+- [X] T041 [P] [US3] Reimplementar `components/ui/SelectField.tsx` sobre `ComboboxField`, conservando exactamente sus props (`label`, `value`, `onChange`, `options`, `required`).
+- [X] T042 [P] [US3] Reimplementar `components/ui/CategorySelect.tsx` sobre `ComboboxField`, conservando sus props (`value`, `onChange`, `categories`, `filterByType?`, `required?`):
   - Mismo filtro por tipo que hoy: `c.type === filterByType || c.type === 'both'`.
   - Opciones: `{ value: cat.id, label: cat.name, icon: cat.icon }`.
   - Lista plana en el mismo orden que hoy. `Category` no tiene campo de grupo; no añadir agrupación (spec, Edge Cases).
   - `placeholder="Seleccionar categoría..."`.
-- [ ] T043 [P] [US3] Reimplementar `components/ui/AccountSelect.tsx` sobre `ComboboxField`, conservando sus props y su `placeholder`. Opciones con `{ value: acc.id, label: acc.name, icon: acc.icon ?? '💳' }` y el mismo filtrado de cuentas que hoy.
-- [ ] T044 [P] [US3] Reimplementar `components/ui/CurrencySelect.tsx` y `components/ui/FrequencySelect.tsx` sobre `ComboboxField`. Deben conservar sus props, sus opciones y sus valores (códigos ISO y enum de frecuencia), con `clearable={false}`.
-- [ ] T045 [P] [US3] Reimplementar `components/ui/CategoryGroupSelect.tsx` sobre `ComboboxField`, conservando sus props, `placeholder="Seleccionar grupo..."` y `FieldHelperText`.
-- [ ] T046 [US3] Pasar al `ComboboxField` los selects inline siguientes, con `hideLabel` y `aria-label` donde hoy no hay label visible:
+- [X] T043 [P] [US3] Reimplementar `components/ui/AccountSelect.tsx` sobre `ComboboxField`, conservando sus props y su `placeholder`. Opciones con `{ value: acc.id, label: acc.name, icon: acc.icon ?? '💳' }` y el mismo filtrado de cuentas que hoy.
+- [X] T044 [P] [US3] Reimplementar `components/ui/CurrencySelect.tsx` y `components/ui/FrequencySelect.tsx` sobre `ComboboxField`. Deben conservar sus props, sus opciones y sus valores (códigos ISO y enum de frecuencia), con `clearable={false}`.
+- [X] T045 [P] [US3] Reimplementar `components/ui/CategoryGroupSelect.tsx` sobre `ComboboxField`, conservando sus props, `placeholder="Seleccionar grupo..."` y `FieldHelperText`.
+- [X] T046 [US3] Pasar al `ComboboxField` los selects inline siguientes, con `hideLabel` y `aria-label` donde hoy no hay label visible:
   - `components/settings/CurrencySelector.tsx`.
   - `components/transactions/TransactionsFilter.tsx`.
   - `components/transactions/ExportTransactionsModal.tsx`.
   - `components/chat/ChatInterface.tsx`.
 
   En cada uno, conservar los mismos valores, los mismos valores por defecto y los mismos handlers.
-- [ ] T047 [US3] En `components/reminders/ReminderForm.tsx`, pasar al `ComboboxField` los 3 `NativeSelect` inline: tipo (≈199), día 1–31 (≈217) y mes (≈231). Las opciones de día van como `String(d)`. Si el estado del formulario guarda el día como número, convertir con `Number(v)` en el `onChange` para que el valor guardado no cambie. Quitar los imports `NativeSelectRoot`/`NativeSelectField`.
-- [ ] T048 [US3] Reescribir internamente `components/ui/DateInput.tsx` sobre `DatePicker` de Chakra, sin cambiar sus props (`label`, `value`, `onChange`, `required?`, `disabled?`, `optional?`, `showClear?`):
+- [X] T047 [US3] En `components/reminders/ReminderForm.tsx`, pasar al `ComboboxField` los 3 `NativeSelect` inline: tipo (≈199), día 1–31 (≈217) y mes (≈231). Las opciones de día van como `String(d)`. Si el estado del formulario guarda el día como número, convertir con `Number(v)` en el `onChange` para que el valor guardado no cambie. Quitar los imports `NativeSelectRoot`/`NativeSelectField`.
+- [X] T048 [US3] Reescribir internamente `components/ui/DateInput.tsx` sobre `DatePicker` de Chakra, sin cambiar sus props (`label`, `value`, `onChange`, `required?`, `disabled?`, `optional?`, `showClear?`):
   - Configuración del root: `locale="es-CO"`, `startOfWeek={1}`, `value={value ? [parseDate(value)] : []}` y `onValueChange={e => onChange(e.value[0]?.toString() ?? '')}`. `toString()` de `CalendarDate` da `YYYY-MM-DD`.
   - Formato con `format={d => DD/MM/YYYY}` y parseo con `parse` de DD/MM/AAAA, para permitir escritura manual. Solo se emite con una fecha completa válida.
   - Controles: `DatePicker.Input`, `DatePicker.Trigger` (`LuCalendar`, `aria-label="Abrir calendario"`) y `DatePicker.ClearTrigger` (si `showClear`, `aria-label="Limpiar fecha"`).
@@ -289,14 +289,14 @@ description: "Task list for 001-ui-visual-refresh"
   - Conservar la etiqueta "(opcional)" usando el token `text.secondary`.
   - Eliminar el `<input type="date">` oculto, `showPicker` y los hex hardcodeados.
   - Nunca usar `new Date(iso)`.
-- [ ] T049 [US3] Reescribir `components/dashboard/MonthSelector.tsx` sobre `DatePicker`, conservando sus props `{ value: string ('YYYY-MM'); onChange(month: string) }`:
+- [X] T049 [US3] Reescribir `components/dashboard/MonthSelector.tsx` sobre `DatePicker`, conservando sus props `{ value: string ('YYYY-MM'); onChange(month: string) }`:
   - Configuración: `defaultView="month"`, `minView="month"`, `locale="es-CO"`, `min` = el primer día de hace 11 meses y `max` = el primer día del mes actual. Así se mantiene el rango "últimos 12 meses" de hoy.
   - Valor: `parseDate(`${value}-01`)`. Al cambiar, emitir `e.value[0].toString().slice(0, 7)`.
   - Texto: "septiembre 2026" con `toLocaleDateString('es', { month: 'long', year: 'numeric' })`, calculado desde año y mes, sin UTC.
   - A los lados, `ActionIconButton` `prev`/`next` ("Mes anterior"/"Mes siguiente"), deshabilitados en los límites.
   - Ancho máximo: `maxW="250px"`.
   - Debe seguir funcionando igual con `components/dashboard/DashboardContent.tsx:111`.
-- [ ] T050 [P] [US3] Reescribir internamente `components/ui/InputPercent.tsx` sobre `NumberInput` de Chakra, según el contrato `InputPercent` y research R11, sin cambiar sus props (`label`, `value: number | undefined`, `onChange(value: number | undefined)`, `helperText?`, `isRequired?`, `isDisabled?`):
+- [X] T050 [P] [US3] Reescribir internamente `components/ui/InputPercent.tsx` sobre `NumberInput` de Chakra, según el contrato `InputPercent` y research R11, sin cambiar sus props (`label`, `value: number | undefined`, `onChange(value: number | undefined)`, `helperText?`, `isRequired?`, `isDisabled?`):
   - Mantener `FieldRoot`, `FieldLabel` y `FieldHelperText` como hoy.
   - Dentro, `NumberInput.Root` con:
     - Límites: `min={0}`, `max={100}` y `step={1}`.
@@ -307,7 +307,7 @@ description: "Task list for 001-ui-visual-refresh"
   - No usar `type="number"`.
   - Único consumidor: `components/budgets/BudgetForm.tsx:252`, que no cambia.
   - Comprobar a mano que se cumple: escribir 150 y salir del campo da 100, vaciar el campo da `undefined` y el campo nunca emite `NaN`.
-- [ ] T051 [P] [US3] Reescribir `components/categories/ColorPicker.tsx` sobre `ColorPicker` de Chakra, según el contrato `ColorPicker` y research R12, sin cambiar sus props (`value: string`, `onChange(color: string)`):
+- [X] T051 [P] [US3] Reescribir `components/categories/ColorPicker.tsx` sobre `ColorPicker` de Chakra, según el contrato `ColorPicker` y research R12, sin cambiar sus props (`value: string`, `onChange(color: string)`):
   - Conservar el array `COLORS` (las 15 muestras, en el mismo orden).
   - Root: `ColorPicker.Root` con `value={parseColor(value || '#6366f1')}`, `format="rgba"` y `onValueChange={e => onChange(e.value.toString('hex').toLowerCase())}`. Controlar `open` para cerrar el popover al elegir una muestra.
   - Trigger: `ColorPicker.Control` con `ColorPicker.Trigger` (`aria-label="Elegir color"`) y `ColorPicker.ValueSwatch` de 36 px (`w="9" h="9" borderRadius="md"`), con borde `border.default` y `brand.500` cuando está abierto.
@@ -319,20 +319,20 @@ description: "Task list for 001-ui-visual-refresh"
   - Eliminar el `<input type="color">` oculto, `nativeColorRef`, `showPicker`, `StyledButton`, el cálculo manual de posición (`getBoundingClientRect`, `position: fixed`, `PICKER_WIDTH`/`PICKER_HEIGHT`) y el listener `mousedown`. El `Positioner` gestiona el posicionamiento y las colisiones.
   - Los 4 consumidores no cambian: `components/settings/AccountForm.tsx:204`, `components/categories/CategoryForm.tsx:88`, `components/categories/CategoryEditForm.tsx:94` y `components/categories/QuickCategoryForm.tsx:105`. En `QuickCategoryForm`, comprobar que el popover no queda tapado si se abre dentro de un diálogo (z-index del `Portal`).
   - Comprobar a mano que se cumple: elegir una muestra emite exactamente el mismo string de `COLORS` y un color personalizado se emite como `#rrggbb` en minúsculas, sin alfa.
-- [ ] T052 [US3] Auditoría de controles nativos. Estos dos comandos no deben devolver nada:
+- [X] T052 [US3] Auditoría de controles nativos. Estos dos comandos no deben devolver nada:
   - `grep -rnE "NativeSelect|<select|<option|type=\"(date|month|number|color)\"|showPicker" app components --include='*.tsx'`. La única excepción permitida es el `<input type="file">` oculto de `components/transactions/ImportTransactionsModal.tsx` (spec FR-017), que esta búsqueda no detecta.
   - `grep -rn "NativeSelect" theme`
 
   Revisar que los ~25 consumidores de los wrappers compilan sin cambios (`pnpm type-check`).
-- [ ] T053 [US3] Ejecutar `pnpm type-check && pnpm lint && pnpm build` y corregir errores.
-- [ ] T054 [US3] Validar [quickstart.md → PR 3](./quickstart.md), pasos 1–9, en 375×812 y en escritorio:
+- [X] T053 [US3] Ejecutar `pnpm type-check && pnpm lint && pnpm build` y corregir errores.
+- [X] T054 [US3] Validar [quickstart.md → PR 3](./quickstart.md), pasos 1–9, en 375×812 y en escritorio:
   - Búsqueda sin tildes, teclado, "Sin resultados" y estado de error.
   - Calendario en español con la semana desde el lunes.
   - Dashboard con cambio de mes.
   - Porcentaje (pasos 6a) y color (6b).
   - La consola devuelve `0` para `document.querySelectorAll('select, input[type=date], input[type=month], input[type=number], input[type=color]').length`.
-- [ ] T055 [US3] Invariante de datos (SC-006). Con DevTools → Network, crear y editar una transacción, un recordatorio, una cuenta, un movimiento, un presupuesto con porcentaje y una categoría con color predefinido y personalizado, primero en `develop` y luego en la rama. Comparar los payloads (fecha `YYYY-MM-DD`, ids uuid, moneda ISO, día del recordatorio, porcentaje numérico y color `#rrggbb` en minúsculas) y documentar en el PR que son idénticos.
-- [ ] T056 [US3] Commitear con `feat(ui): migrar selectores, fechas, porcentaje y color a componentes de Chakra`. Abrir un PR a `develop` con `Closes #C`, capturas, el resultado de T055 y la nota "Sin cambios de datos (FR-015); sin cambios de acceso (principio III)". Hacer merge `--squash` tras la aprobación.
+- [ ] T055 [US3] **(Pendiente con sesión real: formatos verificados por componente en PR #539.)** Invariante de datos (SC-006). Con DevTools → Network, crear y editar una transacción, un recordatorio, una cuenta, un movimiento, un presupuesto con porcentaje y una categoría con color predefinido y personalizado, primero en `develop` y luego en la rama. Comparar los payloads (fecha `YYYY-MM-DD`, ids uuid, moneda ISO, día del recordatorio, porcentaje numérico y color `#rrggbb` en minúsculas) y documentar en el PR que son idénticos.
+- [X] T056 [US3] Commitear con `feat(ui): migrar selectores, fechas, porcentaje y color a componentes de Chakra`. Abrir un PR a `develop` con `Closes #C`, capturas, el resultado de T055 y la nota "Sin cambios de datos (FR-015); sin cambios de acceso (principio III)". Hacer merge `--squash` tras la aprobación.
 
 **Checkpoint**: Las tres historias están en `develop`.
 

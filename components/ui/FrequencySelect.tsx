@@ -1,6 +1,6 @@
 'use client'
 
-import { FieldRoot, FieldLabel, NativeSelectRoot, NativeSelectField } from '@chakra-ui/react'
+import { ComboboxField } from './ComboboxField'
 
 type Frequency = 'daily' | 'weekly' | 'monthly' | 'yearly'
 
@@ -10,21 +10,23 @@ interface Props {
   required?: boolean
 }
 
+const FREQUENCIES: { value: Frequency; label: string }[] = [
+  { value: 'daily', label: 'Diario' },
+  { value: 'weekly', label: 'Semanal' },
+  { value: 'monthly', label: 'Mensual' },
+  { value: 'yearly', label: 'Anual' },
+]
+
 export function FrequencySelect({ value, onChange, required }: Props) {
   return (
-    <FieldRoot required={required} w="full">
-      <FieldLabel>Frecuencia</FieldLabel>
-      <NativeSelectRoot>
-        <NativeSelectField
-          value={value}
-          onChange={(e) => onChange(e.target.value as Frequency)}
-        >
-          <option value="daily">Diario</option>
-          <option value="weekly">Semanal</option>
-          <option value="monthly">Mensual</option>
-          <option value="yearly">Anual</option>
-        </NativeSelectField>
-      </NativeSelectRoot>
-    </FieldRoot>
+    <ComboboxField
+      label="Frecuencia"
+      value={value}
+      // Options only contain Frequency values and clearing is disabled.
+      onChange={(v) => onChange(v as Frequency)}
+      options={FREQUENCIES}
+      required={required}
+      clearable={false}
+    />
   )
 }

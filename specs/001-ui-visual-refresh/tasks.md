@@ -342,14 +342,14 @@ description: "Task list for 001-ui-visual-refresh"
 
 **Purpose**: Cierre transversal y publicación de la versión.
 
-- [ ] T057 Revisión transversal en `develop` en 375×812 y en escritorio. Buscar:
+- [X] T057 **(Hallazgos corregidos en #541.)** Revisión transversal en `develop` en 375×812 y en escritorio. Buscar:
   - Tooltips cortados en los bordes.
   - Desplegables y calendario tapados en `FormDialog` (z-index del `Portal`).
   - Foco visible.
   - Contraste de los textos `text.secondary` sobre `bg.canvas`.
 
   Si hay que corregir algo, abrir `fix/<issue>-ui-refresh-polish` con su PR a `develop`.
-- [ ] T058 Crear la rama `chore/bump-v3.12.0` desde `develop`. Subir `"version"` en `package.json` a `3.12.0` y añadir la entrada `## [3.12.0] - <fecha>` en `CHANGELOG.md`, siguiendo el formato de las entradas existentes. Secciones "Mejoras de UI" con: tarjetas de cuentas, acciones con iconos Lucide, y combobox, datepicker, campo de porcentaje y selector de color de Chakra. Commitear con `chore: bump version to 3.12.0` y abrir un PR a `develop`. Hacer merge `--squash` tras la aprobación.
+- [X] T058 Crear la rama `chore/bump-v3.12.0` desde `develop`. Subir `"version"` en `package.json` a `3.12.0` y añadir la entrada `## [3.12.0] - <fecha>` en `CHANGELOG.md`, siguiendo el formato de las entradas existentes. Secciones "Mejoras de UI" con: tarjetas de cuentas, acciones con iconos Lucide, y combobox, datepicker, campo de porcentaje y selector de color de Chakra. Commitear con `chore: bump version to 3.12.0` y abrir un PR a `develop`. Hacer merge `--squash` tras la aprobación.
 - [ ] T059 Abrir el PR `develop → main` con `gh pr create --base main --head develop --title "Release v3.12.0"`, con un resumen del changelog. **Esperar la aprobación explícita del dueño en chat antes de hacer el merge.** Respetar el flujo de la memoria "Release flow develop→main": puede haber divergencia por hotfixes.
 - [ ] T060 Tras el merge a `main`:
   - `git checkout main && git pull`.

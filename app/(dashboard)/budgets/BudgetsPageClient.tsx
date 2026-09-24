@@ -9,6 +9,7 @@ import { BudgetGroupAccordion } from '@/components/budgets/BudgetGroupAccordion'
 import { BudgetCategoryTable } from '@/components/budgets/BudgetCategoryTable'
 import { BudgetProgress, progressColor } from '@/components/budgets/BudgetProgress'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import { deleteBudget } from '@/lib/actions/budgets.actions'
 import { splitBudgetsByScope } from '@/lib/utils/budget-grouping'
 import { formatCurrency } from '@/lib/utils/currency'
@@ -140,17 +141,19 @@ export function BudgetsPageClient({
                 <Text fontSize="sm" fontWeight="700" color={progressColor(percentage)}>
                   {percentage.toFixed(0)}%
                 </Text>
-                <Button size="xs" variant="outline" onClick={() => handleEdit(budget)}>
-                  Editar
-                </Button>
-                <Button
+                <ActionIconButton
+                  kind="edit"
+                  label="Editar presupuesto"
                   size="xs"
-                  variant="ghost"
-                  colorPalette="red"
+                  onClick={() => handleEdit(budget)}
+                />
+                <ActionIconButton
+                  kind="delete"
+                  tone="danger"
+                  label="Eliminar presupuesto"
+                  size="xs"
                   onClick={() => setPendingDeleteId(budget.id)}
-                >
-                  Eliminar
-                </Button>
+                />
               </HStack>
             </HStack>
             <BudgetProgress budget={budget} variant="bar" />

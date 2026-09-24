@@ -4,6 +4,7 @@ import { Box, HStack, VStack, Text, Button, Grid } from '@chakra-ui/react'
 import { useState } from 'react'
 import { FiChevronDown, FiChevronRight } from 'react-icons/fi'
 import { BudgetProgress, progressColor } from './BudgetProgress'
+import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import { buildGroupBreakdown, sortByConsumption } from '@/lib/utils/budget-grouping'
 import { formatCurrency } from '@/lib/utils/currency'
 import { safeRatio, toNumber } from '@/lib/utils/numbers'
@@ -172,12 +173,19 @@ export function BudgetGroupAccordion({
                 )}
 
                 <HStack gap={2} pt={2} borderTopWidth="1px" borderColor="#26262e" mt={1}>
-                  <Button size="xs" variant="outline" onClick={() => onEdit(groupBudget)}>
-                    Editar
-                  </Button>
-                  <Button size="xs" variant="ghost" colorPalette="red" onClick={() => onDelete(groupBudget.id)}>
-                    Eliminar
-                  </Button>
+                  <ActionIconButton
+                    kind="edit"
+                    label="Editar grupo"
+                    size="xs"
+                    onClick={() => onEdit(groupBudget)}
+                  />
+                  <ActionIconButton
+                    kind="delete"
+                    tone="danger"
+                    label="Eliminar grupo"
+                    size="xs"
+                    onClick={() => onDelete(groupBudget.id)}
+                  />
                 </HStack>
               </VStack>
             )}

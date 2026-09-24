@@ -12,7 +12,7 @@ import {
   Separator,
 } from '@chakra-ui/react'
 import { useState } from 'react'
-import { FiDownload } from 'react-icons/fi'
+import { LuFileJson, LuFileSpreadsheet, LuFileText } from 'react-icons/lu'
 import { FormDialog } from '@/components/ui/FormDialog'
 import { exportTransactions } from '@/lib/actions/export.actions'
 import { toaster } from '@/lib/toaster'
@@ -139,7 +139,7 @@ export function ExportTransactionsModal({ isOpen, onClose, userId }: Props) {
             disabled={loading !== null && loading !== 'csv'}
             onClick={() => handleExport('csv')}
           >
-            <FiDownload />
+            <LuFileText />
             Exportar como CSV
           </Button>
 
@@ -150,7 +150,7 @@ export function ExportTransactionsModal({ isOpen, onClose, userId }: Props) {
             disabled={loading !== null && loading !== 'xlsx'}
             onClick={() => handleExport('xlsx')}
           >
-            <FiDownload />
+            <LuFileSpreadsheet />
             Exportar como Excel (.xlsx)
           </Button>
 
@@ -161,7 +161,7 @@ export function ExportTransactionsModal({ isOpen, onClose, userId }: Props) {
             disabled={loading !== null && loading !== 'json'}
             onClick={() => handleExport('json')}
           >
-            <FiDownload />
+            <LuFileJson />
             Exportar como JSON
           </Button>
         </VStack>

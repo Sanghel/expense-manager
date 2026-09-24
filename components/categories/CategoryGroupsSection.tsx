@@ -10,10 +10,10 @@ import {
   VStack,
   Text,
   Badge,
-  IconButton,
   SimpleGrid,
 } from '@chakra-ui/react'
-import { FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi'
+import { LuPlus } from 'react-icons/lu'
+import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import { CategoryGroupForm } from '@/components/categories/CategoryGroupForm'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { deleteCategoryGroup } from '@/lib/actions/categoryGroups.actions'
@@ -69,7 +69,7 @@ export function CategoryGroupsSection({ userId, categories, groups }: Props) {
             setIsFormOpen(true)
           }}
         >
-          <FiPlus />
+          <LuPlus />
           Nuevo grupo
         </Button>
       </HStack>
@@ -100,26 +100,24 @@ export function CategoryGroupsSection({ userId, categories, groups }: Props) {
                     {group.icon ?? '📦'} {group.name}
                   </Heading>
                   <HStack gap={1}>
-                    <IconButton
-                      aria-label="Editar grupo"
+                    <ActionIconButton
+                      kind="edit"
+                      label="Editar grupo"
                       size="xs"
                       variant="ghost"
                       onClick={() => {
                         setEditingGroup(group)
                         setIsFormOpen(true)
                       }}
-                    >
-                      <FiEdit2 />
-                    </IconButton>
-                    <IconButton
-                      aria-label="Eliminar grupo"
+                    />
+                    <ActionIconButton
+                      kind="delete"
+                      tone="danger"
+                      label="Eliminar grupo"
                       size="xs"
                       variant="ghost"
-                      colorPalette="red"
                       onClick={() => setPendingDelete(group)}
-                    >
-                      <FiTrash2 />
-                    </IconButton>
+                    />
                   </HStack>
                 </HStack>
 

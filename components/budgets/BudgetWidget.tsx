@@ -1,7 +1,8 @@
 'use client'
 
-import { VStack, HStack, Heading, Text, Button, Box, Link, Grid } from '@chakra-ui/react'
+import { VStack, HStack, Heading, Text, Box, Link, Grid } from '@chakra-ui/react'
 import { BudgetProgress, progressColor } from './BudgetProgress'
+import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import { splitBudgetsByScope, sortByConsumption } from '@/lib/utils/budget-grouping'
 import { safeRatio } from '@/lib/utils/numbers'
 import type { BudgetWithSpent } from '@/types/database.types'
@@ -30,9 +31,7 @@ export function BudgetWidget({ budgets }: Props) {
         <HStack justify="space-between">
           <Heading size="md">{groups.length > 0 ? 'Presupuestos por Grupo' : 'Presupuestos del Mes'}</Heading>
           <Link href="/planificacion?tab=presupuestos&vista=grupos" _hover={{ textDecoration: 'none' }}>
-            <Button size="sm" variant="ghost">
-              Ver todos →
-            </Button>
+            <ActionIconButton kind="viewAll" label="Ver todos los presupuestos" />
           </Link>
         </HStack>
 

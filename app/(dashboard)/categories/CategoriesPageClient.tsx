@@ -8,7 +8,6 @@ import {
   VStack,
   Text,
   Badge,
-  IconButton,
   SimpleGrid,
   DialogRoot,
   DialogBackdrop,
@@ -20,7 +19,8 @@ import {
   DialogCloseTrigger,
 } from '@chakra-ui/react'
 import { useState, useCallback, useEffect } from 'react'
-import { FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi'
+import { LuPlus } from 'react-icons/lu'
+import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import { useDisclosure } from '@chakra-ui/react'
 import { deleteCategory } from '@/lib/actions/categories.actions'
 import { useRouter } from 'next/navigation'
@@ -140,7 +140,7 @@ export function CategoriesPageClient({ userId, initialCategories, initialGroups 
       <HStack justify="space-between" mb={6}>
         <Heading size="lg" color="white">Categorías</Heading>
         <Button bg="#4F46E5" color="white" _hover={{ bg: '#4338CA' }} onClick={createDisclosure.onOpen}>
-          <FiPlus />
+          <LuPlus />
           Nueva Categoría
         </Button>
       </HStack>
@@ -310,12 +310,8 @@ function CategoryCard({
 
         {!readOnly && (
           <HStack gap={1}>
-            <IconButton size="xs" variant="ghost" colorPalette="gray" aria-label="Editar" onClick={onEdit}>
-              <FiEdit2 />
-            </IconButton>
-            <IconButton size="xs" variant="ghost" colorPalette="red" aria-label="Eliminar" onClick={onDelete}>
-              <FiTrash2 />
-            </IconButton>
+            <ActionIconButton kind="edit" label="Editar" size="xs" variant="ghost" onClick={onEdit} />
+            <ActionIconButton kind="delete" tone="danger" label="Eliminar" size="xs" variant="ghost" onClick={onDelete} />
           </HStack>
         )}
       </HStack>

@@ -4,7 +4,6 @@ import {
   VStack,
   HStack,
   Text,
-  Button,
   Box,
   Badge,
   Checkbox,
@@ -14,9 +13,10 @@ import {
   Separator,
 } from '@chakra-ui/react'
 import { useRef, useState, type RefObject } from 'react'
-import { FiUpload, FiDownload, FiCheckCircle, FiXCircle, FiAlertCircle } from 'react-icons/fi'
+import { FiUpload, FiCheckCircle, FiXCircle, FiAlertCircle } from 'react-icons/fi'
 import { FormDialog } from '@/components/ui/FormDialog'
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
+import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import { parseImportFile } from '@/lib/utils/import-parser'
 import {
   downloadImportTemplate,
@@ -254,10 +254,7 @@ function Step1({ file, loading, parseError, fileInputRef, onFileSelect, onDownlo
           <Text fontSize="sm" color="white" fontWeight="medium">¿Primera vez?</Text>
           <Text fontSize="xs" color="#888">Descarga la plantilla y rellénala con tus datos</Text>
         </VStack>
-        <Button size="sm" variant="outline" onClick={onDownloadTemplate} flexShrink={0}>
-          <FiDownload />
-          Plantilla
-        </Button>
+        <ActionIconButton kind="template" label="Descargar plantilla" size="sm" variant="outline" onClick={onDownloadTemplate} />
       </HStack>
 
       {/* Column reference */}
@@ -454,9 +451,7 @@ function Step2({ resolvedRows, validRows, errorRows, importPartial, canImport, l
 
       {/* Actions */}
       <HStack justify="space-between">
-        <Button variant="outline" size="sm" onClick={onBack} disabled={loading}>
-          Volver
-        </Button>
+        <ActionIconButton kind="back" label="Volver" size="sm" variant="outline" onClick={onBack} disabled={loading} />
         <PrimaryButton
           loading={loading}
           disabled={!canImport}

@@ -1,7 +1,7 @@
 'use client'
 
-import { Box, Flex, Text, HStack, IconButton } from '@chakra-ui/react'
-import { FiEdit2, FiTrash2 } from 'react-icons/fi'
+import { Box, Flex, Text, HStack } from '@chakra-ui/react'
+import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import { formatCurrency } from '@/lib/utils/currency'
 import type { Account, TransactionWithCategory } from '@/types/database.types'
 
@@ -55,24 +55,14 @@ export function TransactionCardMobile({ transaction: t, account, onEdit, onDelet
             {amountPrefix}{formatCurrency(Number(t.amount), t.currency)}
           </Text>
           <HStack gap={0}>
-            <IconButton
-              aria-label="Editar"
+            <ActionIconButton kind="edit" label="Editar transacción" size="xs" onClick={() => onEdit(t)} />
+            <ActionIconButton
+              kind="delete"
+              label="Eliminar transacción"
               size="xs"
-              variant="ghost"
-              color="#6b7280"
-              onClick={() => onEdit(t)}
-            >
-              <FiEdit2 />
-            </IconButton>
-            <IconButton
-              aria-label="Eliminar"
-              size="xs"
-              variant="ghost"
-              color="#ef4444"
+              tone="danger"
               onClick={() => onDelete(t.id)}
-            >
-              <FiTrash2 />
-            </IconButton>
+            />
           </HStack>
         </Flex>
       </Flex>

@@ -1,21 +1,40 @@
 'use client'
 
-import { IconButton, Portal, Tooltip } from '@chakra-ui/react'
+import { IconButton, Portal, Tooltip, type IconButtonProps } from '@chakra-ui/react'
 import type { IconType } from 'react-icons'
 import { ACTION_ICONS, type ActionKind } from './action-icons'
 
-interface Props {
+type Tone = 'neutral' | 'danger' | 'primary'
+
+/** Chakra style props passed through for the few buttons with a distinctive look. */
+type StyleProps = Omit<
+  IconButtonProps,
+  'aria-label' | 'children' | 'size' | 'variant' | 'onClick' | 'type' | 'loading' | 'disabled'
+>
+
+interface Props extends StyleProps {
   kind: ActionKind
   /** Spanish name of the action: used as aria-label and tooltip text. */
   label: string
   onClick?: () => void
+  /** Defaults to 'button' so it never submits a surrounding form by accident. */
+  type?: 'button' | 'submit'
   loading?: boolean
   disabled?: boolean
-  tone?: 'neutral' | 'danger'
-  size?: 'xs' | 'sm' | 'md'
-  variant?: 'ghost' | 'outline' | 'subtle'
+  /** neutral = grey ghost, danger = red, primary = solid brand (e.g. send). */
+  tone?: Tone
+  size?: 'xs' | 'sm' | 'md' | 'lg'
+  variant?: 'ghost' | 'outline' | 'subtle' | 'solid'
   /** Exceptional override; prefer adding the action to ACTION_ICONS. */
   icon?: IconType
+}
+
+// `brand` exists only as plain color tokens (no semantic palette), so the
+// primary tone sets its colors explicitly instead of relying on colorPalette.
+const TONE_STYLES: Record<Tone, Pick<IconButtonProps, 'colorPalette' | 'color' | 'bg' | '_hover'>> = {
+  neutral: { colorPalette: 'gray', color: 'text.secondary', _hover: { color: 'text.primary' } },
+  danger: { colorPalette: 'red', color: 'red.400', _hover: { color: 'red.300' } },
+  primary: { color: 'white', bg: 'brand.500', _hover: { bg: 'brand.600' } },
 }
 
 /**
@@ -27,12 +46,14 @@ export function ActionIconButton({
   kind,
   label,
   onClick,
+  type = 'button',
   loading,
   disabled,
   tone = 'neutral',
   size = 'sm',
-  variant = 'ghost',
+  variant,
   icon,
+  ...styleProps
 }: Props) {
   const Icon = icon ?? ACTION_ICONS[kind]
 
@@ -42,15 +63,17 @@ export function ActionIconButton({
         <IconButton
           aria-label={label}
           size={size}
-          variant={variant}
-          colorPalette={tone === 'danger' ? 'red' : 'gray'}
-          color={tone === 'danger' ? 'red.400' : 'text.secondary'}
-          _hover={{ color: tone === 'danger' ? 'red.300' : 'text.primary' }}
+          variant={variant ?? (tone === 'primary' ? 'solid' : 'ghost')}
+          {...TONE_STYLES[tone]}
           loading={loading}
           disabled={disabled || loading}
           onClick={onClick}
-          minW={{ base: '11', md: 'auto' }}
-          minH={{ base: '11', md: 'auto' }}
+          type={type}
+          flexShrink={0}
+          // 44px touch target below md; above it the size recipe applies.
+          minW={{ mdDown: '11' }}
+          minH={{ mdDown: '11' }}
+          {...styleProps}
         >
           <Icon />
         </IconButton>

@@ -2,8 +2,9 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Box, VStack, HStack, Text, Badge, Button, IconButton } from '@chakra-ui/react'
-import { FiPlus, FiX } from 'react-icons/fi'
+import { Box, VStack, HStack, Text, Badge, Button } from '@chakra-ui/react'
+import { LuPlus } from 'react-icons/lu'
+import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import { createCategoryGroup } from '@/lib/actions/categoryGroups.actions'
 import { dismissSuggestion } from '@/lib/actions/savingsAdvice.actions'
 import { toaster } from '@/lib/toaster'
@@ -77,17 +78,14 @@ export function GroupSuggestionsList({ userId, period, suggestions, existingGrou
           <VStack align="stretch" gap={3}>
             <HStack justify="space-between" align="start" gap={2}>
               <Text fontWeight="600" color="white">📦 {s.name}</Text>
-              <IconButton
-                aria-label="Descartar"
+              <ActionIconButton
+                kind="discard"
+                label="Descartar"
                 size="xs"
                 variant="ghost"
-                color="#6b7280"
-                _hover={{ color: '#ef4444', bg: '#2d2d35' }}
                 loading={busy === s.name}
                 onClick={() => handleDismiss(s)}
-              >
-                <FiX />
-              </IconButton>
+              />
             </HStack>
 
             <HStack gap={1} flexWrap="wrap">
@@ -109,7 +107,7 @@ export function GroupSuggestionsList({ userId, period, suggestions, existingGrou
               loading={busy === s.name}
               onClick={() => handleCreate(s)}
             >
-              <FiPlus />
+              <LuPlus />
               Crear grupo
             </Button>
           </VStack>

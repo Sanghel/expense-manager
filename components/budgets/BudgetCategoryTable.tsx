@@ -3,6 +3,7 @@
 import { Box, HStack, VStack, Text, Button, Grid } from '@chakra-ui/react'
 import { useState } from 'react'
 import { BudgetProgress, progressColor } from './BudgetProgress'
+import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import { sortByConsumption } from '@/lib/utils/budget-grouping'
 import { formatCurrency } from '@/lib/utils/currency'
 import { safeRatio, toNumber } from '@/lib/utils/numbers'
@@ -129,18 +130,19 @@ export function BudgetCategoryTable({ budgets, onEdit, onDelete, onCreate }: Pro
                 _groupHover={{ opacity: 1, pointerEvents: 'auto' }}
                 _groupFocusWithin={{ opacity: 1, pointerEvents: 'auto' }}
               >
-                <Button size="xs" variant="ghost" aria-label="Editar" onClick={() => onEdit(budget)}>
-                  ✎
-                </Button>
-                <Button
+                <ActionIconButton
+                  kind="edit"
+                  label="Editar presupuesto"
                   size="xs"
-                  variant="ghost"
-                  colorPalette="red"
-                  aria-label="Eliminar"
+                  onClick={() => onEdit(budget)}
+                />
+                <ActionIconButton
+                  kind="delete"
+                  tone="danger"
+                  label="Eliminar presupuesto"
+                  size="xs"
                   onClick={() => onDelete(budget.id)}
-                >
-                  🗑
-                </Button>
+                />
               </HStack>
             </HStack>
           </Grid>
@@ -188,12 +190,17 @@ export function BudgetCategoryTable({ budgets, onEdit, onDelete, onCreate }: Pro
                     </Text>
                   )}
                   <HStack gap={2}>
-                    <Button size="sm" variant="outline" onClick={() => onEdit(budget)}>
-                      Editar
-                    </Button>
-                    <Button size="sm" variant="ghost" colorPalette="red" onClick={() => onDelete(budget.id)}>
-                      Eliminar
-                    </Button>
+                    <ActionIconButton
+                      kind="edit"
+                      label="Editar presupuesto"
+                      onClick={() => onEdit(budget)}
+                    />
+                    <ActionIconButton
+                      kind="delete"
+                      tone="danger"
+                      label="Eliminar presupuesto"
+                      onClick={() => onDelete(budget.id)}
+                    />
                   </HStack>
                 </VStack>
               )}

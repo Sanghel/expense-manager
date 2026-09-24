@@ -1,9 +1,9 @@
 'use client'
 
-import { VStack, HStack, Box, Text, Button, IconButton, useDisclosure } from '@chakra-ui/react'
+import { VStack, HStack, Box, Text, useDisclosure } from '@chakra-ui/react'
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiX } from 'react-icons/fi'
+import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import { BudgetForm } from '@/components/budgets/BudgetForm'
 import { dismissSuggestion } from '@/lib/actions/savingsAdvice.actions'
 import { toaster } from '@/lib/toaster'
@@ -143,25 +143,20 @@ export function BudgetSuggestionsList({ userId, period, suggestions, budgets, ca
                 </Box>
 
                 <HStack gap={1} flexShrink={0}>
-                  <Button
+                  <ActionIconButton
+                    kind={exists ? 'edit' : 'apply'}
+                    label={exists ? 'Editar presupuesto' : 'Aplicar sugerencia'}
                     size="sm"
-                    bg="#4F46E5"
-                    color="white"
-                    _hover={{ bg: '#4338CA' }}
+                    variant="subtle"
                     onClick={() => handleApply(s)}
-                  >
-                    {exists ? 'Editar' : 'Aplicar'}
-                  </Button>
-                  <IconButton
-                    aria-label="Descartar sugerencia"
+                  />
+                  <ActionIconButton
+                    kind="discard"
+                    label="Descartar sugerencia"
                     size="sm"
                     variant="ghost"
-                    color="#B0B0B0"
-                    _hover={{ color: '#ef4444', bg: '#2d2d35' }}
                     onClick={() => handleDismiss(s.category_id)}
-                  >
-                    <FiX />
-                  </IconButton>
+                  />
                 </HStack>
               </HStack>
             </Box>

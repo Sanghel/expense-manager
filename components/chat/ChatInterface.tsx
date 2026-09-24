@@ -16,7 +16,8 @@ import {
 } from '@chakra-ui/react'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiSend, FiCheck, FiX, FiMessageSquare, FiXCircle, FiMic, FiMicOff } from 'react-icons/fi'
+import { FiCheck, FiMessageSquare } from 'react-icons/fi'
+import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import { categorizePurchase, type CategorizedTransaction } from '@/lib/actions/ai.actions'
 import { createTransaction } from '@/lib/actions/transactions.actions'
 import { toaster } from '@/lib/toaster'
@@ -310,13 +311,15 @@ export function ChatInterface({ userId, categories, accounts = [], onClose }: Pr
           <Text fontWeight="semibold" color="white">Chat IA</Text>
         </HStack>
         <HStack gap={1}>
-          <Button size="xs" variant="ghost" colorPalette="gray" onClick={handleClearHistory}>
-            Limpiar
-          </Button>
+          <ActionIconButton
+            kind="clear"
+            label="Limpiar conversación"
+            size="xs"
+            variant="ghost"
+            onClick={handleClearHistory}
+          />
           {onClose && (
-            <Button size="xs" variant="ghost" colorPalette="gray" onClick={onClose} aria-label="Cerrar chat">
-              <Icon as={FiXCircle} />
-            </Button>
+            <ActionIconButton kind="close" label="Cerrar chat" size="xs" variant="ghost" onClick={onClose} />
           )}
         </HStack>
       </HStack>
@@ -437,17 +440,15 @@ export function ChatInterface({ userId, categories, accounts = [], onClose }: Pr
                           <Icon as={FiCheck} />
                           Confirmar
                         </Button>
-                        <Button
+                        <ActionIconButton
+                          kind="discard"
+                          label="Descartar"
+                          tone="danger"
                           size="sm"
                           variant="outline"
-                          colorPalette="red"
-                          flex="1"
                           onClick={() => handleDiscard(msg.id)}
                           disabled={confirmingId !== null}
-                        >
-                          <Icon as={FiX} />
-                          Descartar
-                        </Button>
+                        />
                       </HStack>
                     </Box>
                   )}
@@ -482,13 +483,12 @@ export function ChatInterface({ userId, categories, accounts = [], onClose }: Pr
       {/* Input */}
       <HStack w="full" p={4} borderTopWidth="1px" borderColor="#2d2d35" bg="#18181d" gap={2}>
         {isVoiceSupported && (
-          <Button
+          <ActionIconButton
+            kind={isRecording ? 'micOff' : 'mic'}
+            label={isRecording ? 'Detener dictado' : 'Dictar mensaje'}
+            tone={isRecording ? 'danger' : 'neutral'}
             size="md"
             variant={isRecording ? 'solid' : 'outline'}
-            colorPalette={isRecording ? 'red' : 'gray'}
-            onClick={toggleRecording}
-            disabled={loading}
-            aria-label={isRecording ? 'Detener grabación' : 'Grabar por voz'}
             flexShrink={0}
             css={
               isRecording
@@ -501,9 +501,9 @@ export function ChatInterface({ userId, categories, accounts = [], onClose }: Pr
                   }
                 : undefined
             }
-          >
-            <Icon as={isRecording ? FiMicOff : FiMic} />
-          </Button>
+            onClick={toggleRecording}
+            disabled={loading}
+          />
         )}
         <Input
           placeholder={
@@ -519,14 +519,14 @@ export function ChatInterface({ userId, categories, accounts = [], onClose }: Pr
           size="md"
           borderColor={isRecording ? 'red.400' : undefined}
         />
-        <Button
-          colorPalette="brand"
+        <ActionIconButton
+          kind="send"
+          label="Enviar mensaje"
+          size="md"
+          tone="primary"
           onClick={() => handleSend()}
           disabled={!input.trim() || loading || isRecording}
-          size="md"
-        >
-          <Icon as={FiSend} />
-        </Button>
+        />
       </HStack>
     </VStack>
   )

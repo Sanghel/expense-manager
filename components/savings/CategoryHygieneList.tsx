@@ -3,8 +3,9 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Box, VStack, HStack, Text, Badge, IconButton } from '@chakra-ui/react'
-import { FiX, FiArrowRight } from 'react-icons/fi'
+import { Box, VStack, HStack, Text, Badge } from '@chakra-ui/react'
+import { FiArrowRight } from 'react-icons/fi'
+import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import { dismissSuggestion } from '@/lib/actions/savingsAdvice.actions'
 import type { CategorySuggestionKind, SavingsCategorySuggestion } from '@/types/database.types'
 
@@ -61,17 +62,14 @@ export function CategoryHygieneList({ userId, period, suggestions }: Props) {
                   </Badge>
                   <Text fontWeight="600" color="white" lineClamp={1}>{s.title}</Text>
                 </HStack>
-                <IconButton
-                  aria-label="Descartar"
+                <ActionIconButton
+                  kind="discard"
+                  label="Descartar"
                   size="xs"
                   variant="ghost"
-                  color="#6b7280"
-                  _hover={{ color: '#ef4444', bg: '#2d2d35' }}
                   loading={busy === s.title}
                   onClick={() => handleDismiss(s.title)}
-                >
-                  <FiX />
-                </IconButton>
+                />
               </HStack>
 
               <Text fontSize="sm" color="#B0B0B0">{s.detail}</Text>

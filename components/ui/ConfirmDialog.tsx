@@ -8,14 +8,11 @@ import {
   DialogHeader,
   DialogTitle,
   DialogBody,
-  DialogCloseTrigger,
   Button,
   HStack,
   Text,
-  IconButton,
-  Icon,
 } from '@chakra-ui/react'
-import { FiX } from 'react-icons/fi'
+import { ActionIconButton } from '@/components/ui/ActionIconButton'
 
 interface Props {
   isOpen: boolean
@@ -54,18 +51,7 @@ export function ConfirmDialog({
           <DialogHeader borderBottomWidth="1px" borderColor="#2d2d35" py={4}>
             <HStack justify="space-between" align="center">
               <DialogTitle color="white">{title}</DialogTitle>
-              <DialogCloseTrigger asChild>
-                <IconButton
-                  aria-label="Cerrar"
-                  size="sm"
-                  variant="ghost"
-                  color="#B0B0B0"
-                  _hover={{ color: 'white', bg: '#2d2d35' }}
-                  onClick={onClose}
-                >
-                  <Icon as={FiX} />
-                </IconButton>
-              </DialogCloseTrigger>
+              <ActionIconButton kind="close" label="Cerrar" size="sm" variant="ghost" onClick={onClose} />
             </HStack>
           </DialogHeader>
           <DialogBody pb={6} pt={4}>

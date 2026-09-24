@@ -300,7 +300,7 @@ export function TransactionCalendar({ userId, initialTransactions, categories, a
           <DialogPositioner>
             <DialogContent tabIndex={-1} mx={{ base: 3, md: 0 }} maxH={{ base: '85vh', md: '90vh' }} display="flex" flexDirection="column">
               <DialogHeader borderBottomWidth="1px" borderColor="#2d2d35" py={4} flexShrink={0}>
-                <HStack justify="space-between" align="center">
+                <HStack justify="space-between" align="center" w="full">
                   <DialogTitle color="white">
                     {selectedDay?.date
                       ? new Date(selectedDay.date + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })

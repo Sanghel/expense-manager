@@ -1,6 +1,7 @@
 'use client'
 
-import { DatePicker, Field, Portal, Text, parseDate } from '@chakra-ui/react'
+import { DatePicker, Field, Text, parseDate } from '@chakra-ui/react'
+import { FloatingPortal } from './FloatingPortal'
 import { LuCalendar } from 'react-icons/lu'
 
 type DateValue = NonNullable<DatePicker.RootProps['value']>[number]
@@ -80,7 +81,7 @@ export function DateInput({ label, value, onChange, required, disabled, optional
             </DatePicker.Trigger>
           </DatePicker.IndicatorGroup>
         </DatePicker.Control>
-        <Portal>
+        <FloatingPortal>
           <DatePicker.Positioner>
             <DatePicker.Content colorPalette="brand">
               <DatePicker.View view="day">
@@ -97,7 +98,7 @@ export function DateInput({ label, value, onChange, required, disabled, optional
               </DatePicker.View>
             </DatePicker.Content>
           </DatePicker.Positioner>
-        </Portal>
+        </FloatingPortal>
       </DatePicker.Root>
     </Field.Root>
   )

@@ -1,6 +1,7 @@
 'use client'
 
-import { DatePicker, HStack, Portal, parseDate } from '@chakra-ui/react'
+import { DatePicker, HStack, parseDate } from '@chakra-ui/react'
+import { FloatingPortal } from '@/components/ui/FloatingPortal'
 import { LuCalendar } from 'react-icons/lu'
 import { ActionIconButton } from '@/components/ui/ActionIconButton'
 
@@ -66,7 +67,7 @@ export function MonthSelector({ value, onChange }: Props) {
             </DatePicker.Trigger>
           </DatePicker.IndicatorGroup>
         </DatePicker.Control>
-        <Portal>
+        <FloatingPortal>
           <DatePicker.Positioner>
             <DatePicker.Content colorPalette="brand">
               <DatePicker.View view="month">
@@ -79,7 +80,7 @@ export function MonthSelector({ value, onChange }: Props) {
               </DatePicker.View>
             </DatePicker.Content>
           </DatePicker.Positioner>
-        </Portal>
+        </FloatingPortal>
       </DatePicker.Root>
       <ActionIconButton
         kind="next"

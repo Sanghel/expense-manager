@@ -48,8 +48,27 @@ function detectCurrency(text: string): Currency {
   return 'COP'
 }
 
-function todayIsoFrom(d: Date): string {
-  return d.toISOString().split('T')[0]
+const BOGOTA_DATE = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'America/Bogota',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+})
+
+// The email states when the movement happened ("el 13/10/26 a las 21:03",
+// in Colombia time). Fall back to the receive time, read in Colombia time:
+// in UTC, anything after 19:00 would land on the next day.
+function movementDate(text: string, receivedAt: Date): string {
+  const m = text.match(/\bel\s+(\d{1,2})\/(\d{1,2})\/(\d{4}|\d{2})\b/i)
+  if (m) {
+    const day = Number(m[1])
+    const month = Number(m[2])
+    const year = m[3].length === 2 ? 2000 + Number(m[3]) : Number(m[3])
+    if (day >= 1 && day <= 31 && month >= 1 && month <= 12) {
+      return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+    }
+  }
+  return BOGOTA_DATE.format(receivedAt)
 }
 
 interface RuleResult {
@@ -93,6 +112,22 @@ const RULES: Array<{
         lastFour,
         description: `Transferencia a cuenta ${destAccount}`,
         matchedRule: 'transferencia_a_cuenta',
+      }
+    },
+  },
+  {
+    name: 'transferencia_breb',
+    pattern:
+      /transferiste\s+\$?\s*([\d.,]+)\s+a\s+la\s+llave\s+\S+\s+desde\s+(?:tu\s+)?cuenta\s+\*?(\d{4,})\s+a\s+([A-ZÁÉÍÓÚÑÜ0-9 .,&'\-/]+?)\s+el\s/i,
+    build: (m) => {
+      const recipient = m[3].trim().replace(/\s+/g, ' ')
+      return {
+        type: 'expense',
+        amountRaw: m[1],
+        merchant: recipient,
+        lastFour: m[2].slice(-4),
+        description: `Transferencia Bre-b a ${recipient}`,
+        matchedRule: 'transferencia_breb',
       }
     },
   },
@@ -202,7 +237,7 @@ export const parseBancolombia: Parser = (input: ParseInput): ParsedTransaction[]
     const amount = parseAmount(result.amountRaw)
     if (!amount) continue
     const currency = detectCurrency(haystack)
-    const date = todayIsoFrom(input.receivedAt)
+    const date = movementDate(haystack.slice(match.index ?? 0), input.receivedAt)
     let confidence = 0.6
     if (result.lastFour) confidence += 0.3
     if (result.merchant && result.merchant.length >= 3) confidence += 0.05

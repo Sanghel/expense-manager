@@ -1,5 +1,14 @@
 # Changelog
 
+## [3.12.1] — 2026-10-14
+
+### Fixed
+
+- **La sincronización con Gmail no traía los movimientos de Bancolombia** ([#544](https://github.com/Sanghel/expense-manager/issues/544)). Bancolombia ahora envía desde `alertasynotificaciones@ayn.notificacionesbancolombia.com`, y en la búsqueda de Gmail esa dirección estaba mal escrita (`ayn.ayn.`). Ahora se busca por dominio (`notificacionesbancolombia.com`, `bancolombia.com.co`), así que un cambio de subdominio ya no corta la sincronización. Los correos de Bank of America tampoco estaban en la búsqueda y ahora sí se incluyen.
+- **Fecha corrida al día siguiente**: los movimientos hechos después de las 19:00 hora Colombia quedaban registrados con la fecha del día siguiente (se tomaba la fecha de recepción en UTC). Ahora se usa la fecha que viene en el correo (`el 13/10/26`) y, si no aparece, la de recepción en hora de Colombia.
+- **Correos que no volvían a aparecer**: la fecha de última sincronización avanzaba al leer los correos, antes de confirmar en el modal de revisión. Si se cerraba sin guardar, esos movimientos no volvían a salir. Ahora solo avanza al registrar las transacciones.
+- **Transferencias Bre-b por llave**: se registraban como "Transferencia a la llave 88264184". Ahora se registran como "Transferencia Bre-b a <destinatario>".
+
 ## [3.12.0] — 2026-09-24
 
 ### Added

@@ -18,7 +18,7 @@ interface Props {
 export function GmailSyncButton({ userId, categories, accounts }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
-  const [items, setItems] = useState<ParsedItem[] | null>(null)
+  const [sync, setSync] = useState<{ items: ParsedItem[]; syncedAt: string } | null>(null)
 
   const handleClick = async () => {
     setLoading(true)
@@ -45,7 +45,7 @@ export function GmailSyncButton({ userId, categories, accounts }: Props) {
       })
       return
     }
-    setItems(result.items)
+    setSync({ items: result.items, syncedAt: result.syncedAt })
   }
 
   return (
@@ -59,12 +59,13 @@ export function GmailSyncButton({ userId, categories, accounts }: Props) {
         loading={loading}
       />
 
-      {items && (
+      {sync && (
         <GmailSyncReviewModal
           isOpen={true}
-          onClose={() => setItems(null)}
+          onClose={() => setSync(null)}
           userId={userId}
-          items={items}
+          items={sync.items}
+          syncedAt={sync.syncedAt}
           categories={categories}
           accounts={accounts}
           onDone={() => router.refresh()}

@@ -27,6 +27,7 @@ function revalidateAfterMutation() {
 export interface SyncGmailSuccess {
   success: true
   items: ParsedItem[]
+  syncedAt: string
   scanned: number
   skipped: number
   errors: number
@@ -60,6 +61,7 @@ export async function syncGmail(): Promise<
     return {
       success: true,
       items: result.items,
+      syncedAt: result.syncedAt,
       scanned: result.scanned,
       skipped: result.skipped,
       errors: result.errors,
@@ -78,7 +80,8 @@ export async function syncGmail(): Promise<
 }
 
 export async function commitGmailTransactions(
-  items: CommitInput[]
+  items: CommitInput[],
+  syncedAt?: string
 ): Promise<
   | { success: true; created: number; errors: string[] }
   | { success: false; error: string }
@@ -96,7 +99,12 @@ export async function commitGmailTransactions(
         return { success: false, error: 'Cada transacción debe tener categoría asignada' }
       }
     }
-    const result = await commitParsedTransactions(userId, items)
+    const syncedAtMs = syncedAt ? Date.parse(syncedAt) : NaN
+    const validSyncedAt =
+      Number.isFinite(syncedAtMs) && syncedAtMs <= Date.now()
+        ? new Date(syncedAtMs).toISOString()
+        : undefined
+    const result = await commitParsedTransactions(userId, items, validSyncedAt)
     revalidateAfterMutation()
     return { success: true, created: result.created, errors: result.errors }
   } catch (err) {

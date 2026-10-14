@@ -9,7 +9,10 @@ interface Fixture {
     amount: number
     lastFour: string | null
     matchedRule: string
+    merchant?: string
+    date?: string
   }
+  receivedAt?: string
 }
 
 const fixtures: Fixture[] = [
@@ -61,6 +64,41 @@ const fixtures: Fixture[] = [
     body: 'Compra por $25.000 en TIENDA OXXO.',
     expect: { type: 'expense', amount: 25000, lastFour: null, matchedRule: 'compra_tarjeta' },
   },
+  {
+    name: 'transferencia Bre-b por llave (nombre del destinatario)',
+    subject: 'Alertas y Notificaciones',
+    body: 'Bancolombia: SANGHEL, transferiste $20,000.00 a la llave 88264184 desde tu cuenta *8645 a JESUS ALIRIO IBARRA CASADIEGOS el 13/10/26 a las 19:06. Con Bre-b es de una y gratis.',
+    expect: {
+      type: 'expense',
+      amount: 20000,
+      lastFour: '8645',
+      matchedRule: 'transferencia_breb',
+      merchant: 'JESUS ALIRIO IBARRA CASADIEGOS',
+      date: '2026-10-13',
+    },
+    receivedAt: '2026-10-14T00:06:15Z',
+  },
+  {
+    name: 'fecha del correo (año de 2 dígitos) aunque llegue el día siguiente en UTC',
+    subject: 'Alertas y Notificaciones',
+    body: 'Bancolombia: Transferiste $30000.00 desde tu cuenta *8645 a la cuenta *3114526162 el 13/10/26 a las 21:03.',
+    expect: { type: 'expense', amount: 30000, lastFour: '8645', matchedRule: 'transferencia_a_cuenta', date: '2026-10-13' },
+    receivedAt: '2026-10-14T02:03:49Z',
+  },
+  {
+    name: 'fecha del correo (año de 4 dígitos)',
+    subject: 'Alertas y Notificaciones',
+    body: 'Bancolombia: Compraste $40.000,00 en BOLD SA*ANDRES G con tu T.Deb *2499, el 13/10/2026 a las 18:48.',
+    expect: { type: 'expense', amount: 40000, lastFour: '2499', matchedRule: 'compra_tarjeta_v2', date: '2026-10-13' },
+    receivedAt: '2026-10-13T23:48:12Z',
+  },
+  {
+    name: 'sin fecha en el texto: recepción en hora de Colombia',
+    subject: 'Compra',
+    body: 'Compra por $25.000 en TIENDA OXXO.',
+    expect: { type: 'expense', amount: 25000, lastFour: null, matchedRule: 'compra_tarjeta', date: '2026-10-13' },
+    receivedAt: '2026-10-14T02:30:00Z',
+  },
 ]
 
 let passed = 0
@@ -71,7 +109,7 @@ for (const f of fixtures) {
     subject: f.subject,
     bodyText: f.body,
     bodyHtml: '',
-    receivedAt: new Date('2026-05-21T12:00:00Z'),
+    receivedAt: new Date(f.receivedAt ?? '2026-05-21T12:00:00Z'),
   })
   const result = results[0] ?? null
 
@@ -80,7 +118,9 @@ for (const f of fixtures) {
     result.type === f.expect.type &&
     result.amount === f.expect.amount &&
     result.lastFour === f.expect.lastFour &&
-    result.matchedRule === f.expect.matchedRule
+    result.matchedRule === f.expect.matchedRule &&
+    (f.expect.merchant === undefined || result.merchant === f.expect.merchant) &&
+    (f.expect.date === undefined || result.date === f.expect.date)
 
   if (ok) {
     passed++

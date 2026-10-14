@@ -5,8 +5,11 @@ import { getParserForSender, type ParsedTransaction } from './parsers'
 
 const DEFAULT_LOOKBACK_DAYS = 7
 
+// Banks rotate the subdomain they send from (an., ayn., …), so match by domain.
+// Gmail's from:<domain> also matches its subdomains. Each sender is re-checked
+// by its parser's isXSender() before parsing.
 const COMBINED_QUERY =
-  'from:(notificacionesbancolombia@bancolombia.com.co OR alertasynotificaciones@notificacionesbancolombia.com OR alertasynotificaciones@bancolombia.com.co OR alertasynotificaciones@an.notificacionesbancolombia.com OR alertasynotificaciones@ayn.ayn.notificacionesbancolombia.com OR do-not-reply@ses.binance.com OR notificaciones@bancomercantil.com)'
+  'from:(notificacionesbancolombia.com OR bancolombia.com.co OR bankofamerica.com OR do-not-reply@ses.binance.com OR notificaciones@bancomercantil.com)'
 
 export interface ParsedItem extends ParsedTransaction {
   gmailMessageId: string
@@ -17,6 +20,9 @@ export interface ParsedItem extends ParsedTransaction {
 
 export interface ParseResult {
   items: ParsedItem[]
+  // Moment the Gmail listing was taken. Committing advances gmail_last_synced_at
+  // to this value, so mail that arrives while the user reviews isn't skipped.
+  syncedAt: string
   scanned: number
   skipped: number
   errors: number
@@ -74,7 +80,14 @@ function buildQuery(sinceIso: string | null): string {
 }
 
 export async function parseGmailForUser(userId: string): Promise<ParseResult> {
-  const result: ParseResult = { items: [], scanned: 0, skipped: 0, errors: 0, errorMessages: [] }
+  const result: ParseResult = {
+    items: [],
+    syncedAt: new Date().toISOString(),
+    scanned: 0,
+    skipped: 0,
+    errors: 0,
+    errorMessages: [],
+  }
 
   const { data: user, error: userError } = await insforgeAdmin.database
     .from('users')
@@ -121,16 +134,23 @@ export async function parseGmailForUser(userId: string): Promise<ParseResult> {
     }
   }
 
-  if (result.items.length > 0) {
-    await insforgeAdmin.database
-      .from('users')
-      .update({ gmail_last_synced_at: new Date().toISOString() })
-      .eq('id', userId)
-  }
   return result
 }
 
-export async function commitParsedTransactions(userId: string, items: CommitInput[]): Promise<CommitResult> {
+// Only called once the parsed items are committed: if the user closes the
+// review without saving, the next sync must list those emails again.
+async function markSynced(userId: string, syncedAt: string): Promise<void> {
+  await insforgeAdmin.database
+    .from('users')
+    .update({ gmail_last_synced_at: syncedAt })
+    .eq('id', userId)
+}
+
+export async function commitParsedTransactions(
+  userId: string,
+  items: CommitInput[],
+  syncedAt?: string
+): Promise<CommitResult> {
   const result: CommitResult = { created: 0, errors: [] }
 
   for (const item of items) {
@@ -201,12 +221,16 @@ export async function commitParsedTransactions(userId: string, items: CommitInpu
     }
   }
 
+  if (syncedAt) await markSynced(userId, syncedAt)
   return result
 }
 
 export async function autoCommitGmailForUser(userId: string): Promise<{ parse: ParseResult; commit: CommitResult }> {
   const parse = await parseGmailForUser(userId)
   const commitItems: CommitInput[] = parse.items.map((it) => ({ ...it, category_id: null }))
-  const commit = await commitParsedTransactions(userId, commitItems)
+  // A message that failed to fetch has no processed_emails row yet; keep the
+  // marker where it was so the next run retries it.
+  const syncedAt = parse.errors === 0 ? parse.syncedAt : undefined
+  const commit = await commitParsedTransactions(userId, commitItems, syncedAt)
   return { parse, commit }
 }

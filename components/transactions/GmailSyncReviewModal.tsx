@@ -68,12 +68,13 @@ interface Props {
   onClose: () => void
   userId: string
   items: ParsedItem[]
+  syncedAt: string
   categories: Category[]
   accounts: Account[]
   onDone: () => void
 }
 
-export function GmailSyncReviewModal({ isOpen, onClose, userId, items, categories, accounts, onDone }: Props) {
+export function GmailSyncReviewModal({ isOpen, onClose, userId, items, syncedAt, categories, accounts, onDone }: Props) {
   const [reviews, setReviews] = useState<ReviewItem[]>(
     items.map((p) => ({ parsed: p, edited: initialEdited(p, accounts), excluded: false }))
   )
@@ -150,7 +151,7 @@ export function GmailSyncReviewModal({ isOpen, onClose, userId, items, categorie
       category_id: r.edited.category_id,
       account_id: r.edited.account_id,
     }))
-    const result = await commitGmailTransactions(payload)
+    const result = await commitGmailTransactions(payload, syncedAt)
     setSaving(false)
     if (!result.success) {
       toaster.create({ title: 'Error', description: result.error, type: 'error' })

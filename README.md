@@ -1,156 +1,249 @@
-# Expense Manager
+<!-- markdownlint-disable-next-line MD041 -->
+<a id="top"></a>
 
-Sistema de gestión de finanzas personales con IA integrada, soporte multi-moneda y análisis de gastos.
+<div align="center">
 
-## Características
+<img width="100%" alt="GitPush Money banner: the hexagon logo, the GitPush Money wordmark and a rising trend line" src="docs/assets/banner.svg" />
 
-- **Transacciones** — CRUD completo de ingresos y gastos con categorización
-- **IA Conversacional** — Chat con Claude para registrar gastos en lenguaje natural
-- **Multi-moneda** — Soporte COP, USD, VES con conversión en tiempo real
-- **Dashboard** — Resumen financiero con gráficos de tendencia mensual
-- **Presupuestos** — Seguimiento de límites de gasto por categoría
-- **Metas de Ahorro** — Objetivos con barra de progreso y depósitos
-- **Gastos Recurrentes** — Suscripciones y pagos periódicos con generación automática vía cron
-- **Etiquetas** — Sistema de tags para clasificación adicional
-- **Exportación** — CSV y JSON con filtros personalizados
-- **Calendario** — Vista mensual de transacciones
-- **Mobile-first** — Bottom navigation, card views y experiencia nativa en móvil
-- **Autenticación** — Google OAuth con NextAuth.js
+<h1>GitPush Money</h1>
 
-## Stack Tecnológico
+<p><strong>Personal finance with an AI copilot — multi-currency, multi-account, mobile-first.</strong></p>
 
-| Capa | Tecnología |
+<p>
+<a href="https://github.com/Sanghel/expense-manager/releases"><img src="https://img.shields.io/github/v/release/Sanghel/expense-manager?style=for-the-badge&labelColor=0F0F13&color=4F46E5" alt="Release"></a>
+<a href="https://expense-manager-pied-three.vercel.app"><img src="https://img.shields.io/badge/live-demo-4F46E5?style=for-the-badge&labelColor=0F0F13&logo=vercel&logoColor=white" alt="Live demo"></a>
+<img src="https://img.shields.io/badge/Next.js-16-8B93FF?style=for-the-badge&labelColor=0F0F13&logo=nextdotjs&logoColor=white" alt="Next.js 16">
+<img src="https://img.shields.io/badge/PWA-ready-F97316?style=for-the-badge&labelColor=0F0F13&logo=pwa&logoColor=white" alt="PWA">
+<a href="LICENSE"><img src="https://img.shields.io/badge/MIT-F97316?style=for-the-badge&labelColor=0F0F13" alt="License: MIT"></a>
+</p>
+
+<p>
+<a href="https://expense-manager-pied-three.vercel.app"><strong>Live demo</strong></a> &bull;
+<a href="#features"><strong>Features</strong></a> &bull;
+<a href="#quick-start"><strong>Quick start</strong></a> &bull;
+<a href="CHANGELOG.md"><strong>Changelog</strong></a>
+</p>
+
+<br/>
+
+<p>
+Tracking money across banks, currencies and apps usually means a spreadsheet you stop updating by March.
+<strong>GitPush Money reads your bank emails, lets you log spending in plain language, and has an AI coach
+that tells you where the money actually went.</strong>
+</p>
+
+<br/>
+
+<img width="100%" alt="Dashboard with balances in COP, USD and VES, account cards and the AI chat registering an expense" src="docs/assets/screenshot-dashboard.webp" />
+
+<br/><br/>
+
+<sub><strong>BUILT WITH</strong></sub>
+
+<br/>
+
+<img src="https://skillicons.dev/icons?i=nextjs,react,ts,postgres,vercel&theme=dark" alt="Next.js, React, TypeScript, PostgreSQL, Vercel" />
+
+<br/><br/>
+
+</div>
+
+<div align="center"><img src="docs/assets/logo.webp" width="28" alt="" /></div>
+
+## Features
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+### 🤖 AI copilot
+Log expenses in plain language (*"paid 10,000 pesos for a cake"*) and confirm before saving. A savings coach
+diagnoses the month, suggests budgets and savings goals, and spots small recurring leaks — powered by Claude.
+
+</td>
+<td width="50%" valign="top">
+
+### 📬 Bank email sync
+Connects to Gmail (read-only) and turns bank notifications into transactions. Parsers for Bancolombia,
+Mercantil, Binance and Bank of America; low-confidence matches wait in a review queue.
+
+</td>
+</tr>
+<tr>
+<td valign="top">
+
+### 💱 Multi-currency & accounts
+COP, USD and VES with daily exchange rates. Every account keeps its own currency and balance, and the
+dashboard converts everything to your preferred one.
+
+</td>
+<td valign="top">
+
+### 📊 Dashboard & reports
+Waffle, radar, polar bar, calendar and trend charts built with Nivo: spending split, budget vs. actual,
+savings rate and spending profile for any month.
+
+</td>
+</tr>
+<tr>
+<td valign="top">
+
+### 🎯 Budgets & savings goals
+Budgets per category, per category group or overall, as a fixed amount or a percentage of income. Goals
+track contributions, pace and deadline status.
+
+</td>
+<td valign="top">
+
+### 🔁 Recurring, reminders & loans
+Recurring payments, reminders for income and expenses with a notification bell, a calendar view, and a
+debts & loans tracker.
+
+</td>
+</tr>
+<tr>
+<td valign="top">
+
+### 📥 Import & export
+Import `.xlsx` / `.csv` statements through a 3-step wizard with per-row validation. Export to CSV or JSON
+with custom filters.
+
+</td>
+<td valign="top">
+
+### 📱 Mobile-first PWA
+Installable, with bottom navigation, card views and an offline screen. Sign-in with Google OAuth.
+
+</td>
+</tr>
+</table>
+
+<div align="center"><img src="docs/assets/logo.webp" width="28" alt="" /></div>
+
+## Tech stack
+
+| Layer | Technology |
 |---|---|
-| Framework | Next.js 16 (App Router, Server Components) |
-| Lenguaje | TypeScript |
-| UI | Chakra UI v3 |
-| Autenticación | NextAuth.js v4 |
-| Base de datos | InsForge (PostgreSQL) |
-| IA | Anthropic Claude (claude-sonnet-4-5) |
-| Gráficos | Recharts |
-| Validación | Zod |
-| Deploy | Vercel |
-| Animaciones | Framer Motion |
+| Framework | ![Next.js](https://img.shields.io/badge/Next.js_16-000000?style=flat-square&logo=nextdotjs&logoColor=white) App Router, Server Components & Server Actions |
+| UI | ![React](https://img.shields.io/badge/React_19-20232A?style=flat-square&logo=react&logoColor=61DAFB) ![Chakra UI](https://img.shields.io/badge/Chakra_UI_v3-319795?style=flat-square&logo=chakraui&logoColor=white) ![Framer Motion](https://img.shields.io/badge/Framer_Motion-0055FF?style=flat-square&logo=framer&logoColor=white) |
+| Language | ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white) ![Zod](https://img.shields.io/badge/Zod-3E67B1?style=flat-square&logo=zod&logoColor=white) |
+| Data | ![InsForge](https://img.shields.io/badge/InsForge-4F46E5?style=flat-square) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white) with row-level security |
+| Auth | ![NextAuth](https://img.shields.io/badge/NextAuth.js-000000?style=flat-square&logo=auth0&logoColor=white) Google OAuth + Gmail read-only scope |
+| AI | ![Claude](https://img.shields.io/badge/Claude_Haiku_4.5-D97757?style=flat-square&logo=anthropic&logoColor=white) via the Anthropic SDK |
+| Charts | ![Nivo](https://img.shields.io/badge/Nivo-F47560?style=flat-square) |
+| Hosting | ![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white) with Cron Jobs and Analytics |
 
-## Prerequisitos
+<div align="center"><img src="docs/assets/logo.webp" width="28" alt="" /></div>
 
-- Node.js 20+
-- pnpm 8+
-- Cuenta en [InsForge](https://insforge.dev)
-- Proyecto OAuth en [Google Cloud Console](https://console.cloud.google.com)
-- API Key de [Anthropic](https://console.anthropic.com)
+## Quick start
 
-## Instalación
+> **Prerequisites:** Node.js 20+, pnpm, an [InsForge](https://insforge.dev) project, a Google OAuth client
+> ([Cloud Console](https://console.cloud.google.com)) and an [Anthropic](https://console.anthropic.com) API key.
 
 ```bash
-# 1. Clonar repositorio
 git clone https://github.com/Sanghel/expense-manager.git
 cd expense-manager
-
-# 2. Instalar dependencias
 pnpm install
-
-# 3. Variables de entorno
-cp .env.example .env.local
-# Editar .env.local con tus credenciales
-
-# 4. Iniciar en desarrollo
-pnpm dev
+cp .env.example .env.local   # fill in your credentials
+pnpm dev                     # http://localhost:3000
 ```
 
-Abrir [http://localhost:3000](http://localhost:3000)
-
-## Variables de Entorno
+<details>
+<summary><strong>Environment variables</strong></summary>
 
 ```env
 # NextAuth
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=                    # openssl rand -base64 32
 
-# Google OAuth
+# Google OAuth (sign-in + Gmail read-only)
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
+GMAIL_TOKEN_ENCRYPTION_KEY=         # encrypts stored Gmail refresh tokens (AES-256-GCM)
 
 # InsForge
-NEXT_PUBLIC_INSFORGE_URL=           # https://<proyecto>.us-east.insforge.app
-NEXT_PUBLIC_INSFORGE_ANON_KEY=      # clave pública (cliente)
-INSFORGE_API_KEY=                   # clave privada (servidor, bypassa RLS)
+NEXT_PUBLIC_INSFORGE_URL=           # https://<project>.us-east.insforge.app
+NEXT_PUBLIC_INSFORGE_ANON_KEY=      # public key (client)
+INSFORGE_API_KEY=                   # private key (server, bypasses RLS)
 
-# Anthropic (chat IA)
+# Anthropic (AI chat and savings coach)
 ANTHROPIC_API_KEY=
 
-# Cron job (generación de recurrentes)
+# Exchange rates
+EXCHANGE_RATE_API_KEY=
+
+# Cron jobs
 CRON_SECRET=                        # openssl rand -hex 32
 ```
 
-Ver [`.env.example`](./.env.example) para referencia completa.
+See [`.env.example`](./.env.example) for the full reference.
 
-## Scripts
+</details>
 
-```bash
-pnpm dev          # Servidor de desarrollo
-pnpm build        # Build de producción
-pnpm start        # Servidor de producción
-pnpm lint         # ESLint
-ANALYZE=true pnpm build   # Análisis de bundle
-```
+<details>
+<summary><strong>Scripts</strong></summary>
 
-## Arquitectura
+| Command | Description |
+|---|---|
+| `pnpm dev` | Development server |
+| `pnpm build` / `pnpm start` | Production build and server |
+| `pnpm lint` / `pnpm type-check` | ESLint and TypeScript checks |
+| `pnpm format` | Prettier |
+| `pnpm test:crons` | Run the cron handlers locally |
+| `pnpm test:<bank>-parser` | Test a bank email parser (`bancolombia`, `mercantil`, `binance`, `bofa`) |
+| `ANALYZE=true pnpm build` | Bundle analysis |
+
+</details>
+
+<div align="center"><img src="docs/assets/logo.webp" width="28" alt="" /></div>
+
+## Architecture
 
 ```
 app/
-  (dashboard)/      # Rutas protegidas del dashboard
+  (dashboard)/      # Protected routes (dashboard, budgets, loans, chat…)
   api/
     auth/           # NextAuth handlers
-    cron/           # Cron jobs (generación de recurrentes)
-  login/            # Página de autenticación
-components/
-  dashboard/        # Layout, Header, Sidebar, BottomNav
-  transactions/     # CRUD + card mobile view
-  budgets/          # Presupuestos
-  savings/          # Metas de ahorro
-  recurring/        # Transacciones recurrentes
-  charts/           # Gráficos Recharts
-  chat/             # Interfaz de chat IA
-  ui/               # Componentes globales reutilizables
-hooks/              # useFinancialSummary, useDebounce
+    cron/           # Scheduled jobs (exchange rates, Gmail sync, savings advice)
+  login/            # Sign-in page
+components/         # UI by module (transactions, budgets, savings, chat, charts…) + shared ui/
+hooks/              # Shared React hooks
 lib/
-  actions/          # Server Actions (una por módulo)
-  validations/      # Schemas Zod
-types/              # Tipos TypeScript compartidos
+  actions/          # Server Actions, one file per module
+  gmail/            # Gmail client and bank email parsers
+  reminders/        # Reminder expansion logic
+  validations/      # Zod schemas
+theme/              # Chakra UI v3 theme and design tokens
+types/              # Shared TypeScript types
 ```
 
-## Cron Jobs
+### Cron jobs
 
-El proyecto incluye un cron job que se ejecuta diariamente a las **00:00 COT** (05:00 UTC):
+Defined in [`vercel.json`](./vercel.json) and authorized with `Authorization: Bearer <CRON_SECRET>`.
 
-```
-GET /api/cron/generate-recurring
-Authorization: Bearer <CRON_SECRET>
-```
+| Endpoint | Schedule (UTC) | What it does |
+|---|---|---|
+| `/api/cron/update-exchange-rates` | daily 22:00 | Refreshes COP / USD / VES rates |
+| `/api/cron/sync-gmail` | daily 05:00 | Imports new bank emails for every connected user |
+| `/api/cron/generate-savings-advice` | 1st of the month, 06:00 | Pre-generates the AI savings insights |
 
-Genera automáticamente las transacciones recurrentes cuya fecha de ejecución haya llegado.
+### Workflow
 
-Configurado en `vercel.json`:
-```json
-{ "crons": [{ "path": "/api/cron/generate-recurring", "schedule": "0 5 * * *" }] }
-```
+`feature/<issue>-<slug>` → PR into `develop` → release PR into `main`, which deploys to Vercel.
+Specs live in [OpenSpec](https://github.com/Fission-AI/OpenSpec); every change is tracked in the [changelog](CHANGELOG.md).
 
-## Deploy
+<div align="center"><img src="docs/assets/logo.webp" width="28" alt="" /></div>
 
-Push a `main` dispara deploy automático en Vercel.
+## License
 
-Variables requeridas en Vercel → Settings → Environment Variables: ver sección anterior.
+[MIT](LICENSE) © Sanghel González
 
-## Contribuir
+<div align="center">
 
-Ver [CONTRIBUTING.md](./CONTRIBUTING.md).
+<sub>Crafted by <a href="https://github.com/Sanghel"><strong>Sanghel González</strong></a> · <a href="https://sanghel-portfolio.vercel.app">Portfolio</a></sub>
 
-## Licencia
+<br/>
 
-MIT — ver [LICENSE](./LICENSE).
+<a href="#top">↑ Back to top</a>
 
-## Autor
-
-**Sanghel González**
-- GitHub: [@Sanghel](https://github.com/Sanghel)
+</div>

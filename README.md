@@ -230,7 +230,7 @@ Defined in [`vercel.json`](./vercel.json) and authorized with `Authorization: Be
 ### Workflow
 
 `feature/<issue>-<slug>` → PR into `develop` → release PR into `main`, which deploys to Vercel.
-Specs live in [OpenSpec](https://github.com/Fission-AI/OpenSpec); every change is tracked in the [changelog](CHANGELOG.md).
+Every change is tracked in the [changelog](CHANGELOG.md).
 
 <div align="center"><img src="docs/assets/logo.webp" width="28" alt="" /></div>
 

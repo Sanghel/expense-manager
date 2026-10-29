@@ -4,14 +4,15 @@ import type { PartialTheme } from '@nivo/theming'
 /**
  * Shared chart styling.
  *
- * The app has a single hardcoded dark theme, so these are the dark-surface
- * values from `theme/index.ts` rather than a light/dark pair.
+ * Structural colors (text, grid, tooltip) are the theme's CSS variables, so
+ * charts follow dark/light mode. Nivo only puts them in `fill`/`stroke`, never
+ * in color math, which is why series colors below stay as hex.
  */
-export const SURFACE = '#1a1a23'
-export const BORDER = '#2d2d35'
-export const TEXT_PRIMARY = '#ffffff'
-export const TEXT_SECONDARY = '#B0B0B0'
-export const TEXT_MUTED = '#6b7280'
+export const SURFACE = 'var(--chakra-colors-surface)'
+export const BORDER = 'var(--chakra-colors-line)'
+export const TEXT_PRIMARY = 'var(--chakra-colors-text)'
+export const TEXT_SECONDARY = 'var(--chakra-colors-text2)'
+export const TEXT_MUTED = 'var(--chakra-colors-text3)'
 
 /** Semantic, never reused as a categorical slot. */
 export const INCOME = '#10B981'
@@ -58,12 +59,12 @@ export function seriesColor(index: number): string {
  * it, so `ChartTooltip` applies these values itself.
  */
 export const TOOLTIP_CONTAINER: CSSProperties = {
-  background: '#18181d',
+  background: 'var(--chakra-colors-surface2)',
   color: TEXT_PRIMARY,
   fontSize: 12,
   borderRadius: 8,
   border: `1px solid ${BORDER}`,
-  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.5)',
+  boxShadow: 'var(--chakra-shadows-overlay)',
   padding: '8px 10px',
   // Without this the tooltip collapses to the width of its longest word and
   // wraps mid-sentence ("4.9% del / gasto").
@@ -77,7 +78,8 @@ export const nivoTheme: PartialTheme = {
   text: {
     fontSize: 11,
     fill: TEXT_SECONDARY,
-    fontFamily: 'var(--font-geist-sans), sans-serif',
+    // Figures and axis labels use Geist Mono, as in the Pulso design.
+    fontFamily: 'var(--font-geist-mono), ui-monospace, monospace',
   },
   axis: {
     domain: { line: { stroke: BORDER, strokeWidth: 1 } },

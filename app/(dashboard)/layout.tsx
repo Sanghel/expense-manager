@@ -4,10 +4,13 @@ import { insforgeAdmin } from '@/lib/insforge-admin'
 import { getCategories } from '@/lib/actions/categories.actions'
 import { getAccounts } from '@/lib/actions/accounts.actions'
 import { getReminderNotifications } from '@/lib/actions/reminders.actions'
+import { getTheme } from '@/lib/actions/users.actions'
 // import { runDailyCatchUp } from '@/lib/utils/dailyCatchUp'
 import { DashboardShell } from '@/components/dashboard/DashboardShell'
 import { FloatingChat } from '@/components/chat/FloatingChat'
+import { ThemeSync } from '@/components/providers/ThemeSync'
 import type { ReminderOccurrence } from '@/lib/reminders/pending'
+import type { ThemePreference } from '@/types/database.types'
 
 export default async function DashboardLayout({
   children,
@@ -20,6 +23,7 @@ export default async function DashboardLayout({
   let categories: Awaited<ReturnType<typeof getCategories>>['data'] = []
   let accounts: Awaited<ReturnType<typeof getAccounts>>['data'] = []
   let notifications: ReminderOccurrence[] = []
+  let theme: ThemePreference | null = null
 
   if (session?.user?.email) {
     const { data: user } = await insforgeAdmin.database
@@ -30,10 +34,11 @@ export default async function DashboardLayout({
 
     if (user) {
       userId = user.id
-      const [categoriesResult, accountsResult, notificationsResult] = await Promise.all([
+      const [categoriesResult, accountsResult, notificationsResult, savedTheme] = await Promise.all([
         getCategories(user.id),
         getAccounts(user.id),
         getReminderNotifications(user.id),
+        getTheme(user.id),
         // runDailyCatchUp(),
       ])
       categories = categoriesResult.success ? categoriesResult.data : []
@@ -41,11 +46,13 @@ export default async function DashboardLayout({
       notifications = notificationsResult.success
         ? ((notificationsResult.data ?? []) as ReminderOccurrence[])
         : []
+      theme = savedTheme
     }
   }
 
   return (
     <>
+      <ThemeSync theme={theme} />
       <DashboardShell
         userId={userId}
         accounts={accounts ?? []}

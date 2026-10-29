@@ -233,7 +233,7 @@ export function ReminderForm({ isOpen, onClose, userId, categories, accounts = [
                 )}
               </HStack>
               {formData.day_of_month > 28 && (
-                <Text fontSize="xs" color="#B0B0B0">
+                <Text fontSize="xs" color="text2">
                   Si el mes no tiene este día, se usará el último día disponible.
                 </Text>
               )}

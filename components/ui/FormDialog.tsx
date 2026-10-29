@@ -13,6 +13,7 @@ import {
 } from '@chakra-ui/react'
 import { PortalContainerProvider } from '@/components/ui/FloatingPortal'
 import { ActionIconButton } from '@/components/ui/ActionIconButton'
+import { SHEET_CONTENT_PROPS, SHEET_PLACEMENT } from '@/components/ui/dialog-sheet'
 
 interface Props {
   isOpen: boolean
@@ -30,7 +31,7 @@ export function FormDialog({ isOpen, onClose, title, children, size = 'md' }: Pr
       open={isOpen}
       onOpenChange={({ open }) => !open && onClose()}
       size={size}
-      placement="center"
+      placement={SHEET_PLACEMENT}
       lazyMount
       unmountOnExit
       closeOnInteractOutside={false}
@@ -40,19 +41,18 @@ export function FormDialog({ isOpen, onClose, title, children, size = 'md' }: Pr
         <DialogContent
           ref={contentRef}
           tabIndex={-1}
-          mx={{ base: 3, md: 0 }}
-          maxH={{ base: '85vh', md: '90vh' }}
+          {...SHEET_CONTENT_PROPS}
           display="flex"
           flexDirection="column"
         >
           <PortalContainerProvider container={contentRef}>
-            <DialogHeader borderBottomWidth="1px" borderColor="#2d2d35" py={4} flexShrink={0}>
+            <DialogHeader borderBottomWidth="1px" borderColor="line" py={4} flexShrink={0}>
               <HStack justify="space-between" align="center" w="full">
-                <DialogTitle color="white">{title}</DialogTitle>
+                <DialogTitle color="text" fontSize="18px" fontWeight="600">{title}</DialogTitle>
                 <ActionIconButton kind="close" label="Cerrar" size="sm" variant="ghost" onClick={onClose} />
               </HStack>
             </DialogHeader>
-            <DialogBody pb={6} flex="1" minH="0" overflowY="auto">
+            <DialogBody pt={5} pb={6} flex="1" minH="0" overflowY="auto">
               {children}
             </DialogBody>
           </PortalContainerProvider>

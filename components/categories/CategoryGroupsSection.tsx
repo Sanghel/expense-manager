@@ -4,12 +4,10 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Box,
-  Heading,
   Button,
   HStack,
   VStack,
   Text,
-  Badge,
   SimpleGrid,
 } from '@chakra-ui/react'
 import { LuPlus } from 'react-icons/lu'
@@ -58,12 +56,12 @@ export function CategoryGroupsSection({ userId, categories, groups }: Props) {
   return (
     <Box mt={10}>
       <HStack justify="space-between" mb={2}>
-        <Heading size="md" color="white">Grupos de categorías</Heading>
+        <Text textStyle="sectionLabel" color="text3">Grupos de categorías</Text>
         <Button
           size="sm"
-          bg="#4F46E5"
-          color="white"
-          _hover={{ bg: '#4338CA' }}
+          variant="ghost"
+          color="text2"
+          boxShadow="inset 0 0 0 1px var(--chakra-colors-line)"
           onClick={() => {
             setEditingGroup(null)
             setIsFormOpen(true)
@@ -74,31 +72,24 @@ export function CategoryGroupsSection({ userId, categories, groups }: Props) {
         </Button>
       </HStack>
 
-      <Text fontSize="sm" color="#B0B0B0" mb={4}>
+      <Text fontSize="13px" color="text3" mb={4}>
         Agrupa varias categorías para presupuestarlas juntas — por ejemplo &quot;gastos
         hormiga&quot; con Ropa, Meriendas y Salidas. Una categoría puede estar en varios grupos.
       </Text>
 
       {groups.length === 0 ? (
-        <Text fontSize="sm" color="#6b7280">
+        <Text fontSize="13px" color="text3">
           Aún no has creado ningún grupo.
         </Text>
       ) : (
         <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={3}>
           {groups.map((group) => (
-            <Box
-              key={group.id}
-              borderWidth="1px"
-              borderColor="#2d2d35"
-              borderRadius="xl"
-              bg="#1a1a23"
-              p={4}
-            >
+            <Box key={group.id} borderRadius="card" bg="surface" p={5}>
               <VStack align="stretch" gap={3}>
                 <HStack justify="space-between">
-                  <Heading size="sm" color="white">
+                  <Text textStyle="cardTitle" color="text">
                     {group.icon ?? '📦'} {group.name}
-                  </Heading>
+                  </Text>
                   <HStack gap={1}>
                     <ActionIconButton
                       kind="edit"
@@ -122,16 +113,16 @@ export function CategoryGroupsSection({ userId, categories, groups }: Props) {
                 </HStack>
 
                 {group.category_ids.length === 0 ? (
-                  <Text fontSize="xs" color="#6b7280">Sin categorías asignadas</Text>
+                  <Text fontSize="12px" color="text3">Sin categorías asignadas</Text>
                 ) : (
                   <HStack gap={1} flexWrap="wrap">
                     {group.category_ids.map((id) => {
                       const cat = categoryById.get(id)
                       if (!cat) return null
                       return (
-                        <Badge key={id} size="sm" variant="outline" colorPalette="purple">
+                        <Text key={id} as="span" fontSize="12px" color="text2" bg="surface2" borderRadius="pill" px={2.5} py={1}>
                           {cat.icon} {cat.name}
-                        </Badge>
+                        </Text>
                       )
                     })}
                   </HStack>

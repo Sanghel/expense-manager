@@ -67,9 +67,9 @@ export function LoanPaymentForm({ isOpen, onClose, loan, userId, onSuccess }: Pr
       title={loan.type === 'lent' ? 'Registrar cobro parcial' : 'Registrar abono'}
     >
       <VStack gap={4} align="stretch">
-        <Text fontSize="sm" color="#B0B0B0">
+        <Text fontSize="sm" color="text2">
           Saldo pendiente:{' '}
-          <Text as="span" color="white" fontWeight="600">
+          <Text as="span" color="text" fontWeight="600">
             {formatCurrency(remaining, loan.currency)}
           </Text>
         </Text>
@@ -96,9 +96,9 @@ export function LoanPaymentForm({ isOpen, onClose, loan, userId, onSuccess }: Pr
         />
 
         <Button
-          bg="#4F46E5"
+          bg="brandSolid"
           color="white"
-          _hover={{ bg: '#4338CA' }}
+          _hover={{ bg: 'brand.600' }}
           onClick={handleSubmit}
           loading={loading}
           loadingText="Registrando..."

@@ -1,18 +1,18 @@
 'use client'
 
-import { VStack, Heading, Button, HStack, Box, Icon, Text, Spinner } from '@chakra-ui/react'
-import { useState, useCallback, useTransition } from 'react'
+import { Button, Flex, Text, VStack } from '@chakra-ui/react'
+import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiPieChart } from 'react-icons/fi'
+import { useUrlParams } from '@/hooks/useUrlParams'
+import { LuPlus } from 'react-icons/lu'
 import { BudgetForm } from '@/components/budgets/BudgetForm'
-import { BudgetGroupAccordion } from '@/components/budgets/BudgetGroupAccordion'
-import { BudgetCategoryTable } from '@/components/budgets/BudgetCategoryTable'
-import { BudgetProgress, progressColor } from '@/components/budgets/BudgetProgress'
+import { BudgetGroupTiles } from '@/components/budgets/BudgetGroupTiles'
+import { BudgetCategoryCards } from '@/components/budgets/BudgetCategoryCards'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import { deleteBudget } from '@/lib/actions/budgets.actions'
 import { splitBudgetsByScope } from '@/lib/utils/budget-grouping'
-import { formatCurrency } from '@/lib/utils/currency'
+import { formatCompactCurrency } from '@/lib/utils/currency'
 import { safeRatio, toNumber } from '@/lib/utils/numbers'
 import { toaster } from '@/lib/toaster'
 import type { BudgetWithSpent, Category, CategoryGroupWithMembers } from '@/types/database.types'
@@ -24,7 +24,6 @@ interface Props {
   categories: Category[]
   groups?: CategoryGroupWithMembers[]
   initialBudgets: BudgetWithSpent[]
-  vista: Vista
 }
 
 export function BudgetsPageClient({
@@ -32,16 +31,14 @@ export function BudgetsPageClient({
   categories,
   groups = [],
   initialBudgets,
-  vista,
 }: Props) {
   const router = useRouter()
+  const { searchParams, setParams } = useUrlParams()
+  const vista: Vista = searchParams.get('vista') === 'categorias' ? 'categorias' : 'grupos'
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingBudget, setEditingBudget] = useState<BudgetWithSpent | null>(null)
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
-  const [isPending, startTransition] = useTransition()
-  // Solo se lee junto a isPending: no hace falta limpiarlo al terminar la transición.
-  const [pendingVista, setPendingVista] = useState<Vista | null>(null)
 
   const { total, groups: groupBudgets, categories: categoryBudgets } =
     splitBudgetsByScope(initialBudgets)
@@ -81,102 +78,82 @@ export function BudgetsPageClient({
   }, [])
 
   const switchVista = (next: Vista) => {
-    if (next === vista) return
-    setPendingVista(next)
-    startTransition(() => {
-      router.push(`/planificacion?tab=presupuestos&vista=${next}`, { scroll: false })
-    })
+    // Client-side only: both views render from the same data.
+    if (next !== vista) setParams({ tab: 'presupuestos', vista: next })
   }
 
-  const pill = (value: Vista, text: string) => {
-    const isActive = vista === value
-    return (
-      <Button
-        size="sm"
-        borderRadius="full"
-        onClick={() => switchVista(value)}
-        bg={isActive ? '#4F46E5' : '#1A1A1A'}
-        color={isActive ? 'white' : '#B0B0B0'}
-        borderWidth="1px"
-        borderColor={isActive ? '#4F46E5' : '#2d2d35'}
-        _hover={{ bg: isActive ? '#4338CA' : '#22222a' }}
-        aria-current={isActive ? 'page' : undefined}
-      >
-        {pendingVista === value && isPending && <Spinner size="xs" mr={2} />}
-        {text}
-      </Button>
-    )
-  }
+  // Header total: the "total" budget when there is one, else the group budgets
+  // that share the first one's currency.
+  const summarySource = total.length > 0 ? total : groupBudgets
+  const summaryCurrency = summarySource[0]?.currency
+  const sameCurrency = summarySource.filter((b) => b.currency === summaryCurrency)
+  const summarySpent = sameCurrency.reduce((s, b) => s + toNumber(b.spent), 0)
+  const summaryLimit = sameCurrency.reduce((s, b) => s + toNumber(b.limit_amount), 0)
+  const summaryPercent = safeRatio(summarySpent, summaryLimit) * 100
 
   return (
-    <VStack gap={6} align="stretch">
-      <HStack justify="space-between">
-        <HStack gap={2}>
-          <Icon as={FiPieChart} color="#6366f1" boxSize={6} />
-          <Heading size="lg">Presupuestos</Heading>
-        </HStack>
-        <Button
-          bg="#4F46E5"
-          color="white"
-          _hover={{ bg: '#4338CA' }}
-          onClick={openCreateForm}
-        >
-          Nuevo Presupuesto
+    <VStack gap={5} align="stretch">
+      <Flex align="center" gap={3} wrap="wrap">
+        <Flex gap={1.5} role="tablist" aria-label="Vista">
+          {(
+            [
+              ['grupos', 'Grupos'],
+              ['categorias', 'Categorías'],
+            ] as const
+          ).map(([value, text]) => {
+            const active = vista === value
+            return (
+              <Button
+                key={value}
+                role="tab"
+                aria-selected={active}
+                onClick={() => switchVista(value)}
+                size="sm"
+                h="34px"
+                px={3.5}
+                bg={active ? 'text' : 'transparent'}
+                color={active ? 'bg' : 'text2'}
+                boxShadow={active ? 'none' : 'inset 0 0 0 1px var(--chakra-colors-line)'}
+                _hover={active ? undefined : { bg: 'surface2', color: 'text' }}
+              >
+                {text}
+              </Button>
+            )
+          })}
+        </Flex>
+
+        {summaryCurrency && summaryLimit > 0 && (
+          <Flex align="center" gap={1.5} fontFamily="mono" fontSize="13px" color="text2">
+            <Text color="text">{formatCompactCurrency(summarySpent, summaryCurrency)}</Text>
+            <Text>/ {formatCompactCurrency(summaryLimit, summaryCurrency)}</Text>
+            <Text color={summaryPercent >= 100 ? 'neg' : summaryPercent >= 80 ? 'warn' : 'text3'}>
+              · {Math.round(summaryPercent)}%
+            </Text>
+            {total[0] && (
+              <Flex ms={1} gap={0.5}>
+                <ActionIconButton kind="edit" label="Editar presupuesto total" size="xs" variant="ghost" onClick={() => handleEdit(total[0])} />
+                <ActionIconButton kind="delete" tone="danger" label="Eliminar presupuesto total" size="xs" variant="ghost" onClick={() => setPendingDeleteId(total[0].id)} />
+              </Flex>
+            )}
+          </Flex>
+        )}
+
+        <Button ms="auto" size="sm" bg="brandSolid" color="white" _hover={{ bg: 'brand.600' }} onClick={openCreateForm}>
+          <LuPlus />
+          Nuevo
         </Button>
-      </HStack>
-
-      {/* Presupuestos de scope 'total': no pertenecen a ningún sub-tab. */}
-      {total.map((budget) => {
-        const percentage = safeRatio(budget.spent, budget.limit_amount) * 100
-        return (
-          <Box key={budget.id} borderWidth="1px" borderColor="#2d2d35" borderRadius="lg" p={3} bg="#1A1A1A">
-            <HStack justify="space-between" mb={2} gap={2}>
-              <Text fontSize="sm" fontWeight="600" color="white" truncate minW={0}>
-                🧾 Todos los gastos
-              </Text>
-              <HStack gap={2} flexShrink={0}>
-                <Text fontSize="xs" color="#B0B0B0">
-                  {formatCurrency(toNumber(budget.limit_amount), budget.currency)}
-                </Text>
-                <Text fontSize="sm" fontWeight="700" color={progressColor(percentage)}>
-                  {percentage.toFixed(0)}%
-                </Text>
-                <ActionIconButton
-                  kind="edit"
-                  label="Editar presupuesto"
-                  size="xs"
-                  onClick={() => handleEdit(budget)}
-                />
-                <ActionIconButton
-                  kind="delete"
-                  tone="danger"
-                  label="Eliminar presupuesto"
-                  size="xs"
-                  onClick={() => setPendingDeleteId(budget.id)}
-                />
-              </HStack>
-            </HStack>
-            <BudgetProgress budget={budget} variant="bar" />
-          </Box>
-        )
-      })}
-
-      <HStack gap={2}>
-        {pill('grupos', 'Grupos')}
-        {pill('categorias', 'Categorías')}
-      </HStack>
+      </Flex>
 
       {vista === 'grupos' ? (
-        <BudgetGroupAccordion
+        <BudgetGroupTiles
           groupBudgets={groupBudgets}
           categoryBudgets={categoryBudgets}
           groups={groups}
-          onEdit={handleEdit}
-          onDelete={setPendingDeleteId}
           onCreate={openCreateForm}
+          onShowCategories={() => switchVista('categorias')}
         />
       ) : (
-        <BudgetCategoryTable
+        <BudgetCategoryCards
           budgets={categoryBudgets}
           onEdit={handleEdit}
           onDelete={setPendingDeleteId}
@@ -189,17 +166,16 @@ export function BudgetsPageClient({
         onClose={handleClose}
         userId={userId}
         categories={categories}
-        groups={groups}
         onSuccess={handleFormSuccess}
         editingBudget={editingBudget}
-        defaultScope={vista === 'grupos' ? 'group' : 'category'}
+        defaultScope="category"
       />
 
       <ConfirmDialog
         isOpen={pendingDeleteId !== null}
         onClose={() => setPendingDeleteId(null)}
         onConfirm={handleDelete}
-        title="Eliminar Presupuesto"
+        title="Eliminar presupuesto"
         description="¿Estás seguro? Esta acción no se puede deshacer."
         isLoading={isDeleting}
       />

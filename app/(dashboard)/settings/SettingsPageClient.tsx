@@ -1,34 +1,30 @@
 'use client'
 
-import { useTransition, useState, useEffect } from 'react'
-import { Box, Heading, HStack, VStack, Text, Separator, Tabs, Spinner, Icon } from '@chakra-ui/react'
-import { useRouter } from 'next/navigation'
-import { FiSliders, FiBriefcase, FiTag } from 'react-icons/fi'
+import { Suspense, use } from 'react'
+import { Box, Grid, Stack, Tabs } from '@chakra-ui/react'
 import { CurrencySelector } from '@/components/settings/CurrencySelector'
 import { ExchangeRatesForm } from '@/components/settings/ExchangeRatesForm'
 import { AccountsTab } from '@/components/settings/AccountsTab'
 import { GmailConnectionPanel } from '@/components/settings/GmailConnectionPanel'
+import { AppearanceSelector } from '@/components/settings/AppearanceSelector'
+import { SettingsSection } from '@/components/settings/SettingsSection'
+import { GmailSyncButton } from '@/components/transactions/GmailSyncButton'
 import { CategoriesPageClient } from '../categories/CategoriesPageClient'
-import type {
-  Currency,
-  ExchangeRate,
-  Account,
-  AccountMovementWithAccounts,
-  Category,
-  CategoryGroupWithMembers,
-} from '@/types/database.types'
-
-type Tab = 'general' | 'accounts' | 'categorias'
+import { TabSkeleton } from '@/components/ui/Skeletons'
+import { PageHeader } from '@/components/ui/PageHeader'
+import { todayEyebrow } from '@/lib/utils/dates'
+import { useUrlParams } from '@/hooks/useUrlParams'
+import { parseSettingsTab, type CategoriasData, type CuentasData, type SettingsTab } from './tabs'
+import type { Account, Category, Currency, ExchangeRate } from '@/types/database.types'
 
 interface Props {
   userId: string
   preferredCurrency: Currency
   initialRates: ExchangeRate[]
-  initialAccounts: Account[]
-  initialMovements: AccountMovementWithAccounts[]
-  activeTab: Tab
-  initialCategories: Category[]
-  initialGroups?: CategoryGroupWithMembers[]
+  categories: Category[]
+  accounts: Account[]
+  cuentas: Promise<CuentasData>
+  categorias: Promise<CategoriasData>
   gmailStatus: {
     enabled: boolean
     connected: boolean
@@ -37,141 +33,94 @@ interface Props {
   }
 }
 
+function CuentasTab({ data, userId }: { data: Promise<CuentasData>; userId: string }) {
+  const { accounts, movements } = use(data)
+  return <AccountsTab userId={userId} initialAccounts={accounts} initialMovements={movements} />
+}
+
+function CategoriasTab({ data, userId }: { data: Promise<CategoriasData>; userId: string }) {
+  const { categories, groups } = use(data)
+  return <CategoriesPageClient userId={userId} initialCategories={categories} initialGroups={groups} />
+}
+
 export function SettingsPageClient({
   userId,
   preferredCurrency,
   initialRates,
-  initialAccounts,
-  initialMovements,
-  activeTab,
-  initialCategories,
-  initialGroups = [],
+  categories,
+  accounts,
+  cuentas,
+  categorias,
   gmailStatus,
 }: Props) {
-  const router = useRouter()
-  const [isPending, startTransition] = useTransition()
-  const [pendingTab, setPendingTab] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (!isPending) setPendingTab(null)
-  }, [isPending])
-
-  const handleTabChange = (tab: string) => {
-    setPendingTab(tab)
-    startTransition(() => {
-      router.push(`/settings?tab=${tab}`)
-    })
-  }
-
-  const tabIcon = (tab: string, IconComponent: React.ElementType) =>
-    pendingTab === tab && isPending ? <Spinner size="xs" /> : <Icon as={IconComponent} boxSize={4} />
+  const { searchParams, setParams } = useUrlParams()
+  const activeTab = parseSettingsTab(searchParams.get('tab'))
 
   return (
     <Box>
-      <HStack gap={2} mb={8}>
-        <Icon as={FiSliders} color="#6366f1" boxSize={6} />
-        <Heading size="lg" color="white">
-          Configuración
-        </Heading>
-      </HStack>
+      <PageHeader<SettingsTab>
+        eyebrow={todayEyebrow()}
+        title="Ajustes"
+        tabs={[
+          { value: 'general', label: 'General' },
+          { value: 'accounts', label: 'Cuentas' },
+          { value: 'categorias', label: 'Categorías' },
+        ]}
+        activeTab={activeTab}
+        onTabChange={(tab) => setParams({ tab })}
+      />
 
-      <Tabs.Root
-        value={activeTab}
-        onValueChange={({ value }) => handleTabChange(value)}
-        colorPalette="brand"
-        style={{ width: '100%' }}
-      >
-        <Tabs.List mb={6} borderBottomWidth="1px" borderColor="#2d2d35">
-          <Tabs.Trigger
-            value="general"
-            display="flex"
-            alignItems="center"
-            gap={2}
-            color="#B0B0B0"
-            _selected={{ color: 'white', borderBottomColor: '#6366f1' }}
-          >
-            {tabIcon('general', FiSliders)}
-            General
-          </Tabs.Trigger>
-          <Tabs.Trigger
-            value="accounts"
-            display="flex"
-            alignItems="center"
-            gap={2}
-            color="#B0B0B0"
-            _selected={{ color: 'white', borderBottomColor: '#6366f1' }}
-          >
-            {tabIcon('accounts', FiBriefcase)}
-            Cuentas
-          </Tabs.Trigger>
-          <Tabs.Trigger
-            value="categorias"
-            display="flex"
-            alignItems="center"
-            gap={2}
-            color="#B0B0B0"
-            _selected={{ color: 'white', borderBottomColor: '#6366f1' }}
-          >
-            {tabIcon('categorias', FiTag)}
-            Categorías
-          </Tabs.Trigger>
-        </Tabs.List>
+      <Tabs.Root value={activeTab} lazyMount>
+        <Tabs.Content value="general" p={0}>
+          <Grid templateColumns={{ base: '1fr', lg: '1fr 1fr' }} gap={4} alignItems="start">
+            <Stack gap={4}>
+              <SettingsSection
+                title="Moneda preferida"
+                description="Se usa como moneda principal en el resumen y los reportes."
+              >
+                <CurrencySelector userId={userId} current={preferredCurrency} />
+              </SettingsSection>
 
-        <Tabs.Content value="general">
-          <VStack gap={8} align="stretch" maxW="2xl">
-            <Box>
-              <Text fontWeight="semibold" mb={1} color="white">
-                Moneda preferida
-              </Text>
-              <Text fontSize="sm" color="#B0B0B0" mb={4}>
-                Se usará como moneda principal en el dashboard y reportes.
-              </Text>
-              <CurrencySelector userId={userId} current={preferredCurrency} />
-            </Box>
+              <SettingsSection title="Apariencia" description="Se guarda en tu perfil y se aplica en todos tus dispositivos.">
+                <AppearanceSelector userId={userId} />
+              </SettingsSection>
 
-            <Separator />
-
-            <Box>
-              <Text fontWeight="semibold" mb={1} color="white">
-                Tasas de cambio
-              </Text>
-              <Text fontSize="sm" color="#B0B0B0" mb={4}>
-                Actualiza las tasas manualmente. Los cambios aplican a partir de
-                hoy.
-              </Text>
-              <ExchangeRatesForm initialRates={initialRates} />
-            </Box>
-
-            {gmailStatus.enabled && (
-              <>
-                <Separator />
-
+              {gmailStatus.enabled && (
                 <GmailConnectionPanel
                   connected={gmailStatus.connected}
                   connectedAt={gmailStatus.connectedAt}
                   lastSyncedAt={gmailStatus.lastSyncedAt}
+                  syncButton={
+                    <GmailSyncButton userId={userId} categories={categories} accounts={accounts} variant="button" />
+                  }
                 />
-              </>
-            )}
-          </VStack>
+              )}
+            </Stack>
+
+            <SettingsSection
+              title="Tasas de cambio"
+              description="Se actualizan solas cada día."
+              aside={
+                <Box as="span" textStyle="sectionLabel" color="text3" flexShrink={0}>
+                  Auto · 12:00 COT
+                </Box>
+              }
+            >
+              <ExchangeRatesForm initialRates={initialRates} />
+            </SettingsSection>
+          </Grid>
         </Tabs.Content>
 
-        <Tabs.Content value="accounts">
-          <AccountsTab
-            userId={userId}
-            initialAccounts={initialAccounts}
-            initialMovements={initialMovements}
-          />
+        <Tabs.Content value="accounts" p={0}>
+          <Suspense fallback={<TabSkeleton />}>
+            <CuentasTab data={cuentas} userId={userId} />
+          </Suspense>
         </Tabs.Content>
 
-        <Tabs.Content value="categorias">
-          {initialCategories.length >= 0 && (
-            <CategoriesPageClient
-              initialGroups={initialGroups}
-              userId={userId}
-              initialCategories={initialCategories}
-            />
-          )}
+        <Tabs.Content value="categorias" p={0}>
+          <Suspense fallback={<TabSkeleton />}>
+            <CategoriasTab data={categorias} userId={userId} />
+          </Suspense>
         </Tabs.Content>
       </Tabs.Root>
     </Box>

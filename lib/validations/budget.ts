@@ -18,8 +18,13 @@ export const createBudgetSchema = z
     if (v.scope === 'category' && !v.category_id) {
       ctx.addIssue({ code: 'custom', path: ['category_id'], message: 'Debes seleccionar una categoría' })
     }
-    if (v.scope === 'group' && !v.group_id) {
-      ctx.addIssue({ code: 'custom', path: ['group_id'], message: 'Debes seleccionar un grupo' })
+    // A group's budget is the sum of its categories' budgets (see getBudgets).
+    if (v.scope === 'group') {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['scope'],
+        message: 'El presupuesto de un grupo es la suma de los de sus categorías',
+      })
     }
     if (v.scope !== 'category' && v.category_id) {
       ctx.addIssue({ code: 'custom', path: ['category_id'], message: 'Este ámbito no lleva categoría' })

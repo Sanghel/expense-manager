@@ -7,6 +7,7 @@ import {
   Box,
   Text,
 } from '@chakra-ui/react'
+import { ThemeProvider } from 'next-themes'
 import { system } from '@/theme'
 import { ReactNode, useEffect } from 'react'
 import { toaster } from '@/lib/toaster'
@@ -49,23 +50,46 @@ export function ChakraProvider({ children }: { children: ReactNode }) {
   return (
     <EmotionRegistry>
       <ChakraUIProvider value={system}>
-        {children}
+        {/* Dark by default; light is opt-in from Ajustes → Apariencia. */}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem={false}
+          disableTransitionOnChange
+          // The inline script only matters in the server HTML (it sets the
+          // theme before paint). On the client React 19 warns about rendering
+          // an executable <script>, so it is marked inert there.
+          scriptProps={typeof window === 'undefined' ? undefined : { type: 'application/json' }}
+        >
+          {children}
+        </ThemeProvider>
         <DialogOverlayGuard />
         <Toaster toaster={toaster}>
           {(toast) => (
-            <Toast.Root key={toast.id} w="sm" maxW="sm">
-              <Toast.Indicator />
+            <Toast.Root
+              key={toast.id}
+              w="auto"
+              maxW="min(480px, calc(100vw - 32px))"
+              bg="text"
+              color="bg"
+              borderRadius="pill"
+              px={5}
+              py={3}
+              alignItems="center"
+              boxShadow="overlay"
+            >
+              <Toast.Indicator color={toast.type === 'error' ? 'neg' : 'pos'} />
               <Box flex="1" minW="0">
-                <Text fontWeight="semibold" fontSize="sm">
+                <Text fontWeight="medium" fontSize="sm">
                   {toast.title as string}
                 </Text>
                 {toast.description && (
-                  <Text fontSize="sm" opacity={0.85}>
+                  <Text fontSize="xs" opacity={0.7}>
                     {toast.description as string}
                   </Text>
                 )}
               </Box>
-              <Toast.CloseTrigger />
+              <Toast.CloseTrigger color="bg" />
             </Toast.Root>
           )}
         </Toaster>

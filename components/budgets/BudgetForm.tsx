@@ -11,7 +11,6 @@ import { InputPercent } from '@/components/ui/InputPercent'
 import { RadioSelect } from '@/components/ui/RadioSelect'
 import { CurrencySelect } from '@/components/ui/CurrencySelect'
 import { CategorySelect } from '@/components/ui/CategorySelect'
-import { CategoryGroupSelect } from '@/components/ui/CategoryGroupSelect'
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
 import { CancelButton } from '@/components/ui/CancelButton'
 import { toNumber } from '@/lib/utils/numbers'
@@ -20,7 +19,6 @@ import type {
   Budget,
   BudgetAmountType,
   BudgetScope,
-  CategoryGroupWithMembers,
   Category,
   Currency,
 } from '@/types/database.types'
@@ -33,9 +31,9 @@ import type {
 export type EditableBudget = Pick<Budget, 'id' | 'currency' | 'period' | 'start_date'> &
   Partial<Pick<Budget, 'scope' | 'category_id' | 'group_id' | 'amount_type' | 'amount' | 'percent'>>
 
+// No "Grupo": a group's budget is the sum of its categories' budgets.
 const SCOPE_OPTIONS = [
   { value: 'category', label: 'Categoría' },
-  { value: 'group', label: 'Grupo' },
   { value: 'total', label: 'General' },
 ]
 
@@ -66,7 +64,6 @@ interface Props {
   onClose: () => void
   userId: string
   categories: Category[]
-  groups?: CategoryGroupWithMembers[]
   onSuccess: () => void
   editingBudget?: EditableBudget | null
   // Pre-fills the create form (e.g. from an AI budget suggestion). Ignored when
@@ -94,7 +91,6 @@ export function BudgetForm({
   onClose,
   userId,
   categories,
-  groups = [],
   onSuccess,
   editingBudget,
   prefill,
@@ -143,7 +139,7 @@ export function BudgetForm({
     const budgetData = {
       scope: formData.scope,
       category_id: formData.scope === 'category' ? formData.category_id || null : null,
-      group_id: formData.scope === 'group' ? formData.group_id || null : null,
+      group_id: null,
       amount_type: formData.amount_type,
       amount: isPercent ? null : (formData.amount ?? null),
       percent: isPercent ? (formData.percent ?? null) : null,
@@ -218,15 +214,6 @@ export function BudgetForm({
                 required
               />
             </>
-          )}
-
-          {formData.scope === 'group' && (
-            <CategoryGroupSelect
-              value={formData.group_id}
-              onChange={(v) => setFormData({ ...formData, group_id: v })}
-              groups={groups}
-              required
-            />
           )}
 
           <RadioSelect

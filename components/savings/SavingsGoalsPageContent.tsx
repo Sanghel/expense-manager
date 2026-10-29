@@ -1,11 +1,11 @@
 'use client'
 
-import { VStack, Heading, Button, HStack, Icon } from '@chakra-ui/react'
+import { Button, Flex, Text, VStack } from '@chakra-ui/react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiPlus, FiTarget } from 'react-icons/fi'
+import { LuPlus } from 'react-icons/lu'
 import { SavingsGoalForm } from '@/components/savings/SavingsGoalForm'
-import { SavingsGoalsGrid } from '@/components/savings/SavingsGoalsGrid'
+import { SavingsGoalCard } from '@/components/savings/SavingsGoalCard'
 import { SavingsSummaryStrip } from '@/components/savings/SavingsSummaryStrip'
 import type { Account, Currency, ExchangeRate, SavingsGoal } from '@/types/database.types'
 
@@ -33,19 +33,10 @@ export function SavingsGoalsPageContent({
     setEditingGoal(null)
   }
 
-  return (
-    <VStack alignItems="flex-start" gap={{ base: 4, md: 6 }}>
-      <HStack justifyContent="space-between" width="100%">
-        <HStack gap={2}>
-          <Icon as={FiTarget} color="#6366f1" boxSize={6} />
-          <Heading size={{ base: 'md', md: 'lg' }}>Metas de Ahorro</Heading>
-        </HStack>
-        <Button bg="#4F46E5" color="white" _hover={{ bg: '#4338CA' }} onClick={() => setIsFormOpen(true)} size={{ base: 'sm', md: 'md' }}>
-          <FiPlus />
-          Nueva Meta
-        </Button>
-      </HStack>
+  const openCreate = () => setIsFormOpen(true)
 
+  return (
+    <VStack align="stretch" gap={4}>
       <SavingsGoalForm
         isOpen={isFormOpen || !!editingGoal}
         onClose={handleClose}
@@ -58,13 +49,36 @@ export function SavingsGoalsPageContent({
         }}
       />
 
-      <SavingsSummaryStrip
-        goals={initialGoals}
-        preferredCurrency={preferredCurrency}
-        exchangeRates={exchangeRates}
-      />
+      {initialGoals.length > 1 && (
+        <SavingsSummaryStrip
+          goals={initialGoals}
+          preferredCurrency={preferredCurrency}
+          exchangeRates={exchangeRates}
+        />
+      )}
 
-      <SavingsGoalsGrid userId={userId} goals={initialGoals} accounts={accounts} onEdit={setEditingGoal} />
+      {initialGoals.length === 0 ? (
+        <Flex direction="column" align="center" gap={3} bg="surface" borderRadius="hero" py={14} px={6} textAlign="center">
+          <Text fontSize="15px" color="text2">
+            Aún no tienes metas de ahorro.
+          </Text>
+          <Button bg="brandSolid" color="white" _hover={{ bg: 'brand.600' }} onClick={openCreate}>
+            <LuPlus />
+            Nueva meta
+          </Button>
+        </Flex>
+      ) : (
+        initialGoals.map((goal, i) => (
+          <SavingsGoalCard
+            key={goal.id}
+            goal={goal}
+            userId={userId}
+            accounts={accounts}
+            onEdit={setEditingGoal}
+            onCreate={i === 0 ? openCreate : undefined}
+          />
+        ))
+      )}
     </VStack>
   )
 }

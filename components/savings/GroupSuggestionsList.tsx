@@ -35,7 +35,7 @@ export function GroupSuggestionsList({ userId, period, suggestions, existingGrou
 
   if (pending.length === 0) {
     return (
-      <Text fontSize="sm" color="#6b7280">
+      <Text fontSize="sm" color="text3">
         Sin grupos sugeridos para este periodo.
       </Text>
     )
@@ -70,14 +70,14 @@ export function GroupSuggestionsList({ userId, period, suggestions, existingGrou
         <Box
           key={s.name}
           borderWidth="1px"
-          borderColor="#2d2d35"
+          borderColor="line"
           borderRadius="xl"
-          bg="#1a1a23"
+          bg="surface"
           p={4}
         >
           <VStack align="stretch" gap={3}>
             <HStack justify="space-between" align="start" gap={2}>
-              <Text fontWeight="600" color="white">📦 {s.name}</Text>
+              <Text fontWeight="600" color="text">📦 {s.name}</Text>
               <ActionIconButton
                 kind="discard"
                 label="Descartar"
@@ -96,13 +96,13 @@ export function GroupSuggestionsList({ userId, period, suggestions, existingGrou
               ))}
             </HStack>
 
-            <Text fontSize="sm" color="#B0B0B0">{s.rationale}</Text>
+            <Text fontSize="sm" color="text2">{s.rationale}</Text>
 
             <Button
               size="sm"
-              bg="#4F46E5"
+              bg="brandSolid"
               color="white"
-              _hover={{ bg: '#4338CA' }}
+              _hover={{ bg: 'brand.600' }}
               alignSelf="flex-start"
               loading={busy === s.name}
               onClick={() => handleCreate(s)}

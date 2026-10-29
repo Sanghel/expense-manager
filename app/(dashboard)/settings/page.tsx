@@ -1,57 +1,45 @@
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { insforgeAdmin } from '@/lib/insforge-admin'
-import { getUserProfile } from '@/lib/actions/users.actions'
+import { getCurrentDbUser } from '@/lib/utils/auth'
+import { getAccountsCached, getCategoriesCached } from '@/lib/data/cached'
 import { getAllRatePairs } from '@/lib/actions/exchangeRates.actions'
-import { getAccounts } from '@/lib/actions/accounts.actions'
 import { getAccountMovements } from '@/lib/actions/account_movements.actions'
-import { getCategories } from '@/lib/actions/categories.actions'
 import { getCategoryGroups } from '@/lib/actions/categoryGroups.actions'
 import { SettingsPageClient } from './SettingsPageClient'
-import type { User, ExchangeRate, Account, AccountMovementWithAccounts, Category, CategoryGroupWithMembers } from '@/types/database.types'
+import type { CategoriasData, CuentasData } from './tabs'
+import type { Account, AccountMovementWithAccounts, ExchangeRate } from '@/types/database.types'
 
-type Tab = 'general' | 'accounts' | 'categorias'
-
-export default async function SettingsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ tab?: string }>
-}) {
-  const session = await getServerSession(authOptions)
-
-  if (!session?.user?.email) {
-    redirect('/login')
-  }
-
-  const { data: userRow } = await insforgeAdmin.database
-    .from('users')
-    .select('id')
-    .eq('email', session.user.email)
-    .single()
-
-  if (!userRow) {
-    redirect('/login')
-  }
-
-  const params = await searchParams
-  const tab = (params.tab as Tab) || 'general'
-
-  const [profileResult, ratesResult, accountsResult, movementsResult] = await Promise.all([
-    getUserProfile(userRow.id),
-    getAllRatePairs(),
-    getAccounts(userRow.id),
-    getAccountMovements(userRow.id),
-  ])
-
-  const user = profileResult.success ? (profileResult.data as User) : null
-  const rates = (ratesResult.success ? ratesResult.data : []) as ExchangeRate[]
-  const accounts = (accountsResult.success ? accountsResult.data : []) as Account[]
-  const movements = (movementsResult.success ? movementsResult.data : []) as AccountMovementWithAccounts[]
-
+export default async function SettingsPage() {
+  const user = await getCurrentDbUser()
   if (!user) {
     redirect('/login')
   }
+
+  // Cuentas and Categorías stream to the client as promises; `?tab=` is read
+  // on the client, so switching tabs never waits for the server.
+  const cuentas: Promise<CuentasData> = Promise.all([
+    getAccountsCached(user.id),
+    getAccountMovements(user.id),
+  ]).then(([accountsResult, movementsResult]) => ({
+    accounts: (accountsResult.success ? accountsResult.data : []) as Account[],
+    movements: (movementsResult.success ? movementsResult.data : []) as AccountMovementWithAccounts[],
+  }))
+
+  const categorias: Promise<CategoriasData> = Promise.all([
+    getCategoriesCached(user.id),
+    getCategoryGroups(user.id),
+  ]).then(([categoriesResult, groupsResult]) => ({
+    categories: categoriesResult.success ? (categoriesResult.data ?? []) : [],
+    groups: groupsResult.success ? (groupsResult.data ?? []) : [],
+  }))
+
+  // Categories and accounts are the cached copies the layout already loaded;
+  // the Gmail sync dialog needs them.
+  const [ratesResult, categoriesResult, accountsResult] = await Promise.all([
+    getAllRatePairs(),
+    getCategoriesCached(user.id),
+    getAccountsCached(user.id),
+  ])
+  const rates = (ratesResult.success ? ratesResult.data : []) as ExchangeRate[]
 
   const gmailStatus = {
     enabled: user.gmail_sync_enabled === true,
@@ -60,27 +48,15 @@ export default async function SettingsPage({
     lastSyncedAt: user.gmail_last_synced_at,
   }
 
-  let initialCategories: Category[] = []
-  let initialGroups: CategoryGroupWithMembers[] = []
-  if (tab === 'categorias') {
-    const [result, groupsResult] = await Promise.all([
-      getCategories(userRow.id),
-      getCategoryGroups(userRow.id),
-    ])
-    initialCategories = result.success ? (result.data ?? []) : []
-    initialGroups = groupsResult.success ? (groupsResult.data ?? []) : []
-  }
-
   return (
     <SettingsPageClient
-      userId={userRow.id}
+      userId={user.id}
       preferredCurrency={user.preferred_currency}
       initialRates={rates}
-      initialAccounts={accounts}
-      initialMovements={movements}
-      activeTab={tab}
-      initialCategories={initialCategories}
-      initialGroups={initialGroups}
+      categories={categoriesResult.success ? (categoriesResult.data ?? []) : []}
+      accounts={(accountsResult.success ? accountsResult.data : []) as Account[]}
+      cuentas={cuentas}
+      categorias={categorias}
       gmailStatus={gmailStatus}
     />
   )

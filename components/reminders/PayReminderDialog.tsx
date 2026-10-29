@@ -81,11 +81,11 @@ export function PayReminderDialog({ isOpen, onClose, userId, accounts, reminder,
     <FormDialog isOpen={isOpen} onClose={onClose} title={isIncome ? 'Registrar ingreso' : 'Pagar recordatorio'}>
       <form onSubmit={handleSubmit}>
         <VStack gap={4} align="stretch">
-          <Box borderWidth="1px" borderColor="#2d2d35" borderRadius="md" px={3} py={2} bg="#18181d">
+          <Box borderWidth="1px" borderColor="line" borderRadius="md" px={3} py={2} bg="surface">
             <HStack gap={2} mb={1}>
-              <Text fontSize="xs" color="#B0B0B0">Descripción</Text>
+              <Text fontSize="xs" color="text2">Descripción</Text>
             </HStack>
-            <Text color="white" fontWeight="semibold">
+            <Text color="text" fontWeight="semibold">
               {reminder.category?.icon ?? '🔔'} {reminder.description}
             </Text>
             <HStack gap={2} mt={2} flexWrap="wrap">

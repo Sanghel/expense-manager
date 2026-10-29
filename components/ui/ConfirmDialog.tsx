@@ -15,6 +15,7 @@ import {
 } from '@chakra-ui/react'
 import { PortalContainerProvider } from '@/components/ui/FloatingPortal'
 import { ActionIconButton } from '@/components/ui/ActionIconButton'
+import { SHEET_CONTENT_PROPS, SHEET_PLACEMENT } from '@/components/ui/dialog-sheet'
 
 interface Props {
   isOpen: boolean
@@ -44,28 +45,28 @@ export function ConfirmDialog({
       open={isOpen}
       onOpenChange={details => !details.open && onClose()}
       role="alertdialog"
-      placement="center"
+      placement={SHEET_PLACEMENT}
       lazyMount
       unmountOnExit
       closeOnInteractOutside={false}
     >
       <DialogBackdrop />
       <DialogPositioner>
-        <DialogContent ref={contentRef} tabIndex={-1} mx={{ base: 3, md: 0 }}>
+        <DialogContent ref={contentRef} tabIndex={-1} {...SHEET_CONTENT_PROPS}>
           <PortalContainerProvider container={contentRef}>
-            <DialogHeader borderBottomWidth="1px" borderColor="#2d2d35" py={4}>
+            <DialogHeader borderBottomWidth="1px" borderColor="line" py={4}>
               <HStack justify="space-between" align="center" w="full">
-                <DialogTitle color="white">{title}</DialogTitle>
+                <DialogTitle color="text" fontSize="18px" fontWeight="600">{title}</DialogTitle>
                 <ActionIconButton kind="close" label="Cerrar" size="sm" variant="ghost" onClick={onClose} />
               </HStack>
             </DialogHeader>
             <DialogBody pb={6} pt={4}>
-              <Text mb={4}>{description}</Text>
+              <Text mb={4} color="text2">{description}</Text>
               <HStack justify="flex-end" gap={3}>
-                <Button variant="outline" onClick={onClose} disabled={isLoading}>
+                <Button variant="ghost" color="text2" onClick={onClose} disabled={isLoading}>
                   {cancelLabel}
                 </Button>
-                <Button colorPalette="red" onClick={onConfirm} loading={isLoading}>
+                <Button bg="neg" color="bg" _hover={{ opacity: 0.9 }} onClick={onConfirm} loading={isLoading}>
                   {confirmLabel}
                 </Button>
               </HStack>

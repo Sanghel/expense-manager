@@ -3,10 +3,11 @@
 import { useState } from 'react'
 import {
   Box,
+  Flex,
+  Grid,
   VStack,
   HStack,
   Text,
-  Badge,
   Button,
   Spinner,
 } from '@chakra-ui/react'
@@ -15,6 +16,7 @@ import { formatCurrency } from '@/lib/utils/currency'
 import { getLoanPayments, deleteLoanPayment } from '@/lib/actions/loans.actions'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { ActionIconButton } from '@/components/ui/ActionIconButton'
+import { ProgressBar } from '@/components/ui/ProgressBar'
 import { toaster } from '@/lib/toaster'
 import type { LoanWithAccount, LoanPayment } from '@/types/database.types'
 
@@ -27,6 +29,16 @@ interface Props {
   onPayment: (loan: LoanWithAccount) => void
   onRefresh: () => void
 }
+
+/** COP has no cents in practice; USD/VES keep them. */
+const decimalsFor = (currency: string) => (currency === 'COP' ? 0 : 2)
+
+/** "12 sep" */
+const shortDate = (iso: string) =>
+  new Date(iso.length === 10 ? `${iso}T12:00:00` : iso)
+    .toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })
+    .replace(' de ', ' ')
+    .replace('.', '')
 
 function settleLabel(loan: LoanWithAccount) {
   return loan.type === 'lent' ? '¡Ya me pagaron!' : '¡Ya pagué!'
@@ -79,14 +91,14 @@ function PaymentHistory({
   if (loading) {
     return (
       <HStack justify="center" py={3}>
-        <Spinner size="sm" color="#6366f1" />
+        <Spinner size="sm" color="brand" />
       </HStack>
     )
   }
 
   if (!payments || (payments.length === 0 && !hasLegacy)) {
     return (
-      <Text fontSize="xs" color="#808080" py={2} textAlign="center">
+      <Text fontSize="xs" color="text3" py={2} textAlign="center">
         Sin historial de abonos registrados.
       </Text>
     )
@@ -98,14 +110,14 @@ function PaymentHistory({
         {hasLegacy && (
           <HStack
             justify="space-between"
-            bg="#26262f"
-            borderRadius="md"
+            bg="bg"
+            borderRadius="input"
             px={3}
             py={2}
             opacity={0.7}
           >
-            <Text fontSize="xs" color="#B0B0B0">Historial previo (sin fecha)</Text>
-            <Text fontSize="xs" fontWeight="600" color="white">
+            <Text fontSize="xs" color="text2">Historial previo (sin fecha)</Text>
+            <Text fontSize="xs" fontFamily="mono" color="text">
               {formatCurrency(legacyPaid, loan.currency)}
             </Text>
           </HStack>
@@ -114,21 +126,21 @@ function PaymentHistory({
           <HStack
             key={p.id}
             justify="space-between"
-            bg="#26262f"
-            borderRadius="md"
+            bg="bg"
+            borderRadius="input"
             px={3}
             py={2}
           >
             <Box>
-              <Text fontSize="xs" color="white" fontWeight="500">
+              <Text fontSize="xs" color="text" fontFamily="mono">
                 {formatCurrency(Number(p.amount), p.currency)}
               </Text>
               {p.notes && (
-                <Text fontSize="xs" color="#808080">{p.notes}</Text>
+                <Text fontSize="xs" color="text3">{p.notes}</Text>
               )}
             </Box>
             <HStack gap={2}>
-              <Text fontSize="xs" color="#B0B0B0">{p.date}</Text>
+              <Text fontSize="xs" fontFamily="mono" color="text2">{p.date}</Text>
               {loan.status === 'active' && (
                 <ActionIconButton
                   kind="delete"
@@ -183,175 +195,135 @@ function LoanCard({
   const paidPercent = total > 0 ? Math.min(100, (paid / total) * 100) : 0
   const isSettled = loan.status === 'settled'
 
-  return (
-    <Box
-      bg="#1a1a23"
-      borderRadius="xl"
-      borderWidth="1px"
-      borderColor={isSettled ? '#2d2d35' : '#3a3a42'}
-      overflow="hidden"
-      opacity={isSettled ? 0.75 : 1}
-      transition="opacity 0.15s"
-    >
-      {/* Header */}
-      <Box px={4} pt={4} pb={3}>
-        <HStack justify="space-between" align="start" mb={2}>
-          <Box>
-            <Text fontWeight="700" color="white" fontSize="md">{loan.person_name}</Text>
-            <HStack gap={2} mt={1} flexWrap="wrap">
-              <Badge colorPalette={loan.type === 'lent' ? 'blue' : 'orange'} size="sm">
-                {loan.type === 'lent' ? 'Presté' : 'Me prestaron'}
-              </Badge>
-              {loan.account && (
-                <Text fontSize="xs" color="#808080">
-                  {loan.account.icon ?? ''} {loan.account.name}
-                </Text>
-              )}
-            </HStack>
-          </Box>
-          <Box textAlign="right">
-            <Text fontWeight="700" fontSize="lg" color={loan.type === 'lent' ? '#F43F5E' : '#10B981'}>
-              {formatCurrency(total, loan.currency)}
-            </Text>
-            {paid > 0 && (
-              <Text fontSize="xs" color="#B0B0B0">
-                Pendiente: {formatCurrency(remaining, loan.currency)}
-              </Text>
-            )}
-          </Box>
-        </HStack>
-
-        {/* Progress bar */}
-        {paid > 0 && (
-          <Box mt={1} mb={2}>
-            <Box bg="#2d2d35" borderRadius="full" h="4px">
-              <Box
-                bg={paidPercent >= 100 ? '#10B981' : '#6366f1'}
-                borderRadius="full"
-                h="4px"
-                w={`${paidPercent}%`}
-                transition="width 0.3s"
-              />
-            </Box>
-            <Text fontSize="xs" color="#B0B0B0" mt={1}>
-              Abonado: {formatCurrency(paid, loan.currency)} ({Math.round(paidPercent)}%)
-            </Text>
-          </Box>
-        )}
-
-        {loan.notes && (
-          <Text fontSize="xs" color="#808080" mb={2}>{loan.notes}</Text>
-        )}
-
-        {/* Actions */}
-        <HStack gap={2} mt={2} flexWrap="wrap">
-          {!isSettled && (
-            <>
-              <Button
-                size="xs"
-                bg="#F97316"
-                color="white"
-                _hover={{ bg: '#EA580C' }}
-                onClick={onPayment}
-              >
-                <LuCirclePlus />
-                Abono
-              </Button>
-              <Button
-                size="xs"
-                bg="#4F46E5"
-                color="white"
-                _hover={{ bg: '#4338CA' }}
-                onClick={onSettle}
-              >
-                <LuCircleCheck />
-                {settleLabel(loan)}
-              </Button>
-              <ActionIconButton
-                kind="edit"
-                label="Editar"
-                size="xs"
-                variant="ghost"
-                onClick={onEdit}
-              />
-            </>
-          )}
-          <ActionIconButton
-            kind="delete"
-            tone="danger"
-            label="Eliminar"
-            size="xs"
-            variant="ghost"
-            onClick={() => setConfirmDelete(true)}
-          />
-        </HStack>
-      </Box>
-
-      {/* Toggle historial */}
-      <Button
-        w="full"
-        variant="ghost"
-        size="xs"
-        color="#B0B0B0"
-        borderTop="1px solid"
-        borderColor="#2d2d35"
-        borderRadius="0"
-        py={2}
-        h="auto"
-        _hover={{ bg: '#26262f', color: 'white' }}
-        onClick={() => setExpanded((v) => !v)}
-      >
-        <HStack gap={1}>
-          {expanded ? <LuChevronUp /> : <LuChevronDown />}
-          <Text fontSize="xs">{expanded ? 'Ocultar historial' : 'Ver historial de abonos'}</Text>
-        </HStack>
-      </Button>
-
-      {/* Historial */}
-      {expanded && (
-        <Box px={4} pb={3} borderTop="1px solid" borderColor="#2d2d35" bg="#18181d">
-          <Text fontSize="xs" fontWeight="600" color="#B0B0B0" pt={3} pb={2} textTransform="uppercase">
-            Historial
-          </Text>
-          <PaymentHistory loan={loan} userId={userId} onRefresh={onRefresh} />
-        </Box>
-      )}
-
-      <ConfirmDialog
-        isOpen={confirmDelete}
-        onClose={() => setConfirmDelete(false)}
-        onConfirm={() => { onDelete(); setConfirmDelete(false) }}
-        title="Eliminar préstamo"
-        description={`¿Eliminar el préstamo de ${loan.person_name}?${loan.status === 'active' ? ' El saldo de la cuenta será revertido.' : ''}`}
-        confirmLabel="Eliminar"
-      />
-    </Box>
+  const confirmDeleteDialog = (
+    <ConfirmDialog
+      isOpen={confirmDelete}
+      onClose={() => setConfirmDelete(false)}
+      onConfirm={() => { onDelete(); setConfirmDelete(false) }}
+      title="Eliminar préstamo"
+      description={`¿Eliminar el préstamo de ${loan.person_name}?${loan.status === 'active' ? ' El saldo de la cuenta será revertido.' : ''}`}
+      confirmLabel="Eliminar"
+    />
   )
-}
 
-export function LoanCards({ loans, userId, onEdit, onSettle, onDelete, onPayment, onRefresh }: Props) {
-  if (loans.length === 0) {
+  if (isSettled) {
     return (
-      <Box py={6} textAlign="center">
-        <Text color="#B0B0B0">No hay registros.</Text>
+      <Box bg="surface2" borderRadius="tile" p={4} minW={0}>
+        <Flex justify="space-between" align="baseline" gap={3} mb={3}>
+          <Text fontWeight="600" color="text" truncate>{loan.person_name}</Text>
+          <Text fontFamily="mono" fontSize="14px" color="text">{formatCurrency(total, loan.currency, decimalsFor(loan.currency))}</Text>
+        </Flex>
+        <ProgressBar value={100} tone="pos" size={4} label="Saldado" />
+        <Flex justify="space-between" gap={3} mt={3} fontSize="12px" color="text3">
+          <Text truncate>
+            {[loan.type === 'lent' ? 'Presté' : 'Me prestaron', loan.notes, loan.account?.name].filter(Boolean).join(' · ')}
+          </Text>
+          <Flex align="center" gap={1} flexShrink={0}>
+            {loan.settled_at && <Text>Saldado {shortDate(loan.settled_at)}</Text>}
+            <ActionIconButton kind="delete" tone="danger" label="Eliminar" size="xs" variant="ghost" onClick={() => setConfirmDelete(true)} />
+          </Flex>
+        </Flex>
+        {confirmDeleteDialog}
       </Box>
     )
   }
 
   return (
+    <Box bg="surface2" borderRadius="tile" overflow="hidden">
+      <Box p={4}>
+        <Flex justify="space-between" align="flex-start" gap={3} mb={3}>
+          <Box minW={0}>
+            <Text fontWeight="600" color="text" truncate>{loan.person_name}</Text>
+            <Text fontSize="12px" color="text3" truncate>
+              {[loan.notes, loan.account && `${loan.account.icon ?? ''} ${loan.account.name}`.trim()].filter(Boolean).join(' · ') || (loan.type === 'lent' ? 'Presté' : 'Me prestaron')}
+            </Text>
+          </Box>
+          <Box textAlign="right" flexShrink={0}>
+            <Text fontFamily="mono" fontSize="16px" fontWeight="500" color="text">
+              {formatCurrency(remaining, loan.currency, decimalsFor(loan.currency))}
+            </Text>
+            {paid > 0 && (
+              <Text fontFamily="mono" fontSize="11px" color="text3">
+                de {formatCurrency(total, loan.currency, decimalsFor(loan.currency))}
+              </Text>
+            )}
+          </Box>
+        </Flex>
+
+        <ProgressBar value={paidPercent} tone="brand" size={4} label="Abonado" />
+        <Text fontSize="11px" fontFamily="mono" color="text3" mt={1.5}>
+          {Math.round(paidPercent)}% abonado
+        </Text>
+
+        <Flex gap={2} mt={4} wrap="wrap" align="center">
+          <Button size="xs" bg="brandSolid" color="white" _hover={{ bg: 'brand.600' }} onClick={onSettle}>
+            <LuCircleCheck />
+            {settleLabel(loan)}
+          </Button>
+          <Button size="xs" variant="ghost" color="text2" boxShadow="inset 0 0 0 1px var(--chakra-colors-line)" onClick={onPayment}>
+            <LuCirclePlus />
+            Abono
+          </Button>
+          <Flex ms="auto" gap={0.5}>
+            <ActionIconButton kind="edit" label="Editar" size="xs" variant="ghost" onClick={onEdit} />
+            <ActionIconButton kind="delete" tone="danger" label="Eliminar" size="xs" variant="ghost" onClick={() => setConfirmDelete(true)} />
+          </Flex>
+        </Flex>
+      </Box>
+
+      <Button
+        w="full"
+        variant="ghost"
+        size="xs"
+        color="text3"
+        borderTopWidth="1px"
+        borderColor="line"
+        borderRadius="0"
+        py={2}
+        h="auto"
+        _hover={{ bg: 'line', color: 'text' }}
+        onClick={() => setExpanded((v) => !v)}
+      >
+        {expanded ? <LuChevronUp /> : <LuChevronDown />}
+        {expanded ? 'Ocultar abonos' : 'Ver abonos'}
+      </Button>
+
+      {expanded && (
+        <Box px={4} pb={3}>
+          <Text textStyle="sectionLabel" color="text3" pt={2} pb={2}>
+            Abonos
+          </Text>
+          <PaymentHistory loan={loan} userId={userId} onRefresh={onRefresh} />
+        </Box>
+      )}
+
+      {confirmDeleteDialog}
+    </Box>
+  )
+}
+
+export function LoanCards({ loans, userId, onEdit, onSettle, onDelete, onPayment, onRefresh }: Props) {
+  const cards = loans.map((loan) => (
+    <LoanCard
+      key={loan.id}
+      loan={loan}
+      userId={userId}
+      onEdit={() => onEdit(loan)}
+      onSettle={() => onSettle(loan)}
+      onDelete={() => onDelete(loan)}
+      onPayment={() => onPayment(loan)}
+      onRefresh={onRefresh}
+    />
+  ))
+
+  // Settled loans read as a grid of small cards; active ones stack in their lane.
+  return loans.every((l) => l.status === 'settled') ? (
+    <Grid templateColumns="repeat(auto-fill, minmax(260px, 1fr))" gap={3}>
+      {cards}
+    </Grid>
+  ) : (
     <VStack gap={3} align="stretch">
-      {loans.map((loan) => (
-        <LoanCard
-          key={loan.id}
-          loan={loan}
-          userId={userId}
-          onEdit={() => onEdit(loan)}
-          onSettle={() => onSettle(loan)}
-          onDelete={() => onDelete(loan)}
-          onPayment={() => onPayment(loan)}
-          onRefresh={onRefresh}
-        />
-      ))}
+      {cards}
     </VStack>
   )
 }

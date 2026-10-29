@@ -1,7 +1,7 @@
 'use server'
 
 import { insforgeAdmin } from '@/lib/insforge-admin'
-import type { Currency, User } from '@/types/database.types'
+import type { Currency, ThemePreference, User } from '@/types/database.types'
 
 export async function getUserProfile(userId: string) {
   try {
@@ -29,5 +29,19 @@ export async function updatePreferredCurrency(userId: string, currency: Currency
     return { success: true }
   } catch (_error) {
     return { success: false, error: 'Failed to update preferred currency' }
+  }
+}
+
+export async function updateTheme(userId: string, theme: ThemePreference) {
+  try {
+    const { error } = await insforgeAdmin.database
+      .from('users')
+      .update({ theme })
+      .eq('id', userId)
+
+    if (error) throw error
+    return { success: true }
+  } catch (_error) {
+    return { success: false, error: 'Failed to update theme' }
   }
 }

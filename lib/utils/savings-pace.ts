@@ -52,3 +52,26 @@ export function getSavingsPace(goal: SavingsGoal, now = new Date()): SavingsPace
 
   return { remaining, monthsLeft, requiredMonthly, observedMonthly, status }
 }
+
+/**
+ * Where the goal should be today (0-100) if saved evenly from its creation to
+ * the deadline, and how many months of that even rhythm it is behind.
+ * Null without a valid deadline.
+ */
+export function getExpectedProgress(
+  goal: SavingsGoal,
+  now = new Date()
+): { percent: number; monthsBehind: number } | null {
+  if (!goal.deadline) return null
+  const start = new Date(goal.created_at).getTime()
+  const end = new Date(goal.deadline).getTime()
+  if (Number.isNaN(start) || Number.isNaN(end) || end <= start) return null
+
+  const percent = Math.min(100, Math.max(0, ((now.getTime() - start) / (end - start)) * 100))
+  const target = toNumber(goal.target_amount)
+  const totalMonths = Math.max(differenceInCalendarMonths(new Date(end), new Date(start)), 1)
+  const behindAmount = (percent / 100) * target - toNumber(goal.current_amount)
+  const monthsBehind = behindAmount > 0 ? Math.round(behindAmount / (target / totalMonths)) : 0
+
+  return { percent, monthsBehind }
+}

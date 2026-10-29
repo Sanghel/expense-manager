@@ -84,6 +84,7 @@ export function InputAmount({
         onFocus={handleFocus}
         onBlur={handleBlur}
         placeholder={placeholder}
+        fontFamily="mono"
       />
       {isInvalid && errorMessage && <FieldErrorText>{errorMessage}</FieldErrorText>}
     </FieldRoot>

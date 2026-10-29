@@ -1,14 +1,9 @@
 @import 'tailwindcss';
 
-/* Dark mode as default */
+/* Colors come from the Chakra theme (dark/light, see theme/index.ts).
+   The html background avoids a white flash on overscroll. */
 html {
-  color-scheme: dark;
-  background-color: #0f0f13;
-}
-
-body {
-  background-color: #0f0f13;
-  color: #ffffff;
+  background-color: var(--chakra-colors-bg);
 }
 
 /* Prevent iOS Safari auto-zoom on input focus.

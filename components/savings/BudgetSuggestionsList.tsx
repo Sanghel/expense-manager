@@ -98,7 +98,7 @@ export function BudgetSuggestionsList({ userId, period, suggestions, budgets, ca
   })
 
   if (visibleSuggestions.length === 0) {
-    return <Text color="#B0B0B0">No hay sugerencias de presupuesto para este periodo.</Text>
+    return <Text color="text2">No hay sugerencias de presupuesto para este periodo.</Text>
   }
 
   return (
@@ -106,7 +106,7 @@ export function BudgetSuggestionsList({ userId, period, suggestions, budgets, ca
       <VStack gap={3} align="stretch">
         {visibleSuggestions.map((s, i) => {
           const category = categoryMap.get(s.category_id)
-          const accent = category?.color ?? '#2d2d35'
+          const accent = category?.color ?? 'line'
           const exists = budgetByCategory.has(s.category_id)
           return (
             <Box
@@ -114,28 +114,28 @@ export function BudgetSuggestionsList({ userId, period, suggestions, budgets, ca
               borderWidth="1px"
               borderLeftWidth="4px"
               borderRadius="lg"
-              borderColor="#2d2d35"
+              borderColor="line"
               borderLeftColor={accent}
-              bg="#1a1a23"
+              bg="surface"
               p={4}
             >
               <HStack justify="space-between" align="start" gap={4} flexWrap="wrap">
                 <Box flex={1} minW="200px">
                   <HStack gap={2}>
                     {category?.icon && <Text fontSize="lg">{category.icon}</Text>}
-                    <Text fontWeight="semibold" color="white">
+                    <Text fontWeight="semibold" color="text">
                       {s.category_name}
                     </Text>
                   </HStack>
-                  <Text fontSize="sm" color="#B0B0B0" mt={1}>
+                  <Text fontSize="sm" color="text2" mt={1}>
                     {s.rationale}
                   </Text>
                   <HStack gap={4} mt={2} flexWrap="wrap">
-                    <Text fontSize="sm" color="#4ade80" fontWeight="medium">
+                    <Text fontSize="sm" color="pos" fontWeight="medium">
                       Sugerido: {formatCurrency(s.suggested_amount, currency)}
                     </Text>
                     {s.current_budget_amount != null && (
-                      <Text fontSize="sm" color="#B0B0B0">
+                      <Text fontSize="sm" color="text2">
                         Actual: {formatCurrency(s.current_budget_amount, currency)}
                       </Text>
                     )}

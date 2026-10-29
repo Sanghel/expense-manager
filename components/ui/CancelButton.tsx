@@ -10,7 +10,7 @@ interface Props {
 
 export function CancelButton({ onClick, children = 'Cancelar', disabled }: Props) {
   return (
-    <Button variant="outline" onClick={onClick} disabled={disabled}>
+    <Button variant="ghost" color="text2" onClick={onClick} disabled={disabled}>
       {children}
     </Button>
   )

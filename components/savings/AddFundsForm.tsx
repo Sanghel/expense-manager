@@ -103,8 +103,8 @@ export function AddFundsForm({ isOpen, onClose, goal, userId, accounts, onSucces
       title={`Añadir fondos — ${goal.name}`}
     >
       <VStack gap={4} align="stretch">
-        <Text fontSize="sm" color="#B0B0B0">
-          Meta: <Text as="span" color="white" fontWeight="600">
+        <Text fontSize="sm" color="text2">
+          Meta: <Text as="span" color="text" fontWeight="600">
             {formatCurrency(current, goal.currency)} / {formatCurrency(target, goal.currency)}
           </Text>
         </Text>
@@ -134,23 +134,23 @@ export function AddFundsForm({ isOpen, onClose, goal, userId, accounts, onSucces
 
         {preview && (
           <Box
-            bg="#26262f"
+            bg="surface2"
             borderRadius="md"
             borderWidth="1px"
-            borderColor={preview.ok ? '#2d2d35' : '#F43F5E'}
+            borderColor={preview.ok ? 'line' : 'neg'}
             px={3}
             py={2}
           >
-            <Text fontSize="sm" color={preview.ok ? 'white' : '#F43F5E'}>
+            <Text fontSize="sm" color={preview.ok ? 'text' : 'neg'}>
               {preview.text}
             </Text>
           </Box>
         )}
 
         <Button
-          bg="#4F46E5"
+          bg="brandSolid"
           color="white"
-          _hover={{ bg: '#4338CA' }}
+          _hover={{ bg: 'brand.600' }}
           onClick={handleSubmit}
           loading={loading}
           loadingText="Añadiendo..."

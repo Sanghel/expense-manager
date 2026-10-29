@@ -210,8 +210,8 @@ export function AccountForm({ isOpen, onClose, userId, editingAccount, onSuccess
 
           <HStack w="full" justify="space-between" align="center">
             <VStack align="flex-start" gap={0}>
-              <Text fontSize="sm" color="white">Cuenta por defecto</Text>
-              <Text fontSize="xs" color="#B0B0B0">Se usará al pagar recordatorios sin cuenta asignada</Text>
+              <Text fontSize="sm" color="text">Cuenta por defecto</Text>
+              <Text fontSize="xs" color="text2">Se usará al pagar recordatorios sin cuenta asignada</Text>
             </VStack>
             <Switch.Root
               checked={formData.is_default}

@@ -1,5 +1,5 @@
 import { safeRatio, toNumber } from './numbers'
-import type { BudgetWithSpent, CategoryGroupWithMembers } from '@/types/database.types'
+import type { BudgetWithSpent, CategoryGroupWithMembers, Currency } from '@/types/database.types'
 
 export interface GroupBreakdownMember {
   budget: BudgetWithSpent
@@ -60,7 +60,11 @@ export function buildGroupBreakdown(
       b.currency === groupBudget.currency
   )
   const membersSpent = members.reduce((acc, b) => acc + toNumber(b.spent), 0)
-  const residual = toNumber(groupBudget.spent) - membersSpent
+  // Derived groups carry the unbudgeted spend apart; a legacy stored group
+  // budget falls back to "group spend minus its members".
+  const residual = groupBudget.derived
+    ? toNumber(groupBudget.otherSpent)
+    : toNumber(groupBudget.spent) - membersSpent
 
   return {
     group: groupBudget,
@@ -70,4 +74,23 @@ export function buildGroupBreakdown(
     })),
     residual: residual > 0 ? residual : 0,
   }
+}
+
+/**
+ * The month's spending cap and what has been spent against it, in `currency`:
+ * the "total" budget when there is one, otherwise the sum of the group
+ * budgets. Null without budgets. Shared by the Resumen hero and Análisis so
+ * both read the same cap.
+ */
+export function getBudgetCap(
+  budgets: BudgetWithSpent[],
+  currency: Currency,
+  convert: (amount: number, from: Currency, to: Currency) => number
+): { limit: number; spent: number } | null {
+  const { total, groups } = splitBudgetsByScope(budgets)
+  const source = total.length > 0 ? total : groups
+  if (source.length === 0) return null
+  const limit = source.reduce((s, b) => s + convert(toNumber(b.limit_amount), b.currency, currency), 0)
+  const spent = source.reduce((s, b) => s + convert(toNumber(b.spent), b.currency, currency), 0)
+  return limit > 0 ? { limit, spent } : null
 }

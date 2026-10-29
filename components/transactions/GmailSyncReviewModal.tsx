@@ -1,15 +1,28 @@
 'use client'
 
 import {
-  Box, Button, HStack, VStack, Text, Table, Badge, Stack,
+  Box,
+  Button,
+  DialogBackdrop,
+  DialogContent,
+  DialogPositioner,
+  DialogRoot,
+  Flex,
+  Grid,
+  Icon,
+  IconButton,
+  NativeSelect,
+  Stack,
+  Text,
 } from '@chakra-ui/react'
 import { useState, useMemo, useRef } from 'react'
-import { FormDialog } from '@/components/ui/FormDialog'
-import { ActionIconButton } from '@/components/ui/ActionIconButton'
+import { LuCheck, LuMail, LuPencil, LuUndo2, LuX } from 'react-icons/lu'
 import { TransactionEditForm } from './TransactionEditForm'
+import { PortalContainerProvider } from '@/components/ui/FloatingPortal'
+import { SHEET_CONTENT_PROPS, SHEET_PLACEMENT } from '@/components/ui/dialog-sheet'
+import { Money } from '@/components/ui/Money'
 import { commitGmailTransactions } from '@/lib/actions/gmail.actions'
 import { toaster } from '@/lib/toaster'
-import { formatCurrency } from '@/lib/utils/currency'
 import type { Account, Category, Currency, TransactionType, TransactionWithCategory } from '@/types/database.types'
 import type { ParsedItem } from '@/lib/gmail/process'
 import type { ParserSource } from '@/lib/gmail/parsers'
@@ -29,12 +42,18 @@ interface ReviewItem {
   excluded: boolean
 }
 
-const SOURCE_STYLES: Record<ParserSource, { bg: string; color: string; label: string }> = {
-  bancolombia: { bg: '#FDDA24', color: '#000000', label: 'Bancolombia' },
-  binance: { bg: '#F0B90B', color: '#000000', label: 'Binance' },
-  mercantil: { bg: '#003B7A', color: '#FFFFFF', label: 'Mercantil' },
-  bofa: { bg: '#E31837', color: '#FFFFFF', label: 'Bank of America' },
+const SOURCE_LABEL: Record<ParserSource, string> = {
+  bancolombia: 'Bancolombia',
+  binance: 'Binance',
+  mercantil: 'Mercantil',
+  bofa: 'Bank of America',
 }
+
+/** checkbox · fecha · origen · descripción · categoría · monto · acciones */
+const COLUMNS = '30px 56px 118px minmax(0, 1fr) 190px 112px 72px'
+
+/** COP has no cents in practice; USD/VES keep them. */
+const decimalsFor = (currency: string) => (currency === 'COP' ? 0 : 2)
 
 function findAccountByLastFour(accounts: Account[], lastFour: string | null): string | null {
   if (!lastFour) return null
@@ -57,10 +76,49 @@ function initialEdited(p: ParsedItem, accounts: Account[]): ReviewItem['edited']
   }
 }
 
-function formatDateDDMMYYYY(iso: string): string {
-  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/)
-  if (!m) return iso
-  return `${m[3]}/${m[2]}/${m[1]}`
+/** "2026-10-24" → "24 oct" */
+function shortDate(iso: string): string {
+  const d = new Date(`${iso}T12:00:00`)
+  if (Number.isNaN(d.getTime())) return iso
+  return d.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' }).replace(' de ', ' ').replace('.', '')
+}
+
+function syncedAgo(iso: string): string {
+  const minutes = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000))
+  if (minutes < 1) return 'sincronizado ahora'
+  if (minutes < 60) return `sincronizado hace ${minutes} min`
+  return `sincronizado hace ${Math.round(minutes / 60)} h`
+}
+
+/** "Bancolombia <alertas@bancolombia.com.co>" → "alertas@bancolombia.com.co" */
+function senderAddress(rawFrom: string): string {
+  return rawFrom.match(/<([^>]+)>/)?.[1] ?? rawFrom
+}
+
+/** 22px rounded checkbox: brandSolid with a white check when included. */
+function IncludeCheckbox({ checked, onToggle, label }: { checked: boolean; onToggle: () => void; label: string }) {
+  return (
+    <Box
+      as="button"
+      role="checkbox"
+      aria-checked={checked}
+      aria-label={label}
+      onClick={onToggle}
+      display="flex"
+      alignItems="center"
+      justifyContent="center"
+      boxSize="22px"
+      borderRadius="7px"
+      flexShrink={0}
+      cursor="pointer"
+      bg={checked ? 'brandSolid' : 'transparent'}
+      color="white"
+      boxShadow={checked ? 'none' : 'inset 0 0 0 1.5px var(--chakra-colors-text3)'}
+      transition="background 150ms"
+    >
+      {checked && <Icon as={LuCheck} boxSize="14px" strokeWidth={3} />}
+    </Box>
+  )
 }
 
 interface Props {
@@ -82,6 +140,7 @@ export function GmailSyncReviewModal({ isOpen, onClose, userId, items, syncedAt,
   const [lastEditing, setLastEditing] = useState<number | null>(null)
   const [outerOpen, setOuterOpen] = useState(true)
   const [saving, setSaving] = useState(false)
+  const contentRef = useRef<HTMLDivElement>(null)
   // Skip the next onClose from outer dialog when we close it programmatically
   // to open the nested edit dialog (avoid triggering handleDiscard).
   const skipNextOuterCloseRef = useRef(false)
@@ -110,23 +169,19 @@ export function GmailSyncReviewModal({ isOpen, onClose, userId, items, syncedAt,
   }
 
   const activeReviews = useMemo(() => reviews.filter((r) => !r.excluded), [reviews])
-  const missingCategory = useMemo(
-    () => activeReviews.some((r) => !r.edited.category_id),
+  const missingCategoryCount = useMemo(
+    () => activeReviews.filter((r) => !r.edited.category_id).length,
     [activeReviews]
   )
+  const discardedCount = reviews.length - activeReviews.length
+  const oldestDate = useMemo(
+    () => reviews.reduce((min, r) => (r.edited.date < min ? r.edited.date : min), reviews[0]?.edited.date ?? ''),
+    [reviews]
+  )
 
-  const categoryLabel = (id: string): string => {
-    if (!id) return '—'
-    const c = categories.find((x) => x.id === id)
-    if (!c) return '—'
-    return `${c.icon ?? ''} ${c.name}`.trim()
-  }
-
-  const accountLabel = (id: string | null): string => {
-    if (!id) return '—'
-    const a = accounts.find((x) => x.id === id)
-    return a?.name ?? '—'
-  }
+  const accountFor = (id: string | null) => (id ? accounts.find((a) => a.id === id) : undefined)
+  const categoriesFor = (type: TransactionType) =>
+    categories.filter((c) => c.type === type || c.type === 'both')
 
   const updateRow = (idx: number, patch: Partial<ReviewItem['edited']>) => {
     setReviews((prev) => prev.map((r, i) => i === idx ? { ...r, edited: { ...r.edited, ...patch } } : r))
@@ -136,7 +191,7 @@ export function GmailSyncReviewModal({ isOpen, onClose, userId, items, syncedAt,
   }
 
   const handleSave = async () => {
-    if (missingCategory) {
+    if (missingCategoryCount > 0) {
       toaster.create({ title: 'Asigna categoría a todas las transacciones', type: 'error' })
       return
     }
@@ -158,7 +213,7 @@ export function GmailSyncReviewModal({ isOpen, onClose, userId, items, syncedAt,
       return
     }
     toaster.create({
-      title: `${result.created} transacciones registradas`,
+      title: `${result.created} transacciones registradas desde Gmail`,
       description: result.errors.length > 0 ? `${result.errors.length} con error` : undefined,
       type: result.errors.length > 0 ? 'warning' : 'success',
     })
@@ -191,120 +246,282 @@ export function GmailSyncReviewModal({ isOpen, onClose, userId, items, syncedAt,
       } as unknown as TransactionWithCategory)
     : null
 
+  const categorySelect = (r: ReviewItem, idx: number) => {
+    const missing = !r.excluded && !r.edited.category_id
+    return (
+      <NativeSelect.Root size="sm" disabled={r.excluded}>
+        <NativeSelect.Field
+          aria-label={`Categoría de ${r.edited.description}`}
+          value={r.edited.category_id}
+          onChange={(e) => updateRow(idx, { category_id: e.target.value })}
+          h="36px"
+          borderRadius="pill"
+          bg="surface2"
+          borderColor="transparent"
+          color={r.edited.category_id ? 'text' : 'text3'}
+          fontSize="13px"
+          boxShadow={missing ? 'inset 0 0 0 1.5px var(--chakra-colors-neg)' : 'none'}
+        >
+          <option value="">Elegir categoría</option>
+          {categoriesFor(r.edited.type).map((c) => (
+            <option key={c.id} value={c.id}>
+              {`${c.icon ?? ''} ${c.name}`.trim()}
+            </option>
+          ))}
+        </NativeSelect.Field>
+        <NativeSelect.Indicator color="text3" />
+      </NativeSelect.Root>
+    )
+  }
+
+  const rowActions = (r: ReviewItem, idx: number) => (
+    <Flex gap={0.5} justify="flex-end">
+      <IconButton
+        aria-label="Editar transacción"
+        title="Editar"
+        size="xs"
+        variant="ghost"
+        color="text3"
+        _hover={{ color: 'text', bg: 'surface2' }}
+        onClick={() => startEditing(idx)}
+        disabled={r.excluded}
+      >
+        <LuPencil />
+      </IconButton>
+      <IconButton
+        aria-label={r.excluded ? 'Restaurar' : 'Descartar'}
+        title={r.excluded ? 'Restaurar' : 'Descartar'}
+        size="xs"
+        variant="ghost"
+        color={r.excluded ? 'brand' : 'text3'}
+        _hover={{ color: r.excluded ? 'brand' : 'neg', bg: 'surface2' }}
+        onClick={() => toggleExclude(idx)}
+      >
+        {r.excluded ? <LuUndo2 /> : <LuX />}
+      </IconButton>
+    </Flex>
+  )
+
+  const descriptionCell = (r: ReviewItem) => {
+    const account = accountFor(r.edited.account_id)
+    return (
+      <Box minW={0}>
+        <Text
+          fontSize="14px"
+          fontWeight="500"
+          color="text"
+          truncate
+          textDecoration={r.excluded ? 'line-through' : undefined}
+        >
+          {r.edited.description}
+        </Text>
+        <Flex align="center" gap={1.5} fontSize="12px" color="text3" minW={0}>
+          <Icon as={LuMail} boxSize="12px" flexShrink={0} />
+          <Text truncate>
+            {senderAddress(r.parsed.rawFrom)}
+            {account && ` · ${account.icon ?? ''} ${account.name}`}
+          </Text>
+        </Flex>
+      </Box>
+    )
+  }
+
+  const amountCell = (r: ReviewItem) => (
+    <Money
+      amount={r.edited.amount}
+      currency={r.edited.currency}
+      kind={r.edited.type}
+      fractionDigits={decimalsFor(r.edited.currency)}
+      fontSize="14px"
+      fontWeight="500"
+      textAlign="right"
+      display="block"
+      textDecoration={r.excluded ? 'line-through' : undefined}
+    />
+  )
+
   return (
     <>
-      <FormDialog isOpen={isOpen && outerOpen} onClose={handleOuterClose} title={`Revisar ${reviews.length} transacciones detectadas`} size="xl">
-        <VStack align="stretch" gap={4}>
-          <Text fontSize="sm" color="#B0B0B0">
-            Edita categoría, cuenta y otros campos con el botón ✏️ antes de guardar. Las transacciones no se registran hasta que confirmes.
-          </Text>
+      <DialogRoot
+        open={isOpen && outerOpen}
+        onOpenChange={({ open }) => !open && handleOuterClose()}
+        placement={SHEET_PLACEMENT}
+        lazyMount
+        unmountOnExit
+        closeOnInteractOutside={false}
+      >
+        <DialogBackdrop />
+        <DialogPositioner>
+          <DialogContent
+            ref={contentRef}
+            tabIndex={-1}
+            aria-label="Revisión de Gmail"
+            w="min(1040px, calc(100vw - 48px))"
+            {...SHEET_CONTENT_PROPS}
+            maxW={{ base: 'full', md: 'none' }}
+            display="flex"
+            flexDirection="column"
+          >
+            <PortalContainerProvider container={contentRef}>
+              {/* Header */}
+              <Flex align="center" gap={3.5} px={{ base: 5, md: 7 }} py={5} flexShrink={0}>
+                <Flex align="center" justify="center" boxSize="44px" borderRadius="full" bg="brandSoft" color="brand" flexShrink={0}>
+                  <Icon as={LuMail} boxSize="20px" />
+                </Flex>
+                <Box flex="1" minW={0}>
+                  <Text fontSize="18px" fontWeight="600" color="text">
+                    Revisa lo que llegó por correo
+                  </Text>
+                  <Text fontSize="13px" color="text3">
+                    {reviews.length} {reviews.length === 1 ? 'correo bancario' : 'correos bancarios'}
+                    {oldestDate && ` desde el ${shortDate(oldestDate)}`} · {syncedAgo(syncedAt)}
+                  </Text>
+                </Box>
+                <IconButton
+                  aria-label="Cerrar"
+                  onClick={handleOuterClose}
+                  boxSize="36px"
+                  minW="36px"
+                  bg="surface2"
+                  color="text2"
+                  _hover={{ color: 'text' }}
+                >
+                  <LuX />
+                </IconButton>
+              </Flex>
 
-          {/* Desktop: tabla */}
-          <Box display={{ base: 'none', md: 'block' }} overflowX="auto">
-            <Table.Root size="sm">
-              <Table.Header>
-                <Table.Row>
-                  <Table.ColumnHeader>Fecha</Table.ColumnHeader>
-                  <Table.ColumnHeader>Origen</Table.ColumnHeader>
-                  <Table.ColumnHeader>Descripción</Table.ColumnHeader>
-                  <Table.ColumnHeader>Monto</Table.ColumnHeader>
-                  <Table.ColumnHeader>Categoría</Table.ColumnHeader>
-                  <Table.ColumnHeader>Cuenta</Table.ColumnHeader>
-                  <Table.ColumnHeader>Acciones</Table.ColumnHeader>
-                </Table.Row>
-              </Table.Header>
-              <Table.Body>
+              {/* Desktop: table with its own scroll and a sticky header */}
+              <Box display={{ base: 'none', md: 'block' }} flex="1" minH={0} overflowY="auto" px={7}>
+                <Grid
+                  templateColumns={COLUMNS}
+                  gap={3}
+                  alignItems="center"
+                  position="sticky"
+                  top={0}
+                  zIndex={1}
+                  bg="surface"
+                  py={2.5}
+                  borderBottomWidth="1px"
+                  borderColor="line"
+                  textStyle="sectionLabel"
+                  color="text3"
+                >
+                  <span />
+                  <span>Fecha</span>
+                  <span>Origen</span>
+                  <span>Descripción</span>
+                  <span>Categoría</span>
+                  <Text as="span" textAlign="right">Monto</Text>
+                  <span />
+                </Grid>
                 {reviews.map((r, idx) => {
-                  const style = SOURCE_STYLES[r.parsed.source]
+                  const account = accountFor(r.edited.account_id)
                   return (
-                    <Table.Row key={idx} opacity={r.excluded ? 0.4 : 1}>
-                      <Table.Cell>{formatDateDDMMYYYY(r.edited.date)}</Table.Cell>
-                      <Table.Cell>
-                        <Badge bg={style.bg} color={style.color}>{style.label}</Badge>
-                      </Table.Cell>
-                      <Table.Cell maxW="200px" truncate>{r.edited.description}</Table.Cell>
-                      <Table.Cell>{formatCurrency(r.edited.amount, r.edited.currency)}</Table.Cell>
-                      <Table.Cell>
-                        <Text color={r.edited.category_id ? 'white' : '#ef4444'}>
-                          {categoryLabel(r.edited.category_id)}
-                        </Text>
-                      </Table.Cell>
-                      <Table.Cell>{accountLabel(r.edited.account_id)}</Table.Cell>
-                      <Table.Cell>
-                        <HStack gap={1}>
-                          <ActionIconButton kind="edit" label="Editar transacción" size="xs" onClick={() => startEditing(idx)} />
-                          <ActionIconButton
-                            kind={r.excluded ? 'include' : 'exclude'}
-                            label={r.excluded ? 'Incluir' : 'Excluir'}
-                            size="xs"
-                            tone={r.excluded ? 'neutral' : 'danger'}
-                        {...(r.excluded ? { colorPalette: 'green', color: 'green.400' } : {})}
-                            {...(r.excluded ? { colorPalette: 'green', color: 'green.400' } : {})}
-                            onClick={() => toggleExclude(idx)}
-                          />
-                        </HStack>
-                      </Table.Cell>
-                    </Table.Row>
+                    <Grid
+                      key={r.parsed.gmailMessageId}
+                      templateColumns={COLUMNS}
+                      gap={3}
+                      alignItems="center"
+                      py={3}
+                      borderBottomWidth="1px"
+                      borderColor="line"
+                      opacity={r.excluded ? 0.45 : 1}
+                      transition="opacity 150ms"
+                    >
+                      <IncludeCheckbox
+                        checked={!r.excluded}
+                        onToggle={() => toggleExclude(idx)}
+                        label={`Incluir ${r.edited.description}`}
+                      />
+                      <Text fontFamily="mono" fontSize="12px" color="text2">
+                        {shortDate(r.edited.date)}
+                      </Text>
+                      <Text fontSize="13px" color="text2" truncate>
+                        {account?.icon ?? '🏦'} {SOURCE_LABEL[r.parsed.source]}
+                      </Text>
+                      {descriptionCell(r)}
+                      {categorySelect(r, idx)}
+                      {amountCell(r)}
+                      {rowActions(r, idx)}
+                    </Grid>
                   )
                 })}
-              </Table.Body>
-            </Table.Root>
-          </Box>
+              </Box>
 
-          {/* Mobile: cards */}
-          <VStack display={{ base: 'flex', md: 'none' }} gap={3} align="stretch">
-            {reviews.map((r, idx) => {
-              const style = SOURCE_STYLES[r.parsed.source]
-              return (
-                <Box key={idx} borderWidth="1px" borderColor="#2d2d35" borderRadius="md" p={3} bg="#18181d" opacity={r.excluded ? 0.4 : 1}>
-                  <Stack gap={2}>
-                    <HStack justify="space-between">
-                      <Badge bg={style.bg} color={style.color}>{style.label}</Badge>
-                      <Text fontWeight="600">{formatCurrency(r.edited.amount, r.edited.currency)}</Text>
-                    </HStack>
-                    <Text fontSize="sm">{r.edited.description}</Text>
-                    <Text fontSize="xs" color="#B0B0B0">{formatDateDDMMYYYY(r.edited.date)}</Text>
-                    <HStack gap={2}>
-                      <Text fontSize="xs" color="#B0B0B0" minW="70px">Categoría:</Text>
-                      <Text fontSize="sm" color={r.edited.category_id ? 'white' : '#ef4444'}>
-                        {categoryLabel(r.edited.category_id)}
-                      </Text>
-                    </HStack>
-                    <HStack gap={2}>
-                      <Text fontSize="xs" color="#B0B0B0" minW="70px">Cuenta:</Text>
-                      <Text fontSize="sm">{accountLabel(r.edited.account_id)}</Text>
-                    </HStack>
-                    <HStack justify="flex-end" gap={2}>
-                      <ActionIconButton kind="edit" label="Editar transacción" size="sm" variant="outline" onClick={() => startEditing(idx)} />
-                      <ActionIconButton
-                        kind={r.excluded ? 'include' : 'exclude'}
-                        label={r.excluded ? 'Incluir' : 'Excluir'}
-                        size="sm"
-                        variant="outline"
-                        tone={r.excluded ? 'neutral' : 'danger'}
-                        {...(r.excluded ? { colorPalette: 'green', color: 'green.400' } : {})}
-                        onClick={() => toggleExclude(idx)}
+              {/* Mobile: one card per row */}
+              <Stack display={{ base: 'flex', md: 'none' }} flex="1" minH={0} overflowY="auto" px={4} pb={2} gap={2.5}>
+                {reviews.map((r, idx) => (
+                  <Box
+                    key={r.parsed.gmailMessageId}
+                    bg="surface2"
+                    borderRadius="tile"
+                    p={3.5}
+                    opacity={r.excluded ? 0.45 : 1}
+                  >
+                    <Flex gap={3} align="flex-start">
+                      <IncludeCheckbox
+                        checked={!r.excluded}
+                        onToggle={() => toggleExclude(idx)}
+                        label={`Incluir ${r.edited.description}`}
                       />
-                    </HStack>
-                  </Stack>
-                </Box>
-              )
-            })}
-          </VStack>
+                      <Box flex="1" minW={0}>{descriptionCell(r)}</Box>
+                      <Box flexShrink={0}>
+                        {amountCell(r)}
+                        <Text fontFamily="mono" fontSize="11px" color="text3" textAlign="right">
+                          {shortDate(r.edited.date)}
+                        </Text>
+                      </Box>
+                    </Flex>
+                    <Flex gap={2} mt={3} align="center">
+                      <Box flex="1" minW={0}>{categorySelect(r, idx)}</Box>
+                      {rowActions(r, idx)}
+                    </Flex>
+                  </Box>
+                ))}
+              </Stack>
 
-          <HStack justify="space-between" pt={4} borderTopWidth="1px" borderColor="#2d2d35">
-            <Text fontSize="sm" color="#B0B0B0">
-              {activeReviews.length} de {reviews.length} se registrarán
-            </Text>
-            <HStack gap={2}>
-              <Button variant="outline" onClick={handleDiscard} disabled={saving}>Descartar</Button>
-              <Button bg="#4F46E5" color="white" _hover={{ bg: '#4338CA' }} onClick={handleSave} loading={saving} disabled={activeReviews.length === 0}>
-                Guardar todas
-              </Button>
-            </HStack>
-          </HStack>
-        </VStack>
-      </FormDialog>
+              {/* Footer */}
+              <Flex
+                align="center"
+                gap={3}
+                px={{ base: 5, md: 7 }}
+                py={4}
+                borderTopWidth="1px"
+                borderColor="line"
+                flexShrink={0}
+                wrap="wrap"
+              >
+                <Text fontSize="13px" color="text2">
+                  {activeReviews.length} por registrar
+                  {discardedCount > 0 && ` · ${discardedCount} ${discardedCount === 1 ? 'descartada' : 'descartadas'}`}
+                  {missingCategoryCount > 0 && (
+                    <Text as="span" color="neg">
+                      {' '}· {missingCategoryCount} sin categoría
+                    </Text>
+                  )}
+                </Text>
+                <Flex gap={2} ms="auto">
+                  <Button variant="ghost" color="text2" onClick={handleDiscard} disabled={saving}>
+                    Cancelar
+                  </Button>
+                  <Button
+                    bg="brandSolid"
+                    color="white"
+                    _hover={{ bg: 'brand.600' }}
+                    onClick={handleSave}
+                    loading={saving}
+                    disabled={activeReviews.length === 0}
+                    _disabled={{ opacity: 0.5, cursor: 'not-allowed' }}
+                  >
+                    Registrar {activeReviews.length}{' '}
+                    {activeReviews.length === 1 ? 'transacción' : 'transacciones'}
+                  </Button>
+                </Flex>
+              </Flex>
+            </PortalContainerProvider>
+          </DialogContent>
+        </DialogPositioner>
+      </DialogRoot>
 
       {editingAsTransaction && lastEditing != null && (
         <TransactionEditForm

@@ -204,6 +204,7 @@ export function TransactionsPageClient({
         userId={userId}
         categories={categories}
         accounts={accounts}
+        history={transactions}
         onSuccess={() => router.refresh()}
       />
 

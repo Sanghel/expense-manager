@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { HStack, VStack, Text, Spinner } from '@chakra-ui/react'
+import { Box, Flex, Text, Spinner } from '@chakra-ui/react'
 import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import { getGoalContributions, deleteGoalContribution } from '@/lib/actions/savings.actions'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
@@ -53,15 +53,15 @@ export function ContributionHistory({ userId, goalId, goalCurrency, onChange }: 
 
   if (loading) {
     return (
-      <HStack justify="center" py={3}>
-        <Spinner size="sm" color="#4F46E5" />
-      </HStack>
+      <Flex justify="center" py={3}>
+        <Spinner size="sm" color="brand" />
+      </Flex>
     )
   }
 
   if (contributions.length === 0) {
     return (
-      <Text fontSize="xs" color="#B0B0B0" py={2}>
+      <Text fontSize="13px" color="text3" py={2}>
         Todavía no hay aportes registrados.
       </Text>
     )
@@ -69,31 +69,29 @@ export function ContributionHistory({ userId, goalId, goalCurrency, onChange }: 
 
   return (
     <>
-      <VStack align="stretch" gap={1} w="full" pt={1}>
+      <Box w="full">
         {contributions.map((c) => (
-          <HStack
+          <Flex
             key={c.id}
             justify="space-between"
             align="center"
-            bg="#15151c"
-            borderRadius="md"
-            px={3}
-            py={2}
-            gap={2}
+            gap={3}
+            py={3}
+            borderBottomWidth="1px"
+            borderColor="line"
+            _last={{ borderBottomWidth: 0 }}
           >
-            <VStack align="start" gap={0} minW={0}>
-              <Text fontSize="sm" color="white">
-                {formatCurrency(c.amount, c.currency)}
-                {c.currency !== goalCurrency && (
-                  <Text as="span" color="#B0B0B0">
-                    {' '}→ {formatCurrency(c.converted_amount, goalCurrency)}
-                  </Text>
-                )}
-              </Text>
-              <Text fontSize="xs" color="#6b7280">
-                {new Date(c.created_at).toLocaleDateString('es-ES')}
-              </Text>
-            </VStack>
+            <Text fontFamily="mono" fontSize="12px" color="text3" w="72px" flexShrink={0}>
+              {new Date(c.created_at).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: '2-digit' }).replace(/ de /g, ' ').replace('.', '')}
+            </Text>
+            <Text flex="1" minW={0} fontFamily="mono" fontSize="14px" color="text" textAlign="right">
+              +{formatCurrency(c.amount, c.currency, c.currency === 'COP' ? 0 : 2)}
+              {c.currency !== goalCurrency && (
+                <Text as="span" color="text3" fontSize="12px">
+                  {' '}→ {formatCurrency(c.converted_amount, goalCurrency)}
+                </Text>
+              )}
+            </Text>
             <ActionIconButton
               kind="delete"
               tone="danger"
@@ -102,9 +100,9 @@ export function ContributionHistory({ userId, goalId, goalCurrency, onChange }: 
               variant="ghost"
               onClick={() => setPendingDelete(c)}
             />
-          </HStack>
+          </Flex>
         ))}
-      </VStack>
+      </Box>
 
       <ConfirmDialog
         isOpen={!!pendingDelete}

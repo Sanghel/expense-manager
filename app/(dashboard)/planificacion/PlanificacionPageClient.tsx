@@ -1,13 +1,14 @@
 'use client'
 
 import { Suspense, use } from 'react'
-import { Box, Heading, HStack, Tabs, Icon } from '@chakra-ui/react'
-import { FiTarget, FiPieChart, FiClipboard } from 'react-icons/fi'
+import { Box, Tabs } from '@chakra-ui/react'
 import { SavingsGoalsPageContent } from '@/components/savings/SavingsGoalsPageContent'
 import { BudgetsPageClient } from '../budgets/BudgetsPageClient'
 import { TabSkeleton } from '@/components/ui/Skeletons'
+import { PageHeader } from '@/components/ui/PageHeader'
+import { todayEyebrow } from '@/lib/utils/dates'
 import { useUrlParams } from '@/hooks/useUrlParams'
-import { parsePlanificacionTab, type MetasData, type PresupuestosData } from './tabs'
+import { parsePlanificacionTab, type MetasData, type PlanificacionTab, type PresupuestosData } from './tabs'
 import type { Currency } from '@/types/database.types'
 
 interface Props {
@@ -47,45 +48,19 @@ export function PlanificacionPageClient({ userId, metas, presupuestos, preferred
 
   return (
     <Box>
-      <HStack gap={2} mb={6}>
-        <Icon as={FiClipboard} color="#6366f1" boxSize={6} />
-        <Heading size="lg" color="white">
-          Planificación
-        </Heading>
-      </HStack>
+      <PageHeader<PlanificacionTab>
+        eyebrow={todayEyebrow()}
+        title="Planificación"
+        tabs={[
+          { value: 'metas', label: 'Metas' },
+          { value: 'presupuestos', label: 'Presupuestos' },
+        ]}
+        activeTab={activeTab}
+        onTabChange={(tab) => setParams({ tab })}
+      />
 
       {/* lazyMount: a tab renders on its first visit and then stays mounted. */}
-      <Tabs.Root
-        value={activeTab}
-        onValueChange={({ value }) => setParams({ tab: value })}
-        colorPalette="brand"
-        lazyMount
-      >
-        <Tabs.List mb={6} borderBottomWidth="1px" borderColor="#2d2d35">
-          <Tabs.Trigger
-            value="metas"
-            display="flex"
-            alignItems="center"
-            gap={2}
-            color="#B0B0B0"
-            _selected={{ color: 'white', borderBottomColor: '#6366f1' }}
-          >
-            <Icon as={FiTarget} />
-            Metas de Ahorro
-          </Tabs.Trigger>
-          <Tabs.Trigger
-            value="presupuestos"
-            display="flex"
-            alignItems="center"
-            gap={2}
-            color="#B0B0B0"
-            _selected={{ color: 'white', borderBottomColor: '#6366f1' }}
-          >
-            <Icon as={FiPieChart} />
-            Presupuestos
-          </Tabs.Trigger>
-        </Tabs.List>
-
+      <Tabs.Root value={activeTab} lazyMount>
         <Tabs.Content value="metas">
           <Suspense fallback={<TabSkeleton />}>
             <MetasTab data={metas} userId={userId} preferredCurrency={preferredCurrency} />

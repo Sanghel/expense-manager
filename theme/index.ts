@@ -10,7 +10,12 @@ const extendSlotRecipe = (name: string, base: Record<string, SystemStyleObject>)
 })
 
 // Floating panels (combobox list, calendar, color picker) share the app's card look.
-const floatingPanel = { bg: 'bg.canvas', background: 'bg.canvas', borderWidth: '1px', borderColor: 'border.default', color: 'text.primary' }
+const floatingPanel = { bg: 'surface', background: 'surface', borderWidth: '1px', borderColor: 'line', color: 'text' }
+
+// Pulso palette: [light, dark], applied by the `.light`/`.dark` class that
+// next-themes puts on <html>. Same condition keys as Chakra's defaults, so
+// they replace them on merge instead of sitting next to them.
+const mode = (light: string, dark: string) => ({ value: { _light: light, _dark: dark } })
 
 const config = defineConfig({
   theme: {
@@ -46,77 +51,124 @@ const config = defineConfig({
       fonts: {
         heading: { value: 'var(--font-geist-sans), sans-serif' },
         body:    { value: 'var(--font-geist-sans), sans-serif' },
+        mono:    { value: 'var(--font-geist-mono), ui-monospace, monospace' },
       },
+      radii: {
+        pill:  { value: '999px' },
+        hero:  { value: '28px' }, // hero cards, modals
+        card:  { value: '24px' },
+        tile:  { value: '18px' }, // sub-cards, tiles
+        input: { value: '14px' },
+        nav:   { value: '12px' },
+      },
+    },
+    textStyles: {
+      // Mono uppercase label above the H1 ("JUE 29 OCT 2026")
+      eyebrow: { value: { fontFamily: 'mono', fontSize: '11px', fontWeight: '500', letterSpacing: '0.08em', textTransform: 'uppercase' } },
+      // Mono uppercase section label ("CATEGORÍA", "SALDADOS")
+      sectionLabel: { value: { fontFamily: 'mono', fontSize: '11px', fontWeight: '500', letterSpacing: '0.08em', textTransform: 'uppercase' } },
+      pageTitle: { value: { fontSize: { base: '28px', md: '40px' }, fontWeight: '600', letterSpacing: '-0.03em', lineHeight: '1.1' } },
+      cardTitle: { value: { fontSize: '15px', fontWeight: '600' } },
+      heroFigure: { value: { fontFamily: 'mono', fontSize: { base: '52px', md: '84px' }, fontWeight: '500', letterSpacing: '-0.05em', lineHeight: '1' } },
+      stat: { value: { fontFamily: 'mono', fontSize: { base: '16px', md: '22px' }, fontWeight: '500' } },
     },
     semanticTokens: {
       colors: {
+        // ── Pulso design tokens ────────────────────────────────────────────
+        bg: {
+          DEFAULT: mode('#FAFAFB', '#0B0B0F'),
+          panel: { value: '{colors.surface}' },
+          // Legacy aliases, see below.
+          canvas: { value: '{colors.surface}' },
+          default: { value: '{colors.bg}' },
+          subtle: { value: '{colors.surface2}' },
+        },
+        surface: mode('#F1F1F4', '#131319'),
+        surface2: mode('#E7E7EC', '#1B1B23'),
+        line: mode('rgba(16,16,32,.09)', 'rgba(255,255,255,.08)'),
+        text: {
+          DEFAULT: mode('#101016', '#F5F5F7'),
+          // Legacy aliases, see below.
+          primary: { value: '{colors.text}' },
+          secondary: { value: '{colors.text2}' },
+          muted: { value: '{colors.text3}' },
+        },
+        text2: mode('#52525C', '#A6A6B0'),
+        text3: mode('#85858F', '#72727D'),
+        brandSolid: { value: '{colors.brand.500}' },
+        brandSoft: mode('rgba(79,70,229,.10)', 'rgba(107,116,248,.16)'),
+        pos: mode('#047857', '#34D399'),
+        posSoft: mode('rgba(5,150,105,.11)', 'rgba(52,211,153,.14)'),
+        neg: mode('#BE123C', '#FB7185'),
+        negSoft: mode('rgba(225,29,72,.10)', 'rgba(251,113,133,.14)'),
+        warn: mode('#B45309', '#FBBF24'),
+        warnSoft: mode('rgba(217,119,6,.12)', 'rgba(251,191,36,.14)'),
+        track: mode('rgba(16,16,32,.08)', 'rgba(255,255,255,.08)'),
+
         // Full semantic palette so `colorPalette="brand"` works on any Chakra
         // component (solid buttons, selected calendar days, focus rings…).
+        // `brand` alone is the accent for text and links.
         brand: {
+          DEFAULT: mode('#4F46E5', '#8B93FF'),
           solid: { value: '{colors.brand.500}' },
           contrast: { value: 'white' },
-          fg: { value: '{colors.brand.300}' },
-          muted: { value: '{colors.brand.800}' },
-          subtle: { value: '{colors.brand.900}' },
-          emphasized: { value: '{colors.brand.700}' },
+          fg: mode('#4F46E5', '#8B93FF'),
+          muted: mode('{colors.brand.100}', '{colors.brand.800}'),
+          subtle: mode('{colors.brand.50}', '{colors.brand.900}'),
+          emphasized: mode('{colors.brand.200}', '{colors.brand.700}'),
           focusRing: { value: '{colors.brand.500}' },
         },
-        'bg.canvas': {
-          value: '#1A1A23',
+
+        // Chakra's own surfaces follow the Pulso palette.
+        fg: { DEFAULT: { value: '{colors.text}' } },
+        border: {
+          DEFAULT: { value: '{colors.line}' },
+          // Legacy aliases, see below.
+          default: { value: '{colors.line}' },
+          subtle: { value: '{colors.line}' },
         },
-        'bg.default': {
-          value: '#0F0F13',
-        },
-        'bg.subtle': {
-          value: '#18181D',
-        },
-        'text.primary': {
-          value: '#FFFFFF',
-        },
-        'text.secondary': {
-          value: '#B0B0B0',
-        },
-        'text.muted': {
-          value: '#808080',
-        },
-        'border.default': {
-          value: '#2D2D35',
-        },
-        'border.subtle': {
-          value: '#262630',
-        },
-        'shadow.sm': {
-          value: 'rgba(0, 0, 0, 0.3)',
-        },
-        'shadow.md': {
-          value: 'rgba(0, 0, 0, 0.5)',
-        },
+
+        // ── Legacy aliases ─────────────────────────────────────────────────
+        // `bg.canvas`, `text.primary`, `border.default`… (nested above) and
+        // these shadows are kept while screens migrate to the Pulso tokens;
+        // removed in the final cleanup (#564).
+        'shadow.sm': mode('rgba(16,16,32,.08)', 'rgba(0,0,0,.3)'),
+        'shadow.md': mode('rgba(16,16,32,.14)', 'rgba(0,0,0,.5)'),
       },
+      shadows: {
+        overlay: mode('0 30px 80px rgba(16,16,32,.2)', '0 30px 80px rgba(0,0,0,.6)'),
+      },
+    },
+    recipes: {
+      button: { base: { borderRadius: 'pill' } },
     },
     slotRecipes: {
       combobox: extendSlotRecipe('combobox', {
         content: floatingPanel,
-        item: { _highlighted: { bg: 'brand.500/20' }, _selected: { color: 'brand.300' } },
-        input: { bg: 'bg.subtle', borderColor: 'border.default' },
-        empty: { color: 'text.secondary' },
+        item: { _highlighted: { bg: 'brandSoft' }, _selected: { color: 'brand' } },
+        input: { bg: 'surface2', borderColor: 'line' },
+        empty: { color: 'text2' },
       }),
       datePicker: extendSlotRecipe('datePicker', {
         content: floatingPanel,
-        input: { bg: 'bg.subtle', borderColor: 'border.default' },
+        input: { bg: 'surface2', borderColor: 'line' },
       }),
       numberInput: extendSlotRecipe('numberInput', {
-        input: { bg: 'bg.subtle', borderColor: 'border.default' },
+        input: { bg: 'surface2', borderColor: 'line' },
       }),
       colorPicker: extendSlotRecipe('colorPicker', {
         content: floatingPanel,
-        channelInput: { bg: 'bg.subtle', borderColor: 'border.default' },
+        channelInput: { bg: 'surface2', borderColor: 'line' },
+      }),
+      dialog: extendSlotRecipe('dialog', {
+        content: { bg: 'surface', borderRadius: 'hero', boxShadow: 'overlay' },
       }),
       tooltip: extendSlotRecipe('tooltip', {
         content: {
-          '--tooltip-bg': 'colors.bg.subtle',
-          color: 'text.primary',
+          '--tooltip-bg': 'colors.surface2',
+          color: 'text',
           borderWidth: '1px',
-          borderColor: 'border.default',
+          borderColor: 'line',
         },
       }),
     },

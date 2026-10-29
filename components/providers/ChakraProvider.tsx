@@ -7,6 +7,7 @@ import {
   Box,
   Text,
 } from '@chakra-ui/react'
+import { ThemeProvider } from 'next-themes'
 import { system } from '@/theme'
 import { ReactNode, useEffect } from 'react'
 import { toaster } from '@/lib/toaster'
@@ -49,7 +50,10 @@ export function ChakraProvider({ children }: { children: ReactNode }) {
   return (
     <EmotionRegistry>
       <ChakraUIProvider value={system}>
-        {children}
+        {/* Dark by default; light is opt-in from Ajustes → Apariencia. */}
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
+          {children}
+        </ThemeProvider>
         <DialogOverlayGuard />
         <Toaster toaster={toaster}>
           {(toast) => (

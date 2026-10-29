@@ -3,6 +3,7 @@ export type TransactionType = 'income' | 'expense'
 export type CategoryType = 'income' | 'expense' | 'both'
 export type BudgetPeriod = 'monthly' | 'yearly'
 export type TransactionSource = 'manual' | 'conversational' | 'import' | 'gmail'
+export type ThemePreference = 'dark' | 'light'
 
 export interface Whitelist {
   id: string
@@ -16,6 +17,7 @@ export interface User {
   name: string | null
   avatar_url: string | null
   preferred_currency: Currency
+  theme: ThemePreference
   /**
    * Gates the whole Gmail integration for this user. Changed only in the
    * database — there is deliberately no UI to flip it.

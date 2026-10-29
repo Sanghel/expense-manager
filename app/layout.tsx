@@ -50,12 +50,11 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      // next-themes sets the theme class on <html> before hydration.
+      suppressHydrationWarning
     >
-      <body
-        className="min-h-full flex flex-col bg-black text-white"
-        suppressHydrationWarning
-      >
+      <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <SessionProvider>
           <ChakraProvider>{children}</ChakraProvider>
         </SessionProvider>

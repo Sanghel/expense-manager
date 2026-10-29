@@ -34,7 +34,7 @@ that tells you where the money actually went.</strong>
 
 <br/>
 
-<img width="100%" alt="Dashboard with balances in COP, USD and VES, account cards and the AI chat registering an expense" src="docs/assets/screenshot-dashboard.webp" />
+<img width="100%" alt="Resumen in the Pulso design: icon nav with the AI bar, balance hero with the daily spending allowance, monthly stats with six months of bars, and account cards in COP, USD and VES (sample figures)" src="docs/assets/screenshot-dashboard.webp" />
 
 <br/><br/>
 

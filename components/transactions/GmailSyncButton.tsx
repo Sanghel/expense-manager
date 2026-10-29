@@ -15,8 +15,11 @@ interface Props {
   userId: string
   categories: Category[]
   accounts: Account[]
-  /** `rail`: full-width labeled button for the Transacciones side rail. */
-  variant?: 'icon' | 'rail'
+  /**
+   * `rail`: full-width labeled button for the Transacciones side rail.
+   * `button`: labeled primary button (Ajustes → Gmail).
+   */
+  variant?: 'icon' | 'rail' | 'button'
 }
 
 export function GmailSyncButton({ userId, categories, accounts, variant = 'icon' }: Props) {
@@ -54,7 +57,12 @@ export function GmailSyncButton({ userId, categories, accounts, variant = 'icon'
 
   return (
     <>
-      {variant === 'rail' ? (
+      {variant === 'button' ? (
+        <Button onClick={handleClick} loading={loading} bg="brandSolid" color="white" _hover={{ bg: 'brand.600' }}>
+          <LuMail />
+          Sincronizar
+        </Button>
+      ) : variant === 'rail' ? (
         <Button
           onClick={handleClick}
           loading={loading}

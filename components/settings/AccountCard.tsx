@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { Badge, Box, Circle, HStack, Text, VStack } from '@chakra-ui/react'
+import { Box, Flex, HStack, Text, VStack } from '@chakra-ui/react'
 import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import { TruncatedText } from '@/components/ui/TruncatedText'
 import { formatCurrency } from '@/lib/utils/currency'
@@ -30,70 +30,69 @@ interface Props {
 export function AccountCard({ account, onEdit, onDelete, extraAction }: Props) {
   const isCreditCard = account.type === 'card' && account.credit_limit != null
 
+  const decimals = account.currency === 'COP' ? 0 : 2
+
   return (
     <Box
-      borderWidth="1px"
-      borderRadius="xl"
-      p={4}
-      bg="bg.canvas"
-      borderColor={account.is_default ? 'brand.500' : 'border.default'}
-      _hover={{ borderColor: 'brand.500' }}
-      transition="border-color 0.2s"
+      bg="surface"
+      borderRadius="card"
+      p={5}
       minW={0}
+      // The default account is outlined in brand.
+      boxShadow={account.is_default ? 'inset 0 0 0 1.5px var(--chakra-colors-brand)' : 'none'}
     >
-      <VStack align="stretch" gap={3}>
-        <HStack gap={3} align="start">
-          <Circle size="10" flexShrink={0} bg={account.color ?? 'brand.400'} fontSize="lg">
+      <VStack align="stretch" gap={4}>
+        <HStack gap={3} align="center">
+          <Flex
+            align="center"
+            justify="center"
+            boxSize="36px"
+            borderRadius="11px"
+            flexShrink={0}
+            fontSize="17px"
+            style={{
+              background: `color-mix(in oklab, ${account.color ?? 'var(--chakra-colors-brand)'} 22%, transparent)`,
+            }}
+          >
             {account.icon ?? '💳'}
-          </Circle>
-          <VStack align="start" gap={1} flex="1" minW={0}>
-            <TruncatedText fontWeight="semibold" fontSize="sm" color="text.primary" w="full">
+          </Flex>
+          <VStack align="start" gap={0} flex="1" minW={0}>
+            <TruncatedText fontWeight="600" fontSize="14px" color="text" w="full">
               {account.name}
             </TruncatedText>
-            <HStack gap={1} flexWrap="wrap">
-              <Badge size="sm" variant="outline" colorPalette="gray">
-                {ACCOUNT_TYPE_LABELS[account.type] ?? account.type}
-              </Badge>
+            <Text fontSize="12px" color="text3">
+              {ACCOUNT_TYPE_LABELS[account.type] ?? account.type} · {account.currency}
               {account.is_default && (
-                <Badge size="sm" colorPalette="purple">Por defecto</Badge>
+                <Text as="span" color="brand">
+                  {' '}· Por defecto
+                </Text>
               )}
-            </HStack>
+            </Text>
           </VStack>
           <HStack gap={0} flexShrink={0}>
-            <ActionIconButton
-              kind="edit"
-              size="xs"
-              label={`Editar cuenta ${account.name}`}
-              onClick={() => onEdit(account)}
-            />
-            <ActionIconButton
-              kind="delete"
-              size="xs"
-              tone="danger"
-              label={`Eliminar cuenta ${account.name}`}
-              onClick={() => onDelete(account.id)}
-            />
+            <ActionIconButton kind="edit" size="xs" variant="ghost" label={`Editar cuenta ${account.name}`} onClick={() => onEdit(account)} />
+            <ActionIconButton kind="delete" size="xs" variant="ghost" tone="danger" label={`Eliminar cuenta ${account.name}`} onClick={() => onDelete(account.id)} />
           </HStack>
         </HStack>
 
         {isCreditCard ? (
           <VStack align="stretch" gap={1}>
             <HStack justify="space-between" gap={2}>
-              <Text fontSize="xs" color="text.secondary" flexShrink={0}>Cupo disponible</Text>
-              <TruncatedText fontWeight="bold" fontSize="md" color="text.primary">
-                {formatCurrency(account.balance, account.currency)}
+              <Text fontSize="12px" color="text3" flexShrink={0}>Cupo disponible</Text>
+              <TruncatedText fontFamily="mono" fontWeight="500" fontSize="18px" color="text">
+                {formatCurrency(account.balance, account.currency, decimals)}
               </TruncatedText>
             </HStack>
             <HStack justify="space-between" gap={2}>
-              <Text fontSize="xs" color="text.secondary" flexShrink={0}>Cupo total</Text>
-              <TruncatedText fontSize="sm" color="text.secondary">
-                {formatCurrency(account.credit_limit ?? 0, account.currency)}
+              <Text fontSize="12px" color="text3" flexShrink={0}>Cupo total</Text>
+              <TruncatedText fontFamily="mono" fontSize="13px" color="text2">
+                {formatCurrency(account.credit_limit ?? 0, account.currency, decimals)}
               </TruncatedText>
             </HStack>
           </VStack>
         ) : (
-          <TruncatedText fontWeight="bold" fontSize="lg" color="text.primary">
-            {formatCurrency(account.balance, account.currency)}
+          <TruncatedText fontFamily="mono" fontWeight="500" fontSize="22px" color={account.balance < 0 ? 'neg' : 'text'}>
+            {formatCurrency(account.balance, account.currency, decimals)}
           </TruncatedText>
         )}
 

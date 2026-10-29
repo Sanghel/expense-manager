@@ -1,30 +1,12 @@
 'use client'
 
-import {
-  Box,
-  Heading,
-  Button,
-  HStack,
-  VStack,
-  Text,
-  Badge,
-  SimpleGrid,
-  DialogRoot,
-  DialogBackdrop,
-  DialogPositioner,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogBody,
-  DialogCloseTrigger,
-} from '@chakra-ui/react'
-import { useState, useCallback, useEffect } from 'react'
-import { LuPlus } from 'react-icons/lu'
-import { ActionIconButton } from '@/components/ui/ActionIconButton'
-import { useDisclosure } from '@chakra-ui/react'
+import { Box, Button, Flex, Icon, Stack, Text, useDisclosure } from '@chakra-ui/react'
+import { useState, useCallback } from 'react'
+import { LuPencil, LuPlus, LuX } from 'react-icons/lu'
 import { deleteCategory } from '@/lib/actions/categories.actions'
 import { useRouter } from 'next/navigation'
 import { toaster } from '@/lib/toaster'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { CategoryForm } from '@/components/categories/CategoryForm'
 import { CategoryEditForm } from '@/components/categories/CategoryEditForm'
 import { CategoryGroupsSection } from '@/components/categories/CategoryGroupsSection'
@@ -36,49 +18,80 @@ interface Props {
   initialGroups?: CategoryGroupWithMembers[]
 }
 
-const TYPE_BADGE: Record<CategoryType, { label: string; palette: string }> = {
-  expense: { label: 'Gasto', palette: 'red' },
-  income: { label: 'Ingreso', palette: 'green' },
-  both: { label: 'Ambos', palette: 'purple' },
-}
+const SECTIONS: { type: CategoryType; label: string }[] = [
+  { type: 'expense', label: 'Gastos' },
+  { type: 'income', label: 'Ingresos' },
+  { type: 'both', label: 'Gastos e ingresos' },
+]
 
-function CategorySection({
-  title,
-  categories,
-  readOnly,
+/**
+ * Category as a 42px pill: tinted circle with the emoji + name. The user's own
+ * categories carry a brand ring and edit/delete; predefined ones are plain.
+ */
+function CategoryChip({
+  category,
   onEdit,
   onDelete,
 }: {
-  title: string
-  categories: Category[]
-  readOnly?: boolean
-  onEdit?: (cat: Category) => void
-  onDelete?: (cat: Category) => void
+  category: Category
+  onEdit?: () => void
+  onDelete?: () => void
 }) {
-  if (categories.length === 0) return null
-
+  const own = category.user_id !== null
   return (
-    <Box>
-      <Text fontWeight="semibold" color="#B0B0B0" mb={3} fontSize="sm" textTransform="uppercase">
-        {title}
+    <Flex
+      align="center"
+      gap={2}
+      h="42px"
+      ps="6px"
+      pe={own ? 1.5 : 4}
+      bg="surface"
+      borderRadius="pill"
+      boxShadow={own ? 'inset 0 0 0 1px var(--chakra-colors-brand)' : 'none'}
+      title={own ? undefined : 'Categoría predefinida'}
+    >
+      <Flex
+        align="center"
+        justify="center"
+        boxSize="30px"
+        borderRadius="full"
+        fontSize="15px"
+        flexShrink={0}
+        style={{
+          background: `color-mix(in oklab, ${category.color ?? 'var(--chakra-colors-text3)'} 22%, transparent)`,
+        }}
+      >
+        {category.icon ?? '🏷️'}
+      </Flex>
+      <Text fontSize="14px" color="text" whiteSpace="nowrap">
+        {category.name}
       </Text>
-      <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 4 }} gap={3}>
-        {categories.map((cat) => (
-          <CategoryCard
-            key={cat.id}
-            category={cat}
-            readOnly={readOnly}
-            onEdit={onEdit ? () => onEdit(cat) : undefined}
-            onDelete={onDelete ? () => onDelete(cat) : undefined}
-          />
-        ))}
-      </SimpleGrid>
-    </Box>
+      {own && (
+        <Flex gap={0.5}>
+          <Button aria-label={`Editar ${category.name}`} onClick={onEdit} size="xs" variant="ghost" color="brand" minW="28px" h="28px" p={0}>
+            <LuPencil />
+          </Button>
+          <Button
+            aria-label={`Eliminar ${category.name}`}
+            onClick={onDelete}
+            size="xs"
+            variant="ghost"
+            color="text3"
+            _hover={{ color: 'neg', bg: 'negSoft' }}
+            minW="28px"
+            h="28px"
+            p={0}
+          >
+            <LuX />
+          </Button>
+        </Flex>
+      )}
+    </Flex>
   )
 }
 
 export function CategoriesPageClient({ userId, initialCategories, initialGroups = [] }: Props) {
-  const [categories, setCategories] = useState<Category[]>(initialCategories)
+  const categories = initialCategories
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
@@ -92,10 +105,6 @@ export function CategoriesPageClient({ userId, initialCategories, initialGroups 
   const refresh = useCallback(() => {
     router.refresh()
   }, [router])
-
-  useEffect(() => {
-    setCategories(initialCategories)
-  }, [initialCategories])
 
   const handleEditOpen = (cat: Category) => {
     setSelectedCategory(cat)
@@ -124,78 +133,47 @@ export function CategoriesPageClient({ userId, initialCategories, initialGroups 
     setDeleteLoading(false)
   }
 
-  const predefined = categories.filter((c) => c.user_id === null)
-  const userCategories = categories.filter((c) => c.user_id !== null)
-
-  const predExpense = predefined.filter((c) => c.type === 'expense')
-  const predIncome = predefined.filter((c) => c.type === 'income')
-  const predBoth = predefined.filter((c) => c.type === 'both')
-
-  const userExpense = userCategories.filter((c) => c.type === 'expense')
-  const userIncome = userCategories.filter((c) => c.type === 'income')
-  const userBoth = userCategories.filter((c) => c.type === 'both')
-
   return (
-    <Box p={6}>
-      <HStack justify="space-between" mb={6}>
-        <Heading size="lg" color="white">Categorías</Heading>
-        <Button bg="#4F46E5" color="white" _hover={{ bg: '#4338CA' }} onClick={createDisclosure.onOpen}>
-          <LuPlus />
-          Nueva Categoría
-        </Button>
-      </HStack>
-
-      <VStack gap={10} align="stretch">
-        {/* Gastos */}
-        <Box>
-          <Heading size="md" color="white" mb={4}>💸 Gastos</Heading>
-          <VStack gap={6} align="stretch">
-            <CategorySection title="Predefinidas" categories={predExpense} readOnly />
-            <CategorySection
-              title="Mis Categorías"
-              categories={userExpense}
-              onEdit={handleEditOpen}
-              onDelete={handleDeleteOpen}
-            />
-            {userExpense.length === 0 && predExpense.length === 0 && (
-              <Text color="#808080" fontSize="sm">Sin categorías de gasto.</Text>
-            )}
-          </VStack>
-        </Box>
-
-        {/* Ingresos */}
-        <Box>
-          <Heading size="md" color="white" mb={4}>💰 Ingresos</Heading>
-          <VStack gap={6} align="stretch">
-            <CategorySection title="Predefinidas" categories={predIncome} readOnly />
-            <CategorySection
-              title="Mis Categorías"
-              categories={userIncome}
-              onEdit={handleEditOpen}
-              onDelete={handleDeleteOpen}
-            />
-            {userIncome.length === 0 && predIncome.length === 0 && (
-              <Text color="#808080" fontSize="sm">Sin categorías de ingreso.</Text>
-            )}
-          </VStack>
-        </Box>
-
-        {/* Ambos */}
-        {(predBoth.length > 0 || userBoth.length > 0) && (
-          <Box>
-            <Heading size="md" color="white" mb={4}>🔄 Gastos e Ingresos</Heading>
-            <VStack gap={6} align="stretch">
-              <CategorySection title="Predefinidas" categories={predBoth} readOnly />
-              <CategorySection
-                title="Mis Categorías"
-                categories={userBoth}
-                onEdit={handleEditOpen}
-                onDelete={handleDeleteOpen}
-              />
-            </VStack>
-          </Box>
-        )}
-      </VStack>
+    <Box>
+      <Stack gap={7}>
+        {SECTIONS.map(({ type, label }) => {
+          // Predefined first, then the user's own.
+          const items = categories
+            .filter((c) => c.type === type)
+            .sort((a, b) => Number(a.user_id !== null) - Number(b.user_id !== null) || a.name.localeCompare(b.name))
+          if (items.length === 0 && type === 'both') return null
+          return (
+            <Box key={type}>
+              <Text textStyle="sectionLabel" color="text3" mb={3}>
+                {label}
+              </Text>
+              <Flex wrap="wrap" gap={2}>
+                {items.map((cat) => (
+                  <CategoryChip
+                    key={cat.id}
+                    category={cat}
+                    onEdit={() => handleEditOpen(cat)}
+                    onDelete={() => handleDeleteOpen(cat)}
+                  />
+                ))}
+                {type === 'expense' && (
+                  <Button
+                    onClick={createDisclosure.onOpen}
+                    h="42px"
+                    px={4}
+                    bg="brandSoft"
+                    color="brand"
+                    _hover={{ opacity: 0.85 }}
+                  >
+                    <Icon as={LuPlus} />
+                    Nueva categoría
+                  </Button>
+                )}
+              </Flex>
+            </Box>
+          )
+        })}
+      </Stack>
 
       <CategoryGroupsSection
         userId={userId}
@@ -221,100 +199,14 @@ export function CategoriesPageClient({ userId, initialCategories, initialGroups 
         />
       )}
 
-      <DialogRoot
-        open={deleteDisclosure.open}
-        onOpenChange={({ open }) => !open && deleteDisclosure.onClose()}
-        role="alertdialog"
-        placement="center"
-        lazyMount
-        unmountOnExit
-      >
-        <DialogBackdrop />
-        <DialogPositioner>
-          <DialogContent tabIndex={-1}>
-            <DialogHeader>
-              <DialogTitle>Eliminar Categoría</DialogTitle>
-            </DialogHeader>
-            <DialogCloseTrigger />
-            <DialogBody pb={6}>
-              <Text mb={4}>
-                ¿Seguro que deseas eliminar{' '}
-                <Text as="span" fontWeight="bold">
-                  {selectedCategory?.icon} {selectedCategory?.name}
-                </Text>
-                ? Esta acción no se puede deshacer.
-              </Text>
-              <HStack justify="flex-end">
-                <Button variant="outline" onClick={deleteDisclosure.onClose}>
-                  Cancelar
-                </Button>
-                <Button colorPalette="red" loading={deleteLoading} onClick={handleDelete}>
-                  Eliminar
-                </Button>
-              </HStack>
-            </DialogBody>
-          </DialogContent>
-        </DialogPositioner>
-      </DialogRoot>
-    </Box>
-  )
-}
-
-function CategoryCard({
-  category,
-  readOnly = false,
-  onEdit,
-  onDelete,
-}: {
-  category: Category
-  readOnly?: boolean
-  onEdit?: () => void
-  onDelete?: () => void
-}) {
-  const badge = TYPE_BADGE[category.type] ?? TYPE_BADGE.expense
-
-  return (
-    <Box
-      borderWidth="1px"
-      borderColor="#2d2d35"
-      borderRadius="lg"
-      p={4}
-      bg="#1a1a23"
-      _hover={{ shadow: 'md', bg: '#26262f' }}
-      transition="box-shadow 0.15s, background-color 0.15s"
-    >
-      <HStack justify="space-between" align="start">
-        <HStack gap={3}>
-          <Box
-            w="10"
-            h="10"
-            borderRadius="full"
-            bg={category.color ?? 'gray.100'}
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            fontSize="xl"
-            flexShrink={0}
-          >
-            {category.icon ?? '🏷️'}
-          </Box>
-          <Box>
-            <Text fontWeight="medium" fontSize="sm" color="white">
-              {category.name}
-            </Text>
-            <Badge colorPalette={badge.palette} size="sm" mt={1}>
-              {badge.label}
-            </Badge>
-          </Box>
-        </HStack>
-
-        {!readOnly && (
-          <HStack gap={1}>
-            <ActionIconButton kind="edit" label="Editar" size="xs" variant="ghost" onClick={onEdit} />
-            <ActionIconButton kind="delete" tone="danger" label="Eliminar" size="xs" variant="ghost" onClick={onDelete} />
-          </HStack>
-        )}
-      </HStack>
+      <ConfirmDialog
+        isOpen={deleteDisclosure.open}
+        onClose={deleteDisclosure.onClose}
+        onConfirm={handleDelete}
+        title="Eliminar categoría"
+        description={`¿Seguro que deseas eliminar ${selectedCategory?.icon ?? ''} ${selectedCategory?.name ?? ''}? Esta acción no se puede deshacer.`}
+        isLoading={deleteLoading}
+      />
     </Box>
   )
 }

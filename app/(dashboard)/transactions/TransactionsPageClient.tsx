@@ -148,7 +148,7 @@ export function TransactionsPageClient({
       </HStack>
 
       <Box mb={{ base: 4, md: 6 }}>
-        <AccountsOverview accounts={accounts} variant="compact" />
+        <AccountsOverview accounts={accounts} />
       </Box>
 
       {budgets.length > 0 && (

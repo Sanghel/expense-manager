@@ -1,8 +1,9 @@
 'use client'
 
-import { VStack, Heading, Button, HStack, Box, Icon, Text, Spinner } from '@chakra-ui/react'
-import { useState, useCallback, useTransition } from 'react'
+import { VStack, Heading, Button, HStack, Box, Icon, Text } from '@chakra-ui/react'
+import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { useUrlParams } from '@/hooks/useUrlParams'
 import { FiPieChart } from 'react-icons/fi'
 import { BudgetForm } from '@/components/budgets/BudgetForm'
 import { BudgetGroupAccordion } from '@/components/budgets/BudgetGroupAccordion'
@@ -24,7 +25,6 @@ interface Props {
   categories: Category[]
   groups?: CategoryGroupWithMembers[]
   initialBudgets: BudgetWithSpent[]
-  vista: Vista
 }
 
 export function BudgetsPageClient({
@@ -32,16 +32,14 @@ export function BudgetsPageClient({
   categories,
   groups = [],
   initialBudgets,
-  vista,
 }: Props) {
   const router = useRouter()
+  const { searchParams, setParams } = useUrlParams()
+  const vista: Vista = searchParams.get('vista') === 'categorias' ? 'categorias' : 'grupos'
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingBudget, setEditingBudget] = useState<BudgetWithSpent | null>(null)
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
-  const [isPending, startTransition] = useTransition()
-  // Solo se lee junto a isPending: no hace falta limpiarlo al terminar la transición.
-  const [pendingVista, setPendingVista] = useState<Vista | null>(null)
 
   const { total, groups: groupBudgets, categories: categoryBudgets } =
     splitBudgetsByScope(initialBudgets)
@@ -81,11 +79,8 @@ export function BudgetsPageClient({
   }, [])
 
   const switchVista = (next: Vista) => {
-    if (next === vista) return
-    setPendingVista(next)
-    startTransition(() => {
-      router.push(`/planificacion?tab=presupuestos&vista=${next}`, { scroll: false })
-    })
+    // Client-side only: both views render from the same data.
+    if (next !== vista) setParams({ tab: 'presupuestos', vista: next })
   }
 
   const pill = (value: Vista, text: string) => {
@@ -102,7 +97,6 @@ export function BudgetsPageClient({
         _hover={{ bg: isActive ? '#4338CA' : '#22222a' }}
         aria-current={isActive ? 'page' : undefined}
       >
-        {pendingVista === value && isPending && <Spinner size="xs" mr={2} />}
         {text}
       </Button>
     )

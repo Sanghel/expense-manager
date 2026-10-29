@@ -1,10 +1,8 @@
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { insforgeAdmin } from '@/lib/insforge-admin'
+import { getCurrentDbUser } from '@/lib/utils/auth'
+import { getCategoriesCached } from '@/lib/data/cached'
 import { getSavingsAdvice, buildSpendingSummary } from '@/lib/actions/savingsAdvice.actions'
 import { getBudgets } from '@/lib/actions/budgets.actions'
-import { getCategories } from '@/lib/actions/categories.actions'
 import { getSavingsGoals } from '@/lib/actions/savings.actions'
 import { getCategoryGroups } from '@/lib/actions/categoryGroups.actions'
 import { ConsejosAhorroPageClient } from './ConsejosAhorroPageClient'
@@ -12,18 +10,8 @@ import type { ExistingBudget } from '@/components/savings/BudgetSuggestionsList'
 import type { Category, CategoryGroupWithMembers, SavingsGoal } from '@/types/database.types'
 
 export default async function ConsejosAhorroPage() {
-  const session = await getServerSession(authOptions)
-  if (!session?.user?.email) {
-    redirect('/login')
-  }
-
-  const { data: user, error: userError } = await insforgeAdmin.database
-    .from('users')
-    .select('id')
-    .eq('email', session.user.email)
-    .single()
-
-  if (!user?.id || userError) {
+  const user = await getCurrentDbUser()
+  if (!user) {
     redirect('/login')
   }
 
@@ -33,7 +21,7 @@ export default async function ConsejosAhorroPage() {
     getSavingsAdvice(user.id, period),
     buildSpendingSummary(user.id, period),
     getBudgets(user.id),
-    getCategories(user.id),
+    getCategoriesCached(user.id),
     getSavingsGoals(user.id),
     getCategoryGroups(user.id),
   ])

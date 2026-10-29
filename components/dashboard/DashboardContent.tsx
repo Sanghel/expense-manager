@@ -34,6 +34,7 @@ import { DailySpendCalendar } from '@/components/charts/DailySpendCalendar'
 import { getReportDataset, type ReportDataset } from '@/lib/actions/reports.actions'
 import { useFinancialSummary } from '@/hooks/useFinancialSummary'
 import { getAccountsTotal } from '@/lib/utils/accounts'
+import { todayEyebrow } from '@/lib/utils/dates'
 import type {
   TransactionWithCategory,
   Currency,
@@ -49,14 +50,6 @@ interface Props {
   initialExchangeRates: ExchangeRate[]
   initialAccounts?: Account[]
   budgets?: BudgetWithSpent[]
-}
-
-/** "JUE 29 OCT 2026" */
-function todayEyebrow(): string {
-  return new Date()
-    .toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
-    .replace(/[.,]/g, '')
-    .replace(/ de /g, ' ')
 }
 
 /** "OCT 2026 · VS SEP" for the analysis section. */

@@ -40,6 +40,8 @@ interface Props {
   hideLabel?: boolean
   size?: 'sm' | 'md'
   maxW?: string
+  /** Pill-shaped control (compact selects inside tables and toolbars). */
+  pill?: boolean
 }
 
 /**
@@ -64,6 +66,7 @@ export function ComboboxField({
   hideLabel,
   size = 'md',
   maxW,
+  pill,
 }: Props) {
   const { contains } = useFilter({ sensitivity: 'base' })
   const { collection, filter, set, reset } = useListCollection({
@@ -139,7 +142,7 @@ export function ComboboxField({
           </Combobox.Label>
         )}
         <Combobox.Control>
-          <Combobox.Input placeholder={placeholder} />
+          <Combobox.Input placeholder={placeholder} borderRadius={pill ? 'pill' : undefined} />
           <Combobox.IndicatorGroup>
             {clearable && value && <Combobox.ClearTrigger aria-label="Limpiar selección" />}
             <Combobox.Trigger aria-label={`Abrir ${label}`} />

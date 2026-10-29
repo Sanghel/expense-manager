@@ -1,39 +1,23 @@
 'use client'
 
-import { VStack, HStack, Box, Text, Badge, SimpleGrid, Icon } from '@chakra-ui/react'
-import { useState } from 'react'
-import { FiArrowUpRight, FiArrowDownLeft } from 'react-icons/fi'
-import { ActionIconButton } from '@/components/ui/ActionIconButton'
+import { Box, Flex, Grid, IconButton, Menu, Portal, Text } from '@chakra-ui/react'
+import { useMemo, useState } from 'react'
+import { LuEllipsisVertical, LuPencil, LuTrash2 } from 'react-icons/lu'
 import { deleteReminder } from '@/lib/actions/reminders.actions'
+import { nextOccurrence } from '@/lib/reminders/matches-date'
 import { toaster } from '@/lib/toaster'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { ReminderForm } from './ReminderForm'
 import type { Account, Category, ReminderWithCategory } from '@/types/database.types'
 
 const FREQUENCY_LABELS: Record<string, string> = {
-  once: 'Una vez',
-  weekly: 'Semanal',
-  monthly: 'Mensual',
-  yearly: 'Anual',
+  once: 'una vez',
+  weekly: 'semanal',
+  monthly: 'mensual',
+  yearly: 'anual',
 }
 
-const WEEKDAY_NAMES = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
-const MONTH_NAMES = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
-
-function getReminderScheduleLabel(r: ReminderWithCategory): string {
-  switch (r.frequency) {
-    case 'once':
-      return r.specific_date ? `El ${r.specific_date}` : '—'
-    case 'weekly':
-      return `Cada ${r.day_of_week != null ? WEEKDAY_NAMES[r.day_of_week] : '—'}`
-    case 'monthly':
-      return `Día ${r.day_of_month} de cada mes`
-    case 'yearly':
-      return `${r.day_of_month} de ${r.month_of_year != null ? MONTH_NAMES[r.month_of_year] : '—'} de cada año`
-    default:
-      return '—'
-  }
-}
+const DAY_MS = 24 * 60 * 60 * 1000
 
 interface Props {
   userId: string
@@ -43,11 +27,23 @@ interface Props {
   onRefresh: () => void
 }
 
+/** Grid of reminder cards, soonest first, with the next due date as a mono block. */
 export function RemindersList({ userId, reminders, categories, accounts = [], onRefresh }: Props) {
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingReminder, setEditingReminder] = useState<ReminderWithCategory | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
+
+  const sorted = useMemo(() => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return reminders
+      .map((r) => {
+        const next = nextOccurrence(r, today)
+        return { reminder: r, next, daysAway: next ? Math.round((next.getTime() - today.getTime()) / DAY_MS) : null }
+      })
+      .sort((a, b) => (a.daysAway ?? Infinity) - (b.daysAway ?? Infinity))
+  }, [reminders])
 
   const handleDelete = async () => {
     if (!deletingId) return
@@ -64,69 +60,88 @@ export function RemindersList({ userId, reminders, categories, accounts = [], on
   }
 
   return (
-    <VStack gap={4} align="stretch">
-      <Text fontWeight="semibold" color="white">Mis Recordatorios</Text>
-
+    <Box w="full">
       {reminders.length === 0 ? (
-        <Text color="#B0B0B0" fontSize="sm">No tienes recordatorios. Crea uno para verlo en el calendario.</Text>
+        <Text color="text3" fontSize="sm">
+          No tienes recordatorios. Crea uno para verlo en el calendario.
+        </Text>
       ) : (
-        <SimpleGrid columns={{ base: 1, md: 2, xl: 3 }} gap={2}>
-          {reminders.map((r) => (
-            <Box
-              key={r.id}
-              borderWidth="1px"
-              borderRadius="xl"
-              px={4}
-              py={3}
-              bg="#1a1a23"
-              borderColor="#2d2d35"
-              _hover={{ borderColor: '#4F46E5' }}
-              transition="border-color 0.2s"
-            >
-              <HStack justify="space-between" align="flex-start">
-                <VStack align="start" gap={1} flex={1}>
-                  <Text fontWeight="semibold" fontSize="sm" color="white">
+        <Grid templateColumns="repeat(auto-fill, minmax(260px, 1fr))" gap={3}>
+          {sorted.map(({ reminder: r, next, daysAway }) => {
+            const thisWeek = daysAway !== null && daysAway <= 7
+            return (
+              <Flex
+                key={r.id}
+                align="center"
+                gap={3.5}
+                bg="surface"
+                borderRadius="tile"
+                p={4}
+                opacity={r.is_active ? 1 : 0.5}
+              >
+                <Flex
+                  direction="column"
+                  align="center"
+                  justify="center"
+                  boxSize="48px"
+                  borderRadius="14px"
+                  flexShrink={0}
+                  fontFamily="mono"
+                  bg={thisWeek ? 'warn' : 'surface2'}
+                  color={thisWeek ? 'bg' : 'text'}
+                >
+                  {next ? (
+                    <>
+                      <Text fontSize="17px" fontWeight="600" lineHeight="1">
+                        {next.getDate()}
+                      </Text>
+                      <Text fontSize="10px" textTransform="uppercase" mt={0.5} opacity={0.8}>
+                        {next.toLocaleDateString('es-CO', { month: 'short' }).replace('.', '')}
+                      </Text>
+                    </>
+                  ) : (
+                    <Text fontSize="12px">—</Text>
+                  )}
+                </Flex>
+
+                <Box flex="1" minW={0}>
+                  <Text fontSize="14px" fontWeight="500" color="text" truncate>
                     {r.category?.icon ?? '🔔'} {r.description}
                   </Text>
-                  <HStack gap={2} flexWrap="wrap">
-                    <Badge
-                      size="sm"
-                      variant="subtle"
-                      colorPalette={r.type === 'income' ? 'green' : 'red'}
-                    >
-                      <Icon as={r.type === 'income' ? FiArrowDownLeft : FiArrowUpRight} mr={1} />
-                      {r.type === 'income' ? 'Ingreso' : 'Gasto'}
-                    </Badge>
-                    <Badge size="sm" variant="outline" colorPalette="purple">
-                      {FREQUENCY_LABELS[r.frequency]}
-                    </Badge>
-                    <Text fontSize="xs" color="#B0B0B0">{getReminderScheduleLabel(r)}</Text>
-                    {r.category && (
-                      <Text fontSize="xs" color="#B0B0B0">· {r.category.name}</Text>
-                    )}
-                  </HStack>
-                </VStack>
-                <HStack gap={1} flexShrink={0}>
-                  <ActionIconButton
-                    kind="edit"
-                    label="Editar"
-                    size="xs"
-                    variant="ghost"
-                    onClick={() => { setEditingReminder(r); setIsFormOpen(true) }}
-                  />
-                  <ActionIconButton
-                    kind="delete"
-                    tone="danger"
-                    label="Eliminar"
-                    size="xs"
-                    variant="ghost"
-                    onClick={() => setDeletingId(r.id)}
-                  />
-                </HStack>
-              </HStack>
-            </Box>
-          ))}
-        </SimpleGrid>
+                  <Text fontSize="12px" color="text3" truncate>
+                    {[r.category?.name, FREQUENCY_LABELS[r.frequency], r.type === 'income' ? 'ingreso' : null]
+                      .filter(Boolean)
+                      .join(' · ')}
+                    {daysAway === 0 && ' · hoy'}
+                    {daysAway === 1 && ' · mañana'}
+                  </Text>
+                </Box>
+
+                <Menu.Root positioning={{ placement: 'bottom-end' }}>
+                  <Menu.Trigger asChild>
+                    <IconButton aria-label={`Opciones de ${r.description}`} size="xs" variant="ghost" color="text3" _hover={{ color: 'text', bg: 'surface2' }}>
+                      <LuEllipsisVertical />
+                    </IconButton>
+                  </Menu.Trigger>
+                  <Portal>
+                    <Menu.Positioner>
+                      <Menu.Content bg="surface" borderRadius="tile" boxShadow="overlay" minW="36">
+                        <Menu.Item value="edit" onClick={() => { setEditingReminder(r); setIsFormOpen(true) }}>
+                          <LuPencil />
+                          Editar
+                        </Menu.Item>
+                        <Menu.Item value="delete" color="neg" onClick={() => setDeletingId(r.id)}>
+                          <LuTrash2 />
+                          Eliminar
+                        </Menu.Item>
+                      </Menu.Content>
+                    </Menu.Positioner>
+                  </Portal>
+                </Menu.Root>
+              </Flex>
+            )
+          })}
+        </Grid>
       )}
 
       <ReminderForm
@@ -147,6 +162,6 @@ export function RemindersList({ userId, reminders, categories, accounts = [], on
         description="¿Estás seguro? Esta acción no se puede deshacer."
         isLoading={deleteLoading}
       />
-    </VStack>
+    </Box>
   )
 }

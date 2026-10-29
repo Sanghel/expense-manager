@@ -1,16 +1,36 @@
 'use client'
 
-import { Box, Heading, Button, HStack, Text, useDisclosure, Icon } from '@chakra-ui/react'
+import { Box, Button, Flex, Grid, IconButton, Text, useDisclosure } from '@chakra-ui/react'
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiPlus, FiCreditCard } from 'react-icons/fi'
+import { LuPlus } from 'react-icons/lu'
 import { Card } from '@/components/ui/Card'
 import { LoanForm } from '@/components/loans/LoanForm'
 import { LoanPaymentForm } from '@/components/loans/LoanPaymentForm'
 import { LoanCards } from '@/components/loans/LoanCards'
 import { deleteLoan, settleLoan } from '@/lib/actions/loans.actions'
 import { toaster } from '@/lib/toaster'
+import { formatCurrency } from '@/lib/utils/currency'
 import type { Account, LoanWithAccount } from '@/types/database.types'
+
+type LoanType = 'lent' | 'borrowed'
+
+const LANES: { type: LoanType; title: string; empty: string; cta: string }[] = [
+  { type: 'lent', title: 'Me deben', empty: 'Nadie te debe dinero.', cta: 'Presté dinero' },
+  { type: 'borrowed', title: 'Debo', empty: 'No tienes deudas pendientes.', cta: 'Me prestaron' },
+]
+
+/** Pending amount per currency: "COP 120.000 · US$ 50,00". */
+function pendingTotal(loans: LoanWithAccount[]): string {
+  const byCurrency = new Map<string, number>()
+  for (const l of loans) {
+    byCurrency.set(l.currency, (byCurrency.get(l.currency) ?? 0) + Number(l.amount) - Number(l.paid_amount ?? 0))
+  }
+  if (byCurrency.size === 0) return formatCurrency(0, 'COP', 0)
+  return [...byCurrency]
+    .map(([currency, amount]) => formatCurrency(amount, currency, currency === 'COP' ? 0 : 2))
+    .join(' · ')
+}
 
 interface Props {
   userId: string
@@ -25,6 +45,13 @@ export function LoansPageClient({ userId, initialLoans, accounts }: Props) {
   const { open: isPaymentOpen, onOpen: onPaymentOpen, onClose: onPaymentClose } = useDisclosure()
   const [editingLoan, setEditingLoan] = useState<LoanWithAccount | null>(null)
   const [payingLoan, setPayingLoan] = useState<LoanWithAccount | null>(null)
+  // Kept after closing so the form keeps its type during the exit animation.
+  const [createType, setCreateType] = useState<LoanType>('lent')
+
+  const openCreate = useCallback((type: LoanType) => {
+    setCreateType(type)
+    onCreateOpen()
+  }, [onCreateOpen])
 
   const refresh = useCallback(() => router.refresh(), [router])
 
@@ -75,57 +102,91 @@ export function LoansPageClient({ userId, initialLoans, accounts }: Props) {
   const activeLoans = initialLoans.filter((l) => l.status === 'active')
   const settledLoans = initialLoans.filter((l) => l.status === 'settled')
 
+  const cardProps = {
+    userId,
+    onEdit: handleEdit,
+    onSettle: handleSettle,
+    onDelete: handleDelete,
+    onPayment: handlePayment,
+    onRefresh: refresh,
+  }
+
   return (
     <Box>
-      <HStack justify="space-between" mb={{ base: 4, md: 6 }}>
-        <HStack gap={2}>
-          <Icon as={FiCreditCard} color="#6366f1" boxSize={6} />
-          <Heading size={{ base: 'md', md: 'lg' }} color="white">Deudas y Préstamos</Heading>
-        </HStack>
-        <Button
-          bg="#4F46E5"
-          color="white"
-          _hover={{ bg: '#4338CA' }}
-          onClick={onCreateOpen}
-          size={{ base: 'sm', md: 'md' }}
-        >
-          <FiPlus />
-          <Text display={{ base: 'none', sm: 'inline' }}>Registrar Préstamo</Text>
-          <Text display={{ base: 'inline', sm: 'none' }}>Nuevo</Text>
-        </Button>
-      </HStack>
+      <Grid templateColumns={{ base: '1fr', md: '1fr 1fr' }} gap={4} mb={8}>
+        {LANES.map((lane) => {
+          const loans = activeLoans.filter((l) => l.type === lane.type)
+          return (
+            <Card key={lane.type} minW={0}>
+              <Flex justify="space-between" align="flex-start" mb={4} gap={3}>
+                <Box minW={0}>
+                  <Text textStyle="cardTitle" color="text">
+                    {lane.title}
+                  </Text>
+                  <Text fontFamily="mono" fontSize="20px" fontWeight="500" color="text" mt={1}>
+                    {pendingTotal(loans)}
+                  </Text>
+                </Box>
+                <IconButton
+                  aria-label={lane.cta}
+                  title={lane.cta}
+                  size="sm"
+                  bg="surface2"
+                  color="text2"
+                  _hover={{ color: 'text' }}
+                  onClick={() => openCreate(lane.type)}
+                >
+                  <LuPlus />
+                </IconButton>
+              </Flex>
 
-      <Card mb={6}>
-        <Heading size="sm" mb={4} color="white">Activos</Heading>
-        <LoanCards
-          loans={activeLoans}
-          userId={userId}
-          onEdit={handleEdit}
-          onSettle={handleSettle}
-          onDelete={handleDelete}
-          onPayment={handlePayment}
-          onRefresh={refresh}
-        />
-      </Card>
+              {loans.length === 0 ? (
+                <Flex
+                  direction="column"
+                  align="center"
+                  gap={3}
+                  bg="bg"
+                  borderRadius="tile"
+                  py={8}
+                  px={4}
+                  textAlign="center"
+                >
+                  <Text fontSize="14px" color="text3">
+                    {lane.empty}
+                  </Text>
+                  <Button
+                    size="sm"
+                    bg="brandSoft"
+                    color="brand"
+                    _hover={{ opacity: 0.85 }}
+                    onClick={() => openCreate(lane.type)}
+                  >
+                    <LuPlus />
+                    {lane.cta}
+                  </Button>
+                </Flex>
+              ) : (
+                <LoanCards loans={loans} {...cardProps} />
+              )}
+            </Card>
+          )
+        })}
+      </Grid>
 
       {settledLoans.length > 0 && (
-        <Card>
-          <Heading size="sm" mb={4} color="#B0B0B0">Historial — Saldados</Heading>
-          <LoanCards
-            loans={settledLoans}
-            userId={userId}
-            onEdit={handleEdit}
-            onSettle={handleSettle}
-            onDelete={handleDelete}
-            onPayment={handlePayment}
-            onRefresh={refresh}
-          />
-        </Card>
+        <Box>
+          <Text textStyle="sectionLabel" color="text3" mb={3}>
+            Saldados
+          </Text>
+          <LoanCards loans={settledLoans} {...cardProps} />
+        </Box>
       )}
 
       <LoanForm
+        key={createType}
         isOpen={isCreateOpen}
         onClose={onCreateClose}
+        defaultType={createType}
         userId={userId}
         accounts={accounts}
         onSuccess={refresh}

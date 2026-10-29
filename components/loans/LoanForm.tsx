@@ -25,12 +25,14 @@ interface Props {
   accounts: Account[]
   onSuccess: () => void
   loan?: LoanWithAccount
+  /** Type preselected for a new loan. */
+  defaultType?: 'lent' | 'borrowed'
 }
 
-export function LoanForm({ isOpen, onClose, userId, accounts, onSuccess, loan }: Props) {
+export function LoanForm({ isOpen, onClose, userId, accounts, onSuccess, loan, defaultType = 'lent' }: Props) {
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
-    type: (loan?.type ?? 'lent') as 'lent' | 'borrowed',
+    type: (loan?.type ?? defaultType) as 'lent' | 'borrowed',
     person_name: loan?.person_name ?? '',
     amount: loan?.amount as number | undefined,
     currency: (loan?.currency ?? 'COP') as Currency,

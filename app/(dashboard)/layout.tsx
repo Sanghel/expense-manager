@@ -3,7 +3,7 @@ import { getAccountsCached, getCategoriesCached } from '@/lib/data/cached'
 import { getReminderNotifications } from '@/lib/actions/reminders.actions'
 // import { runDailyCatchUp } from '@/lib/utils/dailyCatchUp'
 import { DashboardShell } from '@/components/dashboard/DashboardShell'
-import { FloatingChat } from '@/components/chat/FloatingChat'
+import { AiPalette } from '@/components/chat/AiPalette'
 import { ThemeSync } from '@/components/providers/ThemeSync'
 import type { ReminderOccurrence } from '@/lib/reminders/pending'
 import type { ThemePreference } from '@/types/database.types'
@@ -47,7 +47,7 @@ export default async function DashboardLayout({
         {children}
       </DashboardShell>
       {user && (
-        <FloatingChat userId={user.id} categories={categories ?? []} accounts={accounts ?? []} />
+        <AiPalette userId={user.id} categories={categories ?? []} accounts={accounts ?? []} />
       )}
     </>
   )

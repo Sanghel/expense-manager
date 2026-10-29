@@ -177,6 +177,13 @@ export interface BudgetWithSpent extends Budget {
   /** Income and expense of the active cycle, in the budget's currency. */
   periodIncome: number
   periodExpense: number
+  /**
+   * Group budgets are not stored: they are derived from the monthly category
+   * budgets of the group's members (limit and spent are their sums).
+   */
+  derived?: boolean
+  /** Derived groups: spend in member categories that have no budget of their own. */
+  otherSpent?: number
   periodStart: string
   periodEnd: string
 }

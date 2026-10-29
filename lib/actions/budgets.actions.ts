@@ -37,13 +37,83 @@ function revalidateBudgets() {
   revalidatePath('/consejos-ahorro')
 }
 
+/**
+ * One budget per category group, built from the monthly budgets of its
+ * member categories: the limit and the spent are their sums (converted into
+ * the currency most of them use). Spend in member categories without a
+ * budget is reported apart as `otherSpent`, so it doesn't inflate the %.
+ */
+function deriveGroupBudgets(
+  budgets: BudgetWithSpent[],
+  groups: CategoryGroupWithMembers[],
+  transactions: { category_id: string | null; amount: number; currency: string; date: string; type: string }[],
+  convert: (amount: number, from: Currency, to: Currency) => number
+): BudgetWithSpent[] {
+  const monthlyByCategory = new Map(
+    budgets
+      .filter((b) => b.scope === 'category' && b.period === 'monthly' && b.category_id)
+      .map((b) => [b.category_id as string, b])
+  )
+
+  return groups.flatMap((group) => {
+    const members = group.category_ids
+      .map((id) => monthlyByCategory.get(id))
+      .filter((b): b is BudgetWithSpent => !!b)
+    if (members.length === 0) return []
+
+    const counts = new Map<Currency, number>()
+    for (const m of members) counts.set(m.currency, (counts.get(m.currency) ?? 0) + 1)
+    const currency = [...counts.entries()].sort((a, b) => b[1] - a[1])[0][0]
+
+    const limit = members.reduce((s, m) => s + convert(toNumber(m.limit_amount), m.currency, currency), 0)
+    const spent = members.reduce((s, m) => s + convert(toNumber(m.spent), m.currency, currency), 0)
+
+    // Same cycle as the members (all monthly): first member's window.
+    const { periodStart, periodEnd } = members[0]
+    const budgeted = new Set(members.map((m) => m.category_id))
+    const unbudgeted = new Set(group.category_ids.filter((id) => !budgeted.has(id)))
+    const otherSpent = transactions
+      .filter((t) => {
+        const date = String(t.date).slice(0, 10)
+        return (
+          t.type === 'expense' &&
+          t.category_id !== null &&
+          unbudgeted.has(t.category_id) &&
+          date >= String(periodStart) &&
+          date <= String(periodEnd)
+        )
+      })
+      .reduce((s, t) => s + convert(toNumber(t.amount), t.currency as Currency, currency), 0)
+
+    return [
+      {
+        ...members[0],
+        id: `group-${group.id}`,
+        scope: 'group',
+        category_id: null,
+        category: null,
+        group_id: group.id,
+        group,
+        amount_type: 'fixed',
+        amount: limit,
+        percent: null,
+        currency,
+        limit_amount: limit,
+        spent,
+        derived: true,
+        otherSpent,
+      } as BudgetWithSpent,
+    ]
+  })
+}
+
 export async function getBudgets(userId: string) {
   if (!userId) {
     console.error('getBudgets: userId is missing')
     return { success: false, error: 'Falta el identificador de usuario' }
   }
   try {
-    const { data: budgets, error: budgetError } = await insforgeAdmin.database
+    const { data: rows, error: budgetError } = await insforgeAdmin.database
       .from('budgets')
       .select('*, category:categories(*)')
       .eq('user_id', userId)
@@ -51,7 +121,11 @@ export async function getBudgets(userId: string) {
 
     if (budgetError) throw budgetError
 
-    if (!budgets || budgets.length === 0) {
+    // Stored group budgets are legacy: a group's budget is derived from its
+    // categories below (#574), so those rows are ignored.
+    const budgets = (rows ?? []).filter((b) => b.scope !== 'group')
+
+    if (budgets.length === 0) {
       return { success: true, data: [] as BudgetWithSpent[] }
     }
 
@@ -84,8 +158,6 @@ export async function getBudgets(userId: string) {
 
     const convert = buildConverter((ratePairs.success ? ratePairs.data : []) as RateRow[])
     const groups = (groupsResult.success ? (groupsResult.data ?? []) : []) as CategoryGroupWithMembers[]
-    const groupById = new Map(groups.map((g) => [g.id, g]))
-    const groupMembers = new Map(groups.map((g) => [g.id, new Set(g.category_ids)]))
 
     const budgetsWithSpent = budgets.map((budget, index) => {
       const { periodStart, periodEnd } = periods[index]
@@ -99,13 +171,8 @@ export async function getBudgets(userId: string) {
       const scope = (budget.scope ?? 'category') as BudgetScope
       const amountType = (budget.amount_type ?? 'fixed') as BudgetAmountType
 
-      const inScope = (categoryId: string | null) => {
-        if (scope === 'total') return true
-        if (scope === 'group') {
-          return categoryId ? (groupMembers.get(budget.group_id)?.has(categoryId) ?? false) : false
-        }
-        return categoryId === budget.category_id
-      }
+      const inScope = (categoryId: string | null) =>
+        scope === 'total' || categoryId === budget.category_id
 
       let spent = 0
       let periodIncome = 0
@@ -140,7 +207,7 @@ export async function getBudgets(userId: string) {
         amount_type: amountType,
         amount: budget.amount === null ? null : toNumber(budget.amount),
         percent: budget.percent === null ? null : toNumber(budget.percent),
-        group: budget.group_id ? (groupById.get(budget.group_id) ?? null) : null,
+        group: null,
         spent,
         limit_amount,
         periodIncome,
@@ -150,7 +217,13 @@ export async function getBudgets(userId: string) {
       } as BudgetWithSpent
     })
 
-    return { success: true, data: budgetsWithSpent }
+    return {
+      success: true,
+      data: [
+        ...budgetsWithSpent,
+        ...deriveGroupBudgets(budgetsWithSpent, groups, transactions ?? [], convert),
+      ],
+    }
   } catch (error) {
     console.error('Get budgets error:', error)
     return { success: false, error: errorMessage(error, 'No se pudieron cargar los presupuestos') }

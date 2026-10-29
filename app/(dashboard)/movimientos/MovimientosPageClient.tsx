@@ -1,77 +1,73 @@
 'use client'
 
-import { useTransition, useState, useEffect } from 'react'
-import { Box, Heading, HStack, Tabs, Spinner, Icon } from '@chakra-ui/react'
-import { useRouter } from 'next/navigation'
+import { Suspense, use } from 'react'
+import { Box, Heading, HStack, Tabs, Icon } from '@chakra-ui/react'
 import { FiList, FiCreditCard, FiBell, FiActivity } from 'react-icons/fi'
 import { TransactionsPageClient } from '../transactions/TransactionsPageClient'
 import { LoansPageClient } from '../loans/LoansPageClient'
 import { RecordatoriosTab } from '@/components/reminders/RecordatoriosTab'
-import type {
-  Account,
-  Category,
-  TransactionWithCategory,
-  LoanWithAccount,
-  ReminderWithCategory,
-  BudgetWithSpent,
-} from '@/types/database.types'
-
-type Tab = 'transacciones' | 'prestamos' | 'recordatorios'
+import { TabSkeleton } from '@/components/ui/Skeletons'
+import { useUrlParams } from '@/hooks/useUrlParams'
+import {
+  parseMovimientosTab,
+  type PrestamosData,
+  type RecordatoriosData,
+  type TransaccionesData,
+} from './tabs'
+import type { Account, Category } from '@/types/database.types'
 
 interface Props {
   userId: string
-  activeTab: Tab
   categories: Category[]
   accounts: Account[]
-  initialTransactions: TransactionWithCategory[] | null
-  initialLoans: LoanWithAccount[] | null
-  initialReminders: ReminderWithCategory[] | null
-  todaysTransactions: { description: string; category_id: string | null }[]
-  budgets: BudgetWithSpent[]
+  transacciones: Promise<TransaccionesData>
+  prestamos: Promise<PrestamosData>
+  recordatorios: Promise<RecordatoriosData>
   gmailSyncEnabled: boolean
+}
+
+function TransaccionesTab({
+  data,
+  ...props
+}: Pick<Props, 'userId' | 'categories' | 'accounts' | 'gmailSyncEnabled'> & {
+  data: Promise<TransaccionesData>
+}) {
+  const { transactions, budgets } = use(data)
+  return <TransactionsPageClient {...props} initialTransactions={transactions} budgets={budgets} />
+}
+
+function PrestamosTab({
+  data,
+  ...props
+}: Pick<Props, 'userId' | 'accounts'> & { data: Promise<PrestamosData> }) {
+  return <LoansPageClient {...props} initialLoans={use(data)} />
+}
+
+function RecordatoriosContent({
+  data,
+  ...props
+}: Pick<Props, 'userId' | 'categories' | 'accounts'> & { data: Promise<RecordatoriosData> }) {
+  const { reminders, todaysTransactions } = use(data)
+  return (
+    <RecordatoriosTab {...props} initialReminders={reminders} todaysTransactions={todaysTransactions} />
+  )
 }
 
 export function MovimientosPageClient({
   userId,
-  activeTab,
   categories,
   accounts,
-  initialTransactions,
-  initialLoans,
-  initialReminders,
-  todaysTransactions,
-  budgets,
+  transacciones,
+  prestamos,
+  recordatorios,
   gmailSyncEnabled,
 }: Props) {
-  const router = useRouter()
-  const [isPending, startTransition] = useTransition()
-  const [pendingTab, setPendingTab] = useState<string | null>(null)
+  const { searchParams, setParams } = useUrlParams()
+  const activeTab = parseMovimientosTab(searchParams.get('tab'))
 
-  useEffect(() => {
-    if (!isPending) setPendingTab(null)
-  }, [isPending])
-
-  const handleTabChange = (tab: string) => {
-    setPendingTab(tab)
-    startTransition(() => {
-      router.push(`/movimientos?tab=${tab}`)
-    })
-  }
-
-  const tabIcon = (tab: string, IconComponent: React.ElementType) =>
-    pendingTab === tab && isPending ? (
-      <Spinner
-        w={4}
-        h={4}
-        borderWidth="2px"
-        borderColor="rgba(255,255,255,0.3)"
-        borderTopColor="white"
-        animationDuration="0.65s"
-        flexShrink={0}
-      />
-    ) : (
-      <Icon as={IconComponent} boxSize={4} flexShrink={0} />
-    )
+  const tabIcon = (IconComponent: React.ElementType) => (
+    <Icon as={IconComponent} boxSize={4} flexShrink={0} />
+  )
 
   return (
     <Box>
@@ -82,10 +78,13 @@ export function MovimientosPageClient({
         </Heading>
       </HStack>
 
+      {/* lazyMount: a tab renders on its first visit and then stays mounted,
+          so coming back to it is instant and keeps its state. */}
       <Tabs.Root
         value={activeTab}
-        onValueChange={({ value }) => handleTabChange(value)}
+        onValueChange={({ value }) => setParams({ tab: value })}
         colorPalette="brand"
+        lazyMount
       >
         <Tabs.List
           mb={6}
@@ -105,7 +104,7 @@ export function MovimientosPageClient({
             whiteSpace="nowrap"
             _selected={{ color: 'white', borderBottomColor: '#6366f1' }}
           >
-            {tabIcon('transacciones', FiList)}
+            {tabIcon(FiList)}
             Transacciones
           </Tabs.Trigger>
           <Tabs.Trigger
@@ -118,7 +117,7 @@ export function MovimientosPageClient({
             whiteSpace="nowrap"
             _selected={{ color: 'white', borderBottomColor: '#6366f1' }}
           >
-            {tabIcon('prestamos', FiCreditCard)}
+            {tabIcon(FiCreditCard)}
             Préstamos
           </Tabs.Trigger>
           <Tabs.Trigger
@@ -131,44 +130,38 @@ export function MovimientosPageClient({
             whiteSpace="nowrap"
             _selected={{ color: 'white', borderBottomColor: '#6366f1' }}
           >
-            {tabIcon('recordatorios', FiBell)}
+            {tabIcon(FiBell)}
             Recordatorios
           </Tabs.Trigger>
         </Tabs.List>
 
         <Tabs.Content value="transacciones">
-          {initialTransactions !== null && (
-            <TransactionsPageClient
+          <Suspense fallback={<TabSkeleton />}>
+            <TransaccionesTab
+              data={transacciones}
               userId={userId}
               categories={categories}
-              initialTransactions={initialTransactions}
               accounts={accounts}
-              budgets={budgets}
               gmailSyncEnabled={gmailSyncEnabled}
             />
-          )}
+          </Suspense>
         </Tabs.Content>
 
         <Tabs.Content value="prestamos">
-          {initialLoans !== null && (
-            <LoansPageClient
-              userId={userId}
-              initialLoans={initialLoans}
-              accounts={accounts}
-            />
-          )}
+          <Suspense fallback={<TabSkeleton />}>
+            <PrestamosTab data={prestamos} userId={userId} accounts={accounts} />
+          </Suspense>
         </Tabs.Content>
 
         <Tabs.Content value="recordatorios">
-          {initialReminders !== null && (
-            <RecordatoriosTab
+          <Suspense fallback={<TabSkeleton />}>
+            <RecordatoriosContent
+              data={recordatorios}
               userId={userId}
               categories={categories}
               accounts={accounts}
-              initialReminders={initialReminders}
-              todaysTransactions={todaysTransactions}
             />
-          )}
+          </Suspense>
         </Tabs.Content>
       </Tabs.Root>
     </Box>

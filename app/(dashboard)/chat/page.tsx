@@ -1,30 +1,17 @@
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { insforgeAdmin } from '@/lib/insforge-admin'
-import { getCategories } from '@/lib/actions/categories.actions'
+import { getCurrentDbUser } from '@/lib/utils/auth'
+import { getCategoriesCached } from '@/lib/data/cached'
 import { ChatInterface } from '@/components/chat/ChatInterface'
 import { Box, Heading, Text, VStack, HStack, Icon } from '@chakra-ui/react'
 import { FiMessageCircle } from 'react-icons/fi'
 
 export default async function ChatPage() {
-  const session = await getServerSession(authOptions)
-
-  if (!session?.user?.email) {
-    redirect('/login')
-  }
-
-  const { data: user } = await insforgeAdmin.database
-    .from('users')
-    .select('id')
-    .eq('email', session.user.email)
-    .single()
-
+  const user = await getCurrentDbUser()
   if (!user) {
     redirect('/login')
   }
 
-  const categoriesResult = await getCategories(user.id)
+  const categoriesResult = await getCategoriesCached(user.id)
   const categories = categoriesResult.success ? (categoriesResult.data ?? []) : []
 
   return (

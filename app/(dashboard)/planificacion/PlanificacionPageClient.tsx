@@ -1,66 +1,49 @@
 'use client'
 
-import { useTransition, useState, useEffect } from 'react'
-import { Box, Heading, HStack, Tabs, Spinner, Icon } from '@chakra-ui/react'
-import { useRouter } from 'next/navigation'
+import { Suspense, use } from 'react'
+import { Box, Heading, HStack, Tabs, Icon } from '@chakra-ui/react'
 import { FiTarget, FiPieChart, FiClipboard } from 'react-icons/fi'
 import { SavingsGoalsPageContent } from '@/components/savings/SavingsGoalsPageContent'
 import { BudgetsPageClient } from '../budgets/BudgetsPageClient'
-import type {
-  Account,
-  SavingsGoal,
-  Category,
-  CategoryGroupWithMembers,
-  Currency,
-  ExchangeRate,
-  BudgetWithSpent,
-} from '@/types/database.types'
-
-type Tab = 'metas' | 'presupuestos'
+import { TabSkeleton } from '@/components/ui/Skeletons'
+import { useUrlParams } from '@/hooks/useUrlParams'
+import { parsePlanificacionTab, type MetasData, type PresupuestosData } from './tabs'
+import type { Currency } from '@/types/database.types'
 
 interface Props {
   userId: string
-  activeTab: Tab
-  vista: 'grupos' | 'categorias'
-  initialGoals: SavingsGoal[] | null
-  initialBudgets: BudgetWithSpent[] | null
-  categories: Category[]
-  categoryGroups?: CategoryGroupWithMembers[]
-  accounts?: Account[]
+  metas: Promise<MetasData>
+  presupuestos: Promise<PresupuestosData>
   preferredCurrency: Currency
-  exchangeRates: ExchangeRate[]
 }
 
-export function PlanificacionPageClient({
+function MetasTab({
+  data,
   userId,
-  activeTab,
-  vista,
-  initialGoals,
-  initialBudgets,
-  categories,
-  categoryGroups = [],
-  accounts = [],
   preferredCurrency,
-  exchangeRates,
-}: Props) {
-  const router = useRouter()
-  const [isPending, startTransition] = useTransition()
-  const [pendingTab, setPendingTab] = useState<string | null>(null)
+}: Pick<Props, 'userId' | 'preferredCurrency'> & { data: Promise<MetasData> }) {
+  const { goals, accounts, exchangeRates } = use(data)
+  return (
+    <SavingsGoalsPageContent
+      userId={userId}
+      initialGoals={goals}
+      accounts={accounts}
+      preferredCurrency={preferredCurrency}
+      exchangeRates={exchangeRates}
+    />
+  )
+}
 
-  useEffect(() => {
-    if (!isPending) setPendingTab(null)
-  }, [isPending])
+function PresupuestosTab({ data, userId }: Pick<Props, 'userId'> & { data: Promise<PresupuestosData> }) {
+  const { budgets, categories, groups } = use(data)
+  return (
+    <BudgetsPageClient userId={userId} initialBudgets={budgets} categories={categories} groups={groups} />
+  )
+}
 
-  const handleTabChange = (tab: string) => {
-    setPendingTab(tab)
-    startTransition(() => {
-      const qs = tab === 'presupuestos' ? `?tab=${tab}&vista=${vista}` : `?tab=${tab}`
-      router.push(`/planificacion${qs}`)
-    })
-  }
-
-  const tabIcon = (tab: string, Icon: React.ElementType) =>
-    pendingTab === tab && isPending ? <Spinner size="xs" /> : <Icon />
+export function PlanificacionPageClient({ userId, metas, presupuestos, preferredCurrency }: Props) {
+  const { searchParams, setParams } = useUrlParams()
+  const activeTab = parsePlanificacionTab(searchParams.get('tab'))
 
   return (
     <Box>
@@ -71,10 +54,12 @@ export function PlanificacionPageClient({
         </Heading>
       </HStack>
 
+      {/* lazyMount: a tab renders on its first visit and then stays mounted. */}
       <Tabs.Root
         value={activeTab}
-        onValueChange={({ value }) => handleTabChange(value)}
+        onValueChange={({ value }) => setParams({ tab: value })}
         colorPalette="brand"
+        lazyMount
       >
         <Tabs.List mb={6} borderBottomWidth="1px" borderColor="#2d2d35">
           <Tabs.Trigger
@@ -85,7 +70,7 @@ export function PlanificacionPageClient({
             color="#B0B0B0"
             _selected={{ color: 'white', borderBottomColor: '#6366f1' }}
           >
-            {tabIcon('metas', FiTarget)}
+            <Icon as={FiTarget} />
             Metas de Ahorro
           </Tabs.Trigger>
           <Tabs.Trigger
@@ -96,33 +81,21 @@ export function PlanificacionPageClient({
             color="#B0B0B0"
             _selected={{ color: 'white', borderBottomColor: '#6366f1' }}
           >
-            {tabIcon('presupuestos', FiPieChart)}
+            <Icon as={FiPieChart} />
             Presupuestos
           </Tabs.Trigger>
         </Tabs.List>
 
         <Tabs.Content value="metas">
-          {initialGoals !== null && (
-            <SavingsGoalsPageContent
-              userId={userId}
-              initialGoals={initialGoals}
-              accounts={accounts}
-              preferredCurrency={preferredCurrency}
-              exchangeRates={exchangeRates}
-            />
-          )}
+          <Suspense fallback={<TabSkeleton />}>
+            <MetasTab data={metas} userId={userId} preferredCurrency={preferredCurrency} />
+          </Suspense>
         </Tabs.Content>
 
         <Tabs.Content value="presupuestos">
-          {initialBudgets !== null && (
-            <BudgetsPageClient
-              userId={userId}
-              initialBudgets={initialBudgets}
-              categories={categories}
-              groups={categoryGroups}
-              vista={vista}
-            />
-          )}
+          <Suspense fallback={<TabSkeleton />}>
+            <PresupuestosTab data={presupuestos} userId={userId} />
+          </Suspense>
         </Tabs.Content>
       </Tabs.Root>
     </Box>

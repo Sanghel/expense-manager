@@ -1,34 +1,24 @@
 'use client'
 
-import { useTransition, useState, useEffect } from 'react'
-import { Box, Heading, HStack, VStack, Text, Separator, Tabs, Spinner, Icon } from '@chakra-ui/react'
-import { useRouter } from 'next/navigation'
+import { Suspense, use } from 'react'
+import { Box, Heading, HStack, VStack, Text, Separator, Tabs, Icon } from '@chakra-ui/react'
 import { FiSliders, FiBriefcase, FiTag } from 'react-icons/fi'
 import { CurrencySelector } from '@/components/settings/CurrencySelector'
 import { ExchangeRatesForm } from '@/components/settings/ExchangeRatesForm'
 import { AccountsTab } from '@/components/settings/AccountsTab'
 import { GmailConnectionPanel } from '@/components/settings/GmailConnectionPanel'
 import { CategoriesPageClient } from '../categories/CategoriesPageClient'
-import type {
-  Currency,
-  ExchangeRate,
-  Account,
-  AccountMovementWithAccounts,
-  Category,
-  CategoryGroupWithMembers,
-} from '@/types/database.types'
-
-type Tab = 'general' | 'accounts' | 'categorias'
+import { TabSkeleton } from '@/components/ui/Skeletons'
+import { useUrlParams } from '@/hooks/useUrlParams'
+import { parseSettingsTab, type CategoriasData, type CuentasData } from './tabs'
+import type { Currency, ExchangeRate } from '@/types/database.types'
 
 interface Props {
   userId: string
   preferredCurrency: Currency
   initialRates: ExchangeRate[]
-  initialAccounts: Account[]
-  initialMovements: AccountMovementWithAccounts[]
-  activeTab: Tab
-  initialCategories: Category[]
-  initialGroups?: CategoryGroupWithMembers[]
+  cuentas: Promise<CuentasData>
+  categorias: Promise<CategoriasData>
   gmailStatus: {
     enabled: boolean
     connected: boolean
@@ -37,34 +27,26 @@ interface Props {
   }
 }
 
+function CuentasTab({ data, userId }: { data: Promise<CuentasData>; userId: string }) {
+  const { accounts, movements } = use(data)
+  return <AccountsTab userId={userId} initialAccounts={accounts} initialMovements={movements} />
+}
+
+function CategoriasTab({ data, userId }: { data: Promise<CategoriasData>; userId: string }) {
+  const { categories, groups } = use(data)
+  return <CategoriesPageClient userId={userId} initialCategories={categories} initialGroups={groups} />
+}
+
 export function SettingsPageClient({
   userId,
   preferredCurrency,
   initialRates,
-  initialAccounts,
-  initialMovements,
-  activeTab,
-  initialCategories,
-  initialGroups = [],
+  cuentas,
+  categorias,
   gmailStatus,
 }: Props) {
-  const router = useRouter()
-  const [isPending, startTransition] = useTransition()
-  const [pendingTab, setPendingTab] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (!isPending) setPendingTab(null)
-  }, [isPending])
-
-  const handleTabChange = (tab: string) => {
-    setPendingTab(tab)
-    startTransition(() => {
-      router.push(`/settings?tab=${tab}`)
-    })
-  }
-
-  const tabIcon = (tab: string, IconComponent: React.ElementType) =>
-    pendingTab === tab && isPending ? <Spinner size="xs" /> : <Icon as={IconComponent} boxSize={4} />
+  const { searchParams, setParams } = useUrlParams()
+  const activeTab = parseSettingsTab(searchParams.get('tab'))
 
   return (
     <Box>
@@ -77,8 +59,9 @@ export function SettingsPageClient({
 
       <Tabs.Root
         value={activeTab}
-        onValueChange={({ value }) => handleTabChange(value)}
+        onValueChange={({ value }) => setParams({ tab: value })}
         colorPalette="brand"
+        lazyMount
         style={{ width: '100%' }}
       >
         <Tabs.List mb={6} borderBottomWidth="1px" borderColor="#2d2d35">
@@ -90,7 +73,7 @@ export function SettingsPageClient({
             color="#B0B0B0"
             _selected={{ color: 'white', borderBottomColor: '#6366f1' }}
           >
-            {tabIcon('general', FiSliders)}
+            <Icon as={FiSliders} boxSize={4} />
             General
           </Tabs.Trigger>
           <Tabs.Trigger
@@ -101,7 +84,7 @@ export function SettingsPageClient({
             color="#B0B0B0"
             _selected={{ color: 'white', borderBottomColor: '#6366f1' }}
           >
-            {tabIcon('accounts', FiBriefcase)}
+            <Icon as={FiBriefcase} boxSize={4} />
             Cuentas
           </Tabs.Trigger>
           <Tabs.Trigger
@@ -112,7 +95,7 @@ export function SettingsPageClient({
             color="#B0B0B0"
             _selected={{ color: 'white', borderBottomColor: '#6366f1' }}
           >
-            {tabIcon('categorias', FiTag)}
+            <Icon as={FiTag} boxSize={4} />
             Categorías
           </Tabs.Trigger>
         </Tabs.List>
@@ -157,21 +140,15 @@ export function SettingsPageClient({
         </Tabs.Content>
 
         <Tabs.Content value="accounts">
-          <AccountsTab
-            userId={userId}
-            initialAccounts={initialAccounts}
-            initialMovements={initialMovements}
-          />
+          <Suspense fallback={<TabSkeleton />}>
+            <CuentasTab data={cuentas} userId={userId} />
+          </Suspense>
         </Tabs.Content>
 
         <Tabs.Content value="categorias">
-          {initialCategories.length >= 0 && (
-            <CategoriesPageClient
-              initialGroups={initialGroups}
-              userId={userId}
-              initialCategories={initialCategories}
-            />
-          )}
+          <Suspense fallback={<TabSkeleton />}>
+            <CategoriasTab data={categorias} userId={userId} />
+          </Suspense>
         </Tabs.Content>
       </Tabs.Root>
     </Box>

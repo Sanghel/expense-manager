@@ -45,18 +45,3 @@ export async function updateTheme(userId: string, theme: ThemePreference) {
     return { success: false, error: 'Failed to update theme' }
   }
 }
-
-/**
- * Returns the saved theme, or null if it can't be read (for example before the
- * `users.theme` migration is applied), so callers fall back to the default.
- */
-export async function getTheme(userId: string): Promise<ThemePreference | null> {
-  const { data, error } = await insforgeAdmin.database
-    .from('users')
-    .select('theme')
-    .eq('id', userId)
-    .single()
-
-  if (error || (data?.theme !== 'dark' && data?.theme !== 'light')) return null
-  return data.theme
-}

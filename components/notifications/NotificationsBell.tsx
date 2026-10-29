@@ -2,9 +2,7 @@
 
 import { useState } from 'react'
 import {
-  Box,
   Button,
-  Float,
   Circle,
   PopoverRoot,
   PopoverTrigger,
@@ -12,7 +10,7 @@ import {
   PopoverContent,
   Icon,
 } from '@chakra-ui/react'
-import { FiBell } from 'react-icons/fi'
+import { LuBell } from 'react-icons/lu'
 import { NotificationsPanel } from './NotificationsPanel'
 import {
   countActionable,
@@ -38,43 +36,31 @@ export function NotificationsBell({ userId, accounts, occurrences }: Props) {
     >
       <PopoverTrigger asChild>
         <Button
-          variant="ghost"
-          rounded="full"
+          position="relative"
           p={0}
           minW="auto"
-          h="auto"
+          w={{ base: '36px', md: '40px' }}
+          h={{ base: '36px', md: '40px' }}
+          flexShrink={0}
+          bg="surface"
+          color={badge > 0 ? 'text' : 'text2'}
+          _hover={{ bg: 'surface2' }}
           aria-label={
             badge > 0 ? `Notificaciones, ${badge} pendientes` : 'Notificaciones'
           }
         >
-          <Box position="relative" p={2}>
-            <Icon
-              as={FiBell}
-              boxSize={5}
-              color={badge > 0 ? 'white' : '#B0B0B0'}
-            />
-            {badge > 0 && (
-              <Float placement="top-end" offset="2">
-                <Circle
-                  size="4"
-                  bg="#F43F5E"
-                  color="white"
-                  fontSize="10px"
-                  fontWeight="bold"
-                >
-                  {badge > 9 ? '9+' : badge}
-                </Circle>
-              </Float>
-            )}
-          </Box>
+          <Icon as={LuBell} boxSize="17px" />
+          {badge > 0 && (
+            <Circle size="7px" bg="neg" position="absolute" top="9px" right="10px" />
+          )}
         </Button>
       </PopoverTrigger>
 
       <PopoverPositioner>
         <PopoverContent
-          bg="#18181d"
-          borderColor="#2d2d35"
-          borderWidth="1px"
+          bg="surface"
+          borderRadius="tile"
+          boxShadow="overlay"
           w={{ base: 'calc(100vw - 32px)', sm: '380px' }}
           maxW="380px"
         >

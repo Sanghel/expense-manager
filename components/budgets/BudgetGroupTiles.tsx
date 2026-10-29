@@ -1,7 +1,6 @@
 'use client'
 
 import { Box, Button, Flex, Grid, Text } from '@chakra-ui/react'
-import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { buildGroupBreakdown, sortByConsumption } from '@/lib/utils/budget-grouping'
 import { formatCompactCurrency } from '@/lib/utils/currency'
@@ -13,24 +12,24 @@ interface Props {
   groupBudgets: BudgetWithSpent[]
   categoryBudgets: BudgetWithSpent[]
   groups: CategoryGroupWithMembers[]
-  onEdit: (budget: BudgetWithSpent) => void
-  onDelete: (budgetId: string) => void
   onCreate?: () => void
+  /** Group limits come from their categories: editing happens there. */
+  onShowCategories: () => void
 }
 
 /** One tile per group budget: %, bar, what's left and its categories as chips. */
-export function BudgetGroupTiles({ groupBudgets, categoryBudgets, groups, onEdit, onDelete, onCreate }: Props) {
+export function BudgetGroupTiles({ groupBudgets, categoryBudgets, groups, onCreate, onShowCategories }: Props) {
   const ordered = sortByConsumption(groupBudgets)
 
   if (ordered.length === 0) {
     return (
       <Flex direction="column" align="center" gap={3} bg="surface" borderRadius="card" py={10} px={6} textAlign="center">
         <Text color="text2" fontSize="14px">
-          No hay presupuestos por grupo. Crea uno para ver tus gastos en bloques.
+          Ningún grupo tiene categorías con presupuesto mensual. El presupuesto de un grupo es la suma de los de sus categorías.
         </Text>
         {onCreate && (
           <Button size="sm" bg="brandSoft" color="brand" onClick={onCreate}>
-            Nuevo presupuesto
+            Presupuestar una categoría
           </Button>
         )}
       </Flex>
@@ -88,8 +87,8 @@ export function BudgetGroupTiles({ groupBudgets, categoryBudgets, groups, onEdit
                   </Text>
                 ))}
                 {breakdown.residual >= 1 && (
-                  <Text as="span" fontSize="12px" color="text3" px={1} py={1}>
-                    + otras {formatCompactCurrency(breakdown.residual, budget.currency)}
+                  <Text as="span" fontSize="12px" color="text3" px={1} py={1} title="Gasto en categorías del grupo sin presupuesto (no cuenta en el %)">
+                    + otras {formatCompactCurrency(breakdown.residual, budget.currency)} sin presupuesto
                   </Text>
                 )}
               </Flex>
@@ -100,10 +99,9 @@ export function BudgetGroupTiles({ groupBudgets, categoryBudgets, groups, onEdit
                 {formatCompactCurrency(Number(budget.spent), budget.currency)} de{' '}
                 {formatCompactCurrency(Number(budget.limit_amount), budget.currency)} · {budgetMeta(budget)}
               </Text>
-              <Flex gap={0.5} flexShrink={0}>
-                <ActionIconButton kind="edit" label="Editar presupuesto" size="xs" variant="ghost" onClick={() => onEdit(budget)} />
-                <ActionIconButton kind="delete" tone="danger" label="Eliminar presupuesto" size="xs" variant="ghost" onClick={() => onDelete(budget.id)} />
-              </Flex>
+              <Button size="xs" variant="ghost" color="brand" flexShrink={0} onClick={onShowCategories}>
+                Ver categorías
+              </Button>
             </Flex>
           </Box>
         )

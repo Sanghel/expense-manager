@@ -149,9 +149,8 @@ export function BudgetsPageClient({
           groupBudgets={groupBudgets}
           categoryBudgets={categoryBudgets}
           groups={groups}
-          onEdit={handleEdit}
-          onDelete={setPendingDeleteId}
           onCreate={openCreateForm}
+          onShowCategories={() => switchVista('categorias')}
         />
       ) : (
         <BudgetCategoryCards
@@ -167,10 +166,9 @@ export function BudgetsPageClient({
         onClose={handleClose}
         userId={userId}
         categories={categories}
-        groups={groups}
         onSuccess={handleFormSuccess}
         editingBudget={editingBudget}
-        defaultScope={vista === 'grupos' ? 'group' : 'category'}
+        defaultScope="category"
       />
 
       <ConfirmDialog

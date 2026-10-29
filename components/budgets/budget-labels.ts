@@ -25,6 +25,7 @@ export function remainingLabel(budget: BudgetWithSpent): { text: string; exceede
 
 /** "Mensual · desde 2026-10-01 · 20% de ingresos" */
 export function budgetMeta(budget: BudgetWithSpent): string {
+  if (budget.derived) return 'Mensual · suma de sus categorías'
   return [
     budget.period === 'monthly' ? 'Mensual' : 'Anual',
     `desde ${budget.start_date}`,

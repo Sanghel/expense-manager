@@ -60,7 +60,11 @@ export function buildGroupBreakdown(
       b.currency === groupBudget.currency
   )
   const membersSpent = members.reduce((acc, b) => acc + toNumber(b.spent), 0)
-  const residual = toNumber(groupBudget.spent) - membersSpent
+  // Derived groups carry the unbudgeted spend apart; a legacy stored group
+  // budget falls back to "group spend minus its members".
+  const residual = groupBudget.derived
+    ? toNumber(groupBudget.otherSpent)
+    : toNumber(groupBudget.spent) - membersSpent
 
   return {
     group: groupBudget,

@@ -67,7 +67,7 @@ export function DateInput({ label, value, onChange, required, disabled, optional
           {label}
           {required && <Field.RequiredIndicator />}
           {optional && (
-            <Text as="span" color="text.secondary" fontSize="0.85em" fontWeight="normal" ms={1}>
+            <Text as="span" color="text2" fontSize="0.85em" fontWeight="normal" ms={1}>
               (opcional)
             </Text>
           )}

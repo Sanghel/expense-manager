@@ -1,5 +1,70 @@
 # Changelog
 
+## [4.0.0] — 2026-10-29
+
+Rediseño completo de la interfaz: **Pulso** ([épica #552](https://github.com/Sanghel/expense-manager/issues/552)).
+
+### Added
+
+- **Sistema de diseño Pulso** ([#565](https://github.com/Sanghel/expense-manager/pull/565), [#566](https://github.com/Sanghel/expense-manager/pull/566)):
+  - Tokens semánticos para oscuro y claro (`bg`, `surface`, `surface2`, `line`, `text`/`text2`/`text3`, `brand`, `brandSolid`, `brandSoft`, `pos`/`neg`/`warn` y sus versiones suaves).
+  - Superficies tonales sin bordes.
+  - **Geist Mono** en todas las cifras, fechas y etiquetas de sección.
+  - Primitivas nuevas: `PageHeader`, `Money`, `ProgressBar` (umbrales 80/100), `InlineCalendar` y diálogos que en móvil se abren como hoja inferior.
+- **Tema claro** ([#575](https://github.com/Sanghel/expense-manager/pull/575)): Ajustes → General → Apariencia. Se aplica al instante y se guarda en el perfil (`users.theme`), así que todos los dispositivos lo siguen.
+- **Paleta IA ⌘K** ([#569](https://github.com/Sanghel/expense-manager/pull/569)):
+  - Sustituye al chat flotante. Se abre con ⌘K/Ctrl+K o con la barra IA del header.
+  - Una frase entra y una transacción sale, con cuenta elegible y Guardar ↵.
+  - Dictado por voz.
+- **Análisis** en el Resumen ([#576](https://github.com/Sanghel/expense-manager/pull/576)): 7 tarjetas, cada una con una frase de conclusión:
+  - Ritmo de gasto con proyección y tope.
+  - Tasa de ahorro de 12 meses.
+  - Qué cambió frente al mes anterior.
+  - Gastos hormiga, con un consejo ligado a tu meta.
+  - Fijos vs. variables.
+  - Exposición por moneda.
+  - Cuándo gastas más.
+- **Navegación instantánea** ([#568](https://github.com/Sanghel/expense-manager/pull/568)):
+  - Skeletons y prefetch en el menú.
+  - Las tabs cambian sin ir al servidor; los datos llegan en streaming.
+  - Una sola consulta del usuario por request.
+
+### Changed
+
+- **Header** con menú de íconos, barra IA, campana y avatar; **bottom nav** de 5 ítems en móvil. Sale el sidebar ([#567](https://github.com/Sanghel/expense-manager/pull/567)). "Consejos de ahorro" pasa al menú del avatar.
+- **Resumen** ([#571](https://github.com/Sanghel/expense-manager/pull/571)):
+  - Hero de balance con "Puedes gastar hasta fin de mes".
+  - Stats y barras de 6 meses, convertidas a la moneda preferida.
+  - Carrusel de cuentas, tiles de presupuesto y "Hoy y ayer".
+- **Movimientos** ([#572](https://github.com/Sanghel/expense-manager/pull/572)):
+  - Transacciones con rail de filtros (cuentas de selección múltiple) y lista en grid.
+  - Préstamos en carriles "Me deben" / "Debo".
+  - Recordatorios con la tira de los próximos 30 días.
+- **Planificación y Calendario** ([#573](https://github.com/Sanghel/expense-manager/pull/573)):
+  - Metas con tarjeta hero y un marcador de "dónde deberías ir".
+  - Presupuestos en tiles y tarjetas.
+  - Un solo calendario con gasto diario, pagos programados y el detalle del día.
+- **Ajustes** ([#575](https://github.com/Sanghel/expense-manager/pull/575)): moneda y apariencia en chips, panel de Gmail con Sincronizar, cuentas y transferencias, y categorías como chips.
+- **Modales** ([#570](https://github.com/Sanghel/expense-manager/pull/570)):
+  - "Nueva transacción": monto grande en mono, categorías más usadas primero y calendario inline.
+  - "Revisión de Gmail": tabla con descartar/restaurar y categoría con búsqueda.
+- **Presupuestos por grupo** ([#577](https://github.com/Sanghel/expense-manager/pull/577)):
+  - El tope de un grupo es ahora la suma de los presupuestos de sus categorías, y ya no se crean presupuestos de grupo.
+  - Lo gastado en categorías del grupo sin presupuesto se muestra aparte.
+  - El script `scripts/sql/delete-group-budgets.sql` borra las filas viejas.
+
+### Removed
+
+- Los 10 gráficos Nivo y sus 9 dependencias `@nivo/*`: el build pasa de ~19,6 s a ~12,6 s.
+- Sidebar, cajón "Más", chat flotante y página `/chat` (redirige al Resumen).
+- Calendarios de transacciones y de programados por separado.
+- Tokens de color antiguos (`bg.canvas`, `text.primary`, `border.default`…) y colores fijos en los componentes ([#564](https://github.com/Sanghel/expense-manager/issues/564)).
+
+### Fixed
+
+- Filtro de mes de Transacciones con claves duplicadas: marzo aparecía dos veces.
+- Aviso de React por el `<script>` de `next-themes` en desarrollo.
+
 ## [3.12.1] — 2026-10-14
 
 ### Fixed

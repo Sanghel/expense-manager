@@ -102,20 +102,17 @@ export function ConsejosAhorroPageClient({
 
   return (
     <Box>
-      <HStack justify="space-between" align="start" mb={6} flexWrap="wrap" gap={3}>
+      <HStack justify="space-between" align="flex-end" mb={7} flexWrap="wrap" gap={3}>
         <Box>
-          <HStack gap={2}>
-            <Icon as={FiZap} color="#6366f1" boxSize={6} />
-            <Heading size="lg" color="white">
-              Consejos de Ahorro
-            </Heading>
-          </HStack>
-          <Text color="#B0B0B0" mt={1}>
+          <Text textStyle="eyebrow" color="text3" mb={2}>
             {periodLabel(period)}
             {advice?.generated_at && (
               <> · actualizado {new Date(advice.generated_at).toLocaleDateString('es-CO')}</>
             )}
           </Text>
+          <Heading as="h1" textStyle="pageTitle" color="text">
+            Consejos de ahorro
+          </Heading>
         </Box>
 
         {hasAdvice && (
@@ -124,13 +121,13 @@ export function ConsejosAhorroPageClient({
           <HStack gap={2}>
             {confirmingRegenerate ? (
               <>
-                <Text fontSize="sm" color="#B0B0B0">
+                <Text fontSize="sm" color="text2">
                   ¿Regenerar? Reemplaza el análisis actual.
                 </Text>
                 <Button
                   size="sm"
                   variant="ghost"
-                  color="#B0B0B0"
+                  color="text2"
                   onClick={() => setConfirmingRegenerate(false)}
                   disabled={loading}
                 >
@@ -138,9 +135,9 @@ export function ConsejosAhorroPageClient({
                 </Button>
                 <Button
                   size="sm"
-                  bg="#4F46E5"
+                  bg="brandSolid"
                   color="white"
-                  _hover={{ bg: '#4338CA' }}
+                  _hover={{ bg: 'brand.600' }}
                   onClick={handleGenerate}
                   loading={loading}
                 >
@@ -162,7 +159,7 @@ export function ConsejosAhorroPageClient({
 
       {!summary.hasData ? (
         <Card>
-          <VStack gap={3} py={6} color="#B0B0B0">
+          <VStack gap={3} py={6} color="text2">
             <Icon as={FiInbox} boxSize={8} />
             <Text textAlign="center">
               No hay movimientos registrados este mes para analizar. Registra tus gastos y vuelve para
@@ -181,8 +178,8 @@ export function ConsejosAhorroPageClient({
           {!hasAdvice ? (
             <Card>
               <VStack gap={4} py={6}>
-                <Icon as={FiZap} boxSize={8} color="#6366f1" />
-                <Text textAlign="center" color="#B0B0B0">
+                <Icon as={FiZap} boxSize={8} color="brand" />
+                <Text textAlign="center" color="text2">
                   Aún no has generado consejos para este mes. Genera un análisis de tus gastos con IA.
                 </Text>
                 <PrimaryButton onClick={handleGenerate} loading={loading}>
@@ -196,7 +193,7 @@ export function ConsejosAhorroPageClient({
                 {/* Diagnóstico — 40% */}
                 <GridItem>
                   <Flex direction="column" h={{ base: 'auto', lg: COLUMN_HEIGHT }}>
-                    <Heading size="md" color="white" mb={4} flexShrink={0}>
+                    <Heading size="md" color="text" mb={4} flexShrink={0}>
                       Diagnóstico
                     </Heading>
                     <Box flex="1" minH={0} overflowY={{ base: 'visible', lg: 'auto' }} pr={{ lg: 2 }}>
@@ -208,7 +205,7 @@ export function ConsejosAhorroPageClient({
                 {/* Sugerencias de presupuesto — 60% */}
                 <GridItem>
                   <Flex direction="column" h={{ base: 'auto', lg: COLUMN_HEIGHT }}>
-                    <Heading size="md" color="white" mb={4} flexShrink={0}>
+                    <Heading size="md" color="text" mb={4} flexShrink={0}>
                       Sugerencias de presupuesto
                     </Heading>
                     <Box flex="1" minH={0} overflowY={{ base: 'visible', lg: 'auto' }} pr={{ lg: 2 }}>
@@ -227,7 +224,7 @@ export function ConsejosAhorroPageClient({
 
               {/* Metas de ahorro (sección inferior, full width) */}
               <Box>
-                <Heading size="md" color="white" mb={4}>
+                <Heading size="md" color="text" mb={4}>
                   Metas de ahorro
                 </Heading>
                 <SavingsGoalSuggestions
@@ -248,10 +245,10 @@ export function ConsejosAhorroPageClient({
               {/* Cómo organizar el gasto — grupos e higiene de categorías */}
               <Grid templateColumns={{ base: '1fr', lg: '1fr 1fr' }} gap={6}>
                 <GridItem>
-                  <Heading size="md" color="white" mb={2}>
+                  <Heading size="md" color="text" mb={2}>
                     Grupos sugeridos
                   </Heading>
-                  <Text fontSize="sm" color="#B0B0B0" mb={4}>
+                  <Text fontSize="sm" color="text2" mb={4}>
                     Categorías que conviene presupuestar juntas, según cuánto y con qué
                     frecuencia gastas en ellas.
                   </Text>
@@ -264,10 +261,10 @@ export function ConsejosAhorroPageClient({
                 </GridItem>
 
                 <GridItem>
-                  <Heading size="md" color="white" mb={2}>
+                  <Heading size="md" color="text" mb={2}>
                     Orden de tus categorías
                   </Heading>
-                  <Text fontSize="sm" color="#B0B0B0" mb={4}>
+                  <Text fontSize="sm" color="text2" mb={4}>
                     Duplicados, solapamientos y gasto sin categorizar que distorsionan el
                     análisis.
                   </Text>
@@ -282,7 +279,7 @@ export function ConsejosAhorroPageClient({
           )}
 
           {loading && (
-            <HStack justify="center" mt={6} color="#B0B0B0" gap={2}>
+            <HStack justify="center" mt={6} color="text2" gap={2}>
               <Spinner size="sm" />
               <Text fontSize="sm">Analizando tus gastos…</Text>
             </HStack>

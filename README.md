@@ -79,9 +79,10 @@ dashboard converts everything to your preferred one.
 </td>
 <td valign="top">
 
-### 📊 Dashboard & reports
-Waffle, radar, polar bar, calendar and trend charts built with Nivo: spending split, budget vs. actual,
-savings rate and spending profile for any month.
+### 📊 Dashboard & analysis
+"Pulso" design in dark and light: balance hero with a daily spending allowance, and seven analysis
+cards (spending pace with projection, savings rate, month-over-month changes, small recurring
+expenses, fixed vs. variable, currency exposure, weekdays), each ending in a plain-language takeaway.
 
 </td>
 </tr>
@@ -89,7 +90,8 @@ savings rate and spending profile for any month.
 <td valign="top">
 
 ### 🎯 Budgets & savings goals
-Budgets per category, per category group or overall, as a fixed amount or a percentage of income. Goals
+Budgets per category or overall, as a fixed amount or a percentage of income; a category group's
+budget is the sum of its categories'. Goals
 track contributions, pace and deadline status.
 
 </td>
@@ -130,7 +132,6 @@ Installable, with bottom navigation, card views and an offline screen. Sign-in w
 | Data | ![InsForge](https://img.shields.io/badge/InsForge-4F46E5?style=flat-square) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white) with row-level security |
 | Auth | ![NextAuth](https://img.shields.io/badge/NextAuth.js-000000?style=flat-square&logo=auth0&logoColor=white) Google OAuth + Gmail read-only scope |
 | AI | ![Claude](https://img.shields.io/badge/Claude_Haiku_4.5-D97757?style=flat-square&logo=anthropic&logoColor=white) via the Anthropic SDK |
-| Charts | ![Nivo](https://img.shields.io/badge/Nivo-F47560?style=flat-square) |
 | Hosting | ![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white) with Cron Jobs and Analytics |
 
 <div align="center"><img src="docs/assets/logo.webp" width="28" alt="" /></div>
@@ -206,7 +207,7 @@ app/
     auth/           # NextAuth handlers
     cron/           # Scheduled jobs (exchange rates, Gmail sync, savings advice)
   login/            # Sign-in page
-components/         # UI by module (transactions, budgets, savings, chat, charts…) + shared ui/
+components/         # UI by module (transactions, budgets, savings, chat, dashboard…) + shared ui/
 hooks/              # Shared React hooks
 lib/
   actions/          # Server Actions, one file per module

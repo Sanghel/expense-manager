@@ -7,9 +7,9 @@ import type { IconType } from 'react-icons'
 import type { Category, SavingsInsight, AdviceSeverity } from '@/types/database.types'
 
 const SEVERITY: Record<AdviceSeverity, { color: string; icon: IconType; label: string }> = {
-  info: { color: '#6366f1', icon: FiInfo, label: 'Info' },
-  warning: { color: '#d97706', icon: FiAlertTriangle, label: 'Atención' },
-  critical: { color: '#dc2626', icon: FiAlertOctagon, label: 'Crítico' },
+  info: { color: 'brand', icon: FiInfo, label: 'Info' },
+  warning: { color: 'warn', icon: FiAlertTriangle, label: 'Atención' },
+  critical: { color: 'neg', icon: FiAlertOctagon, label: 'Crítico' },
 }
 
 interface Props {
@@ -21,7 +21,7 @@ export function InsightsList({ insights, categories = [] }: Props) {
   const categoryMap = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories])
 
   if (insights.length === 0) {
-    return <Text color="#B0B0B0">No hay observaciones para este periodo.</Text>
+    return <Text color="text2">No hay observaciones para este periodo.</Text>
   }
 
   return (
@@ -35,9 +35,9 @@ export function InsightsList({ insights, categories = [] }: Props) {
             borderWidth="1px"
             borderLeftWidth="4px"
             borderRadius="lg"
-            borderColor="#2d2d35"
+            borderColor="line"
             borderLeftColor={s.color}
-            bg="#1a1a23"
+            bg="surface"
             p={4}
           >
             <HStack align="start" gap={3}>
@@ -45,11 +45,11 @@ export function InsightsList({ insights, categories = [] }: Props) {
               <Box>
                 <HStack gap={2}>
                   {category?.icon && <Text fontSize="md">{category.icon}</Text>}
-                  <Text fontWeight="semibold" color="white">
+                  <Text fontWeight="semibold" color="text">
                     {insight.title}
                   </Text>
                 </HStack>
-                <Text fontSize="sm" color="#B0B0B0" mt={1}>
+                <Text fontSize="sm" color="text2" mt={1}>
                   {insight.detail}
                 </Text>
               </Box>

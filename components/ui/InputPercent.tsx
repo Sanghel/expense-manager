@@ -45,7 +45,7 @@ export function InputPercent({ label, value, onChange, helperText, isRequired, i
           insetEnd="8"
           top="50%"
           transform="translateY(-50%)"
-          color="text.secondary"
+          color="text2"
           pointerEvents="none"
           aria-hidden
         >

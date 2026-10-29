@@ -56,15 +56,15 @@ function ActionRow({ label, description, buttonLabel, state, onAction }: ActionR
       p={4}
       borderRadius="md"
       borderWidth="1px"
-      borderColor="#2d2d35"
-      bg="#1a1a22"
+      borderColor="line"
+      bg="surface"
     >
       <HStack justify="space-between" align="flex-start" gap={4}>
         <Box flex={1}>
-          <Text fontWeight="semibold" color="white" mb={1}>
+          <Text fontWeight="semibold" color="text" mb={1}>
             {label}
           </Text>
-          <Text fontSize="sm" color="#B0B0B0">
+          <Text fontSize="sm" color="text2">
             {description}
           </Text>
           {state.status !== 'idle' && (

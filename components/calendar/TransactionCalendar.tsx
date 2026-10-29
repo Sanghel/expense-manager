@@ -372,6 +372,7 @@ export function TransactionCalendar({ userId, initialTransactions, categories, a
         accounts={accounts}
         initialDate={createForDate ?? undefined}
         lockedDate
+        history={transactions}
         onSuccess={() => {
           setCreateForDate(null)
           onTransactionCreated()

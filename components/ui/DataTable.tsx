@@ -25,7 +25,7 @@ export function DataTable<T extends { id: string }>({
 }: Props<T>) {
   if (data.length === 0) {
     return (
-      <Text color="#B0B0B0" textAlign="center" py={8}>
+      <Text color="text3" textAlign="center" py={8}>
         {emptyMessage}
       </Text>
     )

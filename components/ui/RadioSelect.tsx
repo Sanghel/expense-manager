@@ -38,8 +38,8 @@ export function RadioSelect({ label, value, onChange, options, required }: Props
             <RadioGroupItem key={opt.value} value={opt.value}>
               <RadioGroupItemHiddenInput />
               <RadioGroupItemControl
-                borderColor="#4F46E5"
-                _checked={{ bg: '#4F46E5', borderColor: '#4F46E5' }}
+                borderColor="brandSolid"
+                _checked={{ bg: 'brandSolid', borderColor: 'brandSolid' }}
               />
               <RadioGroupItemText>{opt.label}</RadioGroupItemText>
             </RadioGroupItem>

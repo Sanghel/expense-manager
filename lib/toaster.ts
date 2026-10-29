@@ -1,6 +1,8 @@
 import { createToaster } from '@chakra-ui/react'
 
 export const toaster = createToaster({
-  placement: 'top-end',
+  // Pulso: centered pill at the bottom, above the mobile bottom nav.
+  placement: 'bottom',
+  offsets: { top: '16px', right: '16px', bottom: '96px', left: '16px' },
   pauseOnPageIdle: true,
 })

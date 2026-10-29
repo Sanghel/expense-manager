@@ -18,12 +18,12 @@ export function StatCard({ label, value, helpText, variant = 'default' }: StatCa
   return (
     <Card {...(compact ? { p: { base: 3, md: 4 } } : {})}>
       <StatRoot gap={compact ? 0 : undefined}>
-        <StatLabel fontSize={compact ? 'xs' : undefined}>{label}</StatLabel>
-        <StatValueText fontSize={compact ? { base: 'lg', md: 'xl' } : undefined}>
+        <StatLabel textStyle="sectionLabel" color="text3">{label}</StatLabel>
+        <StatValueText textStyle="stat" fontSize={compact ? { base: 'md', md: 'lg' } : undefined}>
           {value}
         </StatValueText>
         {helpText && (
-          <StatHelpText fontSize={compact ? 'xs' : undefined} mb={0}>
+          <StatHelpText fontSize="xs" color="text3" mb={0}>
             {helpText}
           </StatHelpText>
         )}

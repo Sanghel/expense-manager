@@ -1,5 +1,4 @@
 import type {
-  BudgetWithSpent,
   LoanWithAccount,
   ReminderWithCategory,
   TransactionWithCategory,
@@ -13,7 +12,6 @@ export function parseMovimientosTab(raw: string | null | undefined): Movimientos
 
 export interface TransaccionesData {
   transactions: TransactionWithCategory[]
-  budgets: BudgetWithSpent[]
 }
 
 export interface RecordatoriosData {

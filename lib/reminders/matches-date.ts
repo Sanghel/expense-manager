@@ -41,3 +41,16 @@ export function remindersForDate(
 ): ReminderWithCategory[] {
   return reminders.filter((r) => reminderMatchesDate(r, date))
 }
+
+/**
+ * Next date (today included) on which the reminder is due, looking up to a
+ * year ahead. Null for inactive or past one-off reminders.
+ */
+export function nextOccurrence(reminder: ReminderWithCategory, from: Date = new Date()): Date | null {
+  const day = new Date(from.getFullYear(), from.getMonth(), from.getDate())
+  for (let i = 0; i <= 366; i++) {
+    if (reminderMatchesDate(reminder, day)) return day
+    day.setDate(day.getDate() + 1)
+  }
+  return null
+}

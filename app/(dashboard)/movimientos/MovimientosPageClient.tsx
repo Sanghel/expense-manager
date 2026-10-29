@@ -1,15 +1,17 @@
 'use client'
 
 import { Suspense, use } from 'react'
-import { Box, Heading, HStack, Tabs, Icon } from '@chakra-ui/react'
-import { FiList, FiCreditCard, FiBell, FiActivity } from 'react-icons/fi'
+import { Box, Tabs } from '@chakra-ui/react'
 import { TransactionsPageClient } from '../transactions/TransactionsPageClient'
 import { LoansPageClient } from '../loans/LoansPageClient'
 import { RecordatoriosTab } from '@/components/reminders/RecordatoriosTab'
 import { TabSkeleton } from '@/components/ui/Skeletons'
+import { PageHeader } from '@/components/ui/PageHeader'
+import { todayEyebrow } from '@/lib/utils/dates'
 import { useUrlParams } from '@/hooks/useUrlParams'
 import {
   parseMovimientosTab,
+  type MovimientosTab,
   type PrestamosData,
   type RecordatoriosData,
   type TransaccionesData,
@@ -32,8 +34,8 @@ function TransaccionesTab({
 }: Pick<Props, 'userId' | 'categories' | 'accounts' | 'gmailSyncEnabled'> & {
   data: Promise<TransaccionesData>
 }) {
-  const { transactions, budgets } = use(data)
-  return <TransactionsPageClient {...props} initialTransactions={transactions} budgets={budgets} />
+  const { transactions } = use(data)
+  return <TransactionsPageClient {...props} initialTransactions={transactions} />
 }
 
 function PrestamosTab({
@@ -65,76 +67,23 @@ export function MovimientosPageClient({
   const { searchParams, setParams } = useUrlParams()
   const activeTab = parseMovimientosTab(searchParams.get('tab'))
 
-  const tabIcon = (IconComponent: React.ElementType) => (
-    <Icon as={IconComponent} boxSize={4} flexShrink={0} />
-  )
-
   return (
     <Box>
-      <HStack gap={2} mb={6}>
-        <Icon as={FiActivity} color="#6366f1" boxSize={6} />
-        <Heading size="lg" color="white">
-          Movimientos
-        </Heading>
-      </HStack>
+      <PageHeader<MovimientosTab>
+        eyebrow={todayEyebrow()}
+        title="Movimientos"
+        tabs={[
+          { value: 'transacciones', label: 'Transacciones' },
+          { value: 'prestamos', label: 'Préstamos' },
+          { value: 'recordatorios', label: 'Recordatorios' },
+        ]}
+        activeTab={activeTab}
+        onTabChange={(tab) => setParams({ tab })}
+      />
 
       {/* lazyMount: a tab renders on its first visit and then stays mounted,
           so coming back to it is instant and keeps its state. */}
-      <Tabs.Root
-        value={activeTab}
-        onValueChange={({ value }) => setParams({ tab: value })}
-        colorPalette="brand"
-        lazyMount
-      >
-        <Tabs.List
-          mb={6}
-          borderBottomWidth="1px"
-          borderColor="#2d2d35"
-          overflowX="auto"
-          flexWrap="nowrap"
-          css={{ '&::-webkit-scrollbar': { display: 'none' } }}
-        >
-          <Tabs.Trigger
-            value="transacciones"
-            display="flex"
-            alignItems="center"
-            gap={2}
-            color="#B0B0B0"
-            flexShrink={0}
-            whiteSpace="nowrap"
-            _selected={{ color: 'white', borderBottomColor: '#6366f1' }}
-          >
-            {tabIcon(FiList)}
-            Transacciones
-          </Tabs.Trigger>
-          <Tabs.Trigger
-            value="prestamos"
-            display="flex"
-            alignItems="center"
-            gap={2}
-            color="#B0B0B0"
-            flexShrink={0}
-            whiteSpace="nowrap"
-            _selected={{ color: 'white', borderBottomColor: '#6366f1' }}
-          >
-            {tabIcon(FiCreditCard)}
-            Préstamos
-          </Tabs.Trigger>
-          <Tabs.Trigger
-            value="recordatorios"
-            display="flex"
-            alignItems="center"
-            gap={2}
-            color="#B0B0B0"
-            flexShrink={0}
-            whiteSpace="nowrap"
-            _selected={{ color: 'white', borderBottomColor: '#6366f1' }}
-          >
-            {tabIcon(FiBell)}
-            Recordatorios
-          </Tabs.Trigger>
-        </Tabs.List>
-
+      <Tabs.Root value={activeTab} lazyMount>
         <Tabs.Content value="transacciones">
           <Suspense fallback={<TabSkeleton />}>
             <TransaccionesTab

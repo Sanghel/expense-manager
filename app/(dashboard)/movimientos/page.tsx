@@ -5,7 +5,6 @@ import { getTransactions, getTransactionsByDate } from '@/lib/actions/transactio
 import { getLocalDateString } from '@/lib/utils/dates'
 import { getLoans } from '@/lib/actions/loans.actions'
 import { getReminders } from '@/lib/actions/reminders.actions'
-import { getBudgets } from '@/lib/actions/budgets.actions'
 import { MovimientosPageClient } from './MovimientosPageClient'
 import type {
   PrestamosData,
@@ -14,7 +13,6 @@ import type {
 } from './tabs'
 import type {
   Account,
-  BudgetWithSpent,
   ReminderWithCategory,
   TransactionWithCategory,
 } from '@/types/database.types'
@@ -28,12 +26,8 @@ export default async function MovimientosPage() {
   // Every tab starts loading now and streams to the client as a promise, so
   // switching tabs never waits for the server. The `?tab=` param is read on
   // the client.
-  const transacciones: Promise<TransaccionesData> = Promise.all([
-    getTransactions(user.id, 500),
-    getBudgets(user.id),
-  ]).then(([txResult, budgetsResult]) => ({
+  const transacciones: Promise<TransaccionesData> = getTransactions(user.id, 500).then((txResult) => ({
     transactions: txResult.success ? ((txResult.data ?? []) as TransactionWithCategory[]) : [],
-    budgets: (budgetsResult.success ? (budgetsResult.data ?? []) : []) as BudgetWithSpent[],
   }))
 
   const prestamos: Promise<PrestamosData> = getLoans(user.id).then((result) =>

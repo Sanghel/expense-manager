@@ -1,62 +1,56 @@
 'use client'
 
-import {
-  Box,
-  Heading,
-  Button,
-  HStack,
-  useDisclosure,
-  Text,
-  Icon,
-} from '@chakra-ui/react'
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { Box, Flex, Input, NativeSelect, Text, useDisclosure } from '@chakra-ui/react'
+import { useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiList } from 'react-icons/fi'
-import { LuPlus } from 'react-icons/lu'
+import { LuSearch } from 'react-icons/lu'
 import { Card } from '@/components/ui/Card'
 import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import { TransactionForm } from '@/components/transactions/TransactionForm'
 import { TransactionEditForm } from '@/components/transactions/TransactionEditForm'
 import { TransactionsTable } from '@/components/transactions/TransactionsTable'
-import { TransactionsFilter, type FilterState } from '@/components/transactions/TransactionsFilter'
+import {
+  TransactionsRail,
+  DEFAULT_FILTERS,
+  type FilterState,
+} from '@/components/transactions/TransactionsRail'
 import { ExportTransactionsModal } from '@/components/transactions/ExportTransactionsModal'
 import { ImportTransactionsModal } from '@/components/transactions/ImportTransactionsModal'
 import { GmailSyncButton } from '@/components/transactions/GmailSyncButton'
-import { AccountsOverview } from '@/components/dashboard/AccountsOverview'
-import { BudgetWidget } from '@/components/budgets/BudgetWidget'
 import { useDebounce } from '@/hooks/useDebounce'
 import type {
   Account,
-  BudgetWithSpent,
   Category,
   TransactionWithCategory,
 } from '@/types/database.types'
 
-const PAGE_SIZE = 10
+const PAGE_SIZE = 20
 
 interface Props {
   userId: string
   categories: Category[]
   initialTransactions: TransactionWithCategory[]
   accounts?: Account[]
-  budgets?: BudgetWithSpent[]
   gmailSyncEnabled?: boolean
 }
 
-const defaultFilters: FilterState = {
-  search: '',
-  type: '',
-  category_id: '',
-  account_id: '',
-  month: '',
+/** The last 12 months as `YYYY-MM`, built from day 1 so short months don't repeat. */
+function lastTwelveMonths(): { value: string; label: string }[] {
+  const now = new Date()
+  return Array.from({ length: 12 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    return {
+      value: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+      label: d.toLocaleDateString('es-CO', { month: 'short', year: 'numeric' }).replace('.', '').replace(' de ', ' '),
+    }
+  })
 }
 
 export function TransactionsPageClient({
   userId,
   categories,
-  initialTransactions,
+  initialTransactions: transactions,
   accounts = [],
-  budgets = [],
   gmailSyncEnabled = false,
 }: Props) {
   const router = useRouter()
@@ -65,43 +59,30 @@ export function TransactionsPageClient({
   const { open: isExportOpen, onOpen: onExportOpen, onClose: onExportClose } = useDisclosure()
   const { open: isImportOpen, onOpen: onImportOpen, onClose: onImportClose } = useDisclosure()
 
-  const [transactions, setTransactions] = useState<TransactionWithCategory[]>(initialTransactions)
-
-  useEffect(() => {
-    setTransactions(initialTransactions)
-  }, [initialTransactions])
   const [editingTransaction, setEditingTransaction] = useState<TransactionWithCategory | null>(null)
-  const [filters, setFilters] = useState<FilterState>(defaultFilters)
+  const [filters, setFiltersState] = useState<FilterState>(DEFAULT_FILTERS)
   const [page, setPage] = useState(1)
+  const months = useMemo(() => lastTwelveMonths(), [])
+
+  // Any filter change goes back to the first page.
+  const setFilters = useCallback((next: FilterState) => {
+    setFiltersState(next)
+    setPage(1)
+  }, [])
 
   const debouncedSearch = useDebounce(filters.search, 300)
 
-  useEffect(() => {
-    setPage(1)
-  }, [filters])
-
   const filtered = useMemo(() => {
+    const search = debouncedSearch.toLowerCase()
     return transactions.filter((t) => {
-      if (debouncedSearch && !t.description.toLowerCase().includes(debouncedSearch.toLowerCase())) {
-        return false
-      }
+      if (search && !t.description.toLowerCase().includes(search)) return false
       if (filters.type && t.type !== filters.type) return false
       if (filters.category_id && t.category_id !== filters.category_id) return false
-      if (filters.account_id && t.account_id !== filters.account_id) return false
-      if (filters.month) {
-        const txMonth = t.date.slice(0, 7)
-        if (txMonth !== filters.month) return false
-      }
+      if (filters.account_ids.length > 0 && !filters.account_ids.includes(t.account_id ?? '')) return false
+      if (filters.month && t.date.slice(0, 7) !== filters.month) return false
       return true
     })
-  }, [
-    transactions,
-    debouncedSearch,
-    filters.type,
-    filters.category_id,
-    filters.account_id,
-    filters.month,
-  ])
+  }, [transactions, debouncedSearch, filters.type, filters.category_id, filters.account_ids, filters.month])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
@@ -120,83 +101,105 @@ export function TransactionsPageClient({
     onEditClose()
   }, [onEditClose])
 
+  const gmailButton = (variant: 'icon' | 'rail') =>
+    gmailSyncEnabled ? (
+      <GmailSyncButton userId={userId} categories={categories} accounts={accounts} variant={variant} />
+    ) : null
+
   return (
     <Box>
-      <HStack justify="space-between" mb={{ base: 4, md: 6 }} gap={2} align="center" flexWrap="wrap">
-        <HStack gap={2}>
-          <Icon as={FiList} color="#6366f1" boxSize={6} />
-          <Heading size={{ base: 'md', md: 'lg' }} color="white">Transacciones</Heading>
-        </HStack>
-        <HStack gap={2} justify="flex-end" flexWrap="wrap">
-          {gmailSyncEnabled && (
-            <GmailSyncButton userId={userId} categories={categories} accounts={accounts} />
-          )}
-          <ActionIconButton kind="export" label="Exportar transacciones" onClick={onExportOpen} variant="outline" size="md" />
-          <ActionIconButton kind="import" label="Importar extracto" onClick={onImportOpen} variant="outline" size="md" />
-          <Button
-            bg="#4F46E5"
-            color="white"
-            _hover={{ bg: '#4338CA' }}
-            onClick={onCreateOpen}
-            size={{ base: 'sm', md: 'md' }}
-            aria-label="Nueva transacción"
-          >
-            <LuPlus />
-            <Text display={{ base: 'none', md: 'inline' }}>Nueva Transacción</Text>
-          </Button>
-        </HStack>
-      </HStack>
-
-      <Box mb={{ base: 4, md: 6 }}>
-        <AccountsOverview accounts={accounts} />
-      </Box>
-
-      {budgets.length > 0 && (
-        <Box mb={{ base: 4, md: 6 }}>
-          <BudgetWidget budgets={budgets} />
-        </Box>
-      )}
-
-      <TransactionsFilter
-        filters={filters}
-        onChange={setFilters}
-        categories={categories}
-        accounts={accounts}
-      />
-
-      <Card overflowX="auto">
-        <TransactionsTable
-          transactions={paginated}
+      <Flex direction={{ base: 'column', lg: 'row' }} gap={{ base: 6, lg: 8 }} align="flex-start">
+        <TransactionsRail
+          filters={filters}
+          onChange={setFilters}
+          categories={categories}
           accounts={accounts}
-          userId={userId}
-          onUpdate={() => router.refresh()}
-          onEdit={handleEdit}
+          onCreate={onCreateOpen}
+          onImport={onImportOpen}
+          onExport={onExportOpen}
+          gmailSync={gmailButton('rail')}
         />
 
-        {totalPages > 1 && (
-          <HStack justify="center" mt={4} gap={2}>
-            <ActionIconButton
-              kind="prev"
-              label="Página anterior"
-              size="sm"
-              variant="outline"
-              disabled={page === 1}
-              onClick={() => setPage((p) => p - 1)}
+        <Box flex="1" minW={0} w="full">
+          {/* Search pill with the month filter and a Gmail shortcut */}
+          <Flex align="center" gap={2} h="44px" bg="surface" borderRadius="pill" ps={4} pe={1.5} mb={4}>
+            <LuSearch color="var(--chakra-colors-text3)" />
+            <Input
+              placeholder="Buscar descripción…"
+              aria-label="Buscar descripción"
+              value={filters.search}
+              onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+              variant="flushed"
+              borderBottomWidth="0"
+              _focusVisible={{ boxShadow: 'none' }}
+              flex="1"
+              minW={0}
+              h="full"
+              px={0}
+              bg="transparent"
+              fontSize="14px"
             />
-            <Text fontSize="sm" color="#B0B0B0">
-              Página {page} de {totalPages}
-            </Text>
-            <ActionIconButton
-              kind="next"
-              label="Página siguiente"
-              size="sm"
-              variant="outline"
-              disabled={page === totalPages}
-              onClick={() => setPage((p) => p + 1)}
+            <NativeSelect.Root size="sm" w="auto" flexShrink={0}>
+              <NativeSelect.Field
+                aria-label="Mes"
+                value={filters.month}
+                onChange={(e) => setFilters({ ...filters, month: e.target.value })}
+                h="32px"
+                borderRadius="pill"
+                bg="surface2"
+                borderColor="transparent"
+                fontFamily="mono"
+                fontSize="12px"
+                ps={3}
+                pe={7}
+              >
+                <option value="">Todos los meses</option>
+                {months.map((m) => (
+                  <option key={m.value} value={m.value}>
+                    {m.label}
+                  </option>
+                ))}
+              </NativeSelect.Field>
+              <NativeSelect.Indicator color="text3" />
+            </NativeSelect.Root>
+            {gmailButton('icon')}
+          </Flex>
+
+          <Card px={{ base: 3, md: 2 }} py={3}>
+            <TransactionsTable
+              transactions={paginated}
+              accounts={accounts}
+              userId={userId}
+              onUpdate={() => router.refresh()}
+              onEdit={handleEdit}
             />
-          </HStack>
-        )}
-      </Card>
+
+            {totalPages > 1 && (
+              <Flex justify="center" align="center" mt={4} gap={2}>
+                <ActionIconButton
+                  kind="prev"
+                  label="Página anterior"
+                  size="sm"
+                  variant="ghost"
+                  disabled={page === 1}
+                  onClick={() => setPage((p) => p - 1)}
+                />
+                <Text fontFamily="mono" fontSize="12px" color="text3">
+                  {page} / {totalPages}
+                </Text>
+                <ActionIconButton
+                  kind="next"
+                  label="Página siguiente"
+                  size="sm"
+                  variant="ghost"
+                  disabled={page === totalPages}
+                  onClick={() => setPage((p) => p + 1)}
+                />
+              </Flex>
+            )}
+          </Card>
+        </Box>
+      </Flex>
 
       <TransactionForm
         isOpen={isCreateOpen}

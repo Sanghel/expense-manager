@@ -24,3 +24,22 @@ input, select, textarea {
   pointer-events: none !important;
 }
 
+
+/* Top padding of the app header.
+   In the installed iOS app the status bar is translucent (black-translucent),
+   and iOS blurs/fades the content right under it. There the header gets extra
+   room so its row sits below that band; tune --header-standalone-extra if it
+   still looks faded. In a normal browser tab the inset is 0 and nothing changes. */
+:root {
+  --header-standalone-extra: 18px;
+}
+
+.app-header {
+  padding-top: max(14px, env(safe-area-inset-top));
+}
+
+@media (display-mode: standalone) {
+  .app-header {
+    padding-top: calc(env(safe-area-inset-top) + var(--header-standalone-extra));
+  }
+}

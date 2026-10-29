@@ -29,12 +29,11 @@ interface Props extends StyleProps {
   icon?: IconType
 }
 
-// `brand` exists only as plain color tokens (no semantic palette), so the
-// primary tone sets its colors explicitly instead of relying on colorPalette.
+// The primary tone sets its colors explicitly so it matches PrimaryButton.
 const TONE_STYLES: Record<Tone, Pick<IconButtonProps, 'colorPalette' | 'color' | 'bg' | '_hover'>> = {
-  neutral: { colorPalette: 'gray', color: 'text.secondary', _hover: { color: 'text.primary' } },
-  danger: { colorPalette: 'red', color: 'red.400', _hover: { color: 'red.300' } },
-  primary: { color: 'white', bg: 'brand.500', _hover: { bg: 'brand.600' } },
+  neutral: { colorPalette: 'gray', color: 'text2', _hover: { color: 'text' } },
+  danger: { colorPalette: 'red', color: 'neg', _hover: { color: 'neg', bg: 'negSoft' } },
+  primary: { color: 'white', bg: 'brandSolid', _hover: { bg: 'brand.600' } },
 }
 
 /**

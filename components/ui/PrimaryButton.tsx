@@ -22,9 +22,9 @@ export function PrimaryButton({
   return (
     <Button
       type={type}
-      bg="#4F46E5"
+      bg="brandSolid"
       color="white"
-      _hover={{ bg: '#4338CA' }}
+      _hover={{ bg: 'brand.600' }}
       loading={loading}
       onClick={onClick}
       width={width}

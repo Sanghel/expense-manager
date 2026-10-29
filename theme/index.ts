@@ -141,20 +141,35 @@ const config = defineConfig({
     },
     recipes: {
       button: { base: { borderRadius: 'pill' } },
+      // Pulso inputs: tonal fill, no visible border, 14px radius.
+      input: {
+        base: { borderRadius: 'input' },
+        variants: { variant: { outline: { bg: 'surface2', borderColor: 'transparent' } } },
+      },
+      textarea: {
+        base: { borderRadius: 'input' },
+        variants: { variant: { outline: { bg: 'surface2', borderColor: 'transparent' } } },
+      },
     },
     slotRecipes: {
       combobox: extendSlotRecipe('combobox', {
         content: floatingPanel,
         item: { _highlighted: { bg: 'brandSoft' }, _selected: { color: 'brand' } },
-        input: { bg: 'surface2', borderColor: 'line' },
+        input: { bg: 'surface2', borderColor: 'transparent', borderRadius: 'input' },
+        label: { textStyle: 'sectionLabel', color: 'text3' },
         empty: { color: 'text2' },
       }),
       datePicker: extendSlotRecipe('datePicker', {
         content: floatingPanel,
-        input: { bg: 'surface2', borderColor: 'line' },
+        label: { textStyle: 'sectionLabel', color: 'text3' },
+        input: { bg: 'surface2', borderColor: 'transparent', borderRadius: 'input' },
       }),
       numberInput: extendSlotRecipe('numberInput', {
-        input: { bg: 'surface2', borderColor: 'line' },
+        input: { bg: 'surface2', borderColor: 'transparent', borderRadius: 'input', fontFamily: 'mono' },
+      }),
+      // Form labels are mono uppercase section labels ("CATEGORÍA", "FECHA").
+      field: extendSlotRecipe('field', {
+        label: { textStyle: 'sectionLabel', color: 'text3' },
       }),
       colorPicker: extendSlotRecipe('colorPicker', {
         content: floatingPanel,
@@ -162,6 +177,11 @@ const config = defineConfig({
       }),
       dialog: extendSlotRecipe('dialog', {
         content: { bg: 'surface', borderRadius: 'hero', boxShadow: 'overlay' },
+        backdrop: { bg: 'blackAlpha.500', backdropFilter: 'blur(4px)' },
+      }),
+      table: extendSlotRecipe('table', {
+        columnHeader: { textStyle: 'sectionLabel', color: 'text3' },
+        row: { _hover: { bg: 'surface2' }, transition: 'background 150ms' },
       }),
       tooltip: extendSlotRecipe('tooltip', {
         content: {

@@ -57,19 +57,30 @@ export function ChakraProvider({ children }: { children: ReactNode }) {
         <DialogOverlayGuard />
         <Toaster toaster={toaster}>
           {(toast) => (
-            <Toast.Root key={toast.id} w="sm" maxW="sm">
-              <Toast.Indicator />
+            <Toast.Root
+              key={toast.id}
+              w="auto"
+              maxW="min(480px, calc(100vw - 32px))"
+              bg="text"
+              color="bg"
+              borderRadius="pill"
+              px={5}
+              py={3}
+              alignItems="center"
+              boxShadow="overlay"
+            >
+              <Toast.Indicator color={toast.type === 'error' ? 'neg' : 'pos'} />
               <Box flex="1" minW="0">
-                <Text fontWeight="semibold" fontSize="sm">
+                <Text fontWeight="medium" fontSize="sm">
                   {toast.title as string}
                 </Text>
                 {toast.description && (
-                  <Text fontSize="sm" opacity={0.85}>
+                  <Text fontSize="xs" opacity={0.7}>
                     {toast.description as string}
                   </Text>
                 )}
               </Box>
-              <Toast.CloseTrigger />
+              <Toast.CloseTrigger color="bg" />
             </Toast.Root>
           )}
         </Toaster>

@@ -82,9 +82,9 @@ export function QuickCategoryForm({ isOpen, onClose, userId, defaultType, onCrea
             <DialogBody pb={6}>
               <form onSubmit={handleSubmit}>
                 <VStack gap={4}>
-                  <Box w="full" p={2} bg="#26262f" borderRadius="md">
-                    <Text fontSize="xs" color="#B0B0B0">
-                      Tipo: <Text as="span" color="white" fontWeight="medium">{typeLabel}</Text>
+                  <Box w="full" p={2} bg="surface2" borderRadius="md">
+                    <Text fontSize="xs" color="text2">
+                      Tipo: <Text as="span" color="text" fontWeight="medium">{typeLabel}</Text>
                     </Text>
                   </Box>
 

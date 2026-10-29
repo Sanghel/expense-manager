@@ -96,7 +96,7 @@ export function ExportTransactionsModal({ isOpen, onClose, userId }: Props) {
   return (
     <FormDialog isOpen={isOpen} onClose={onClose} title="Exportar Transacciones" size="sm">
       <VStack gap={5} align="stretch">
-        <Text fontSize="sm" color="#B0B0B0">
+        <Text fontSize="sm" color="text2">
           Selecciona el período y el formato de exportación.
         </Text>
 

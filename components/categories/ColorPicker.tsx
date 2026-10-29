@@ -78,7 +78,7 @@ export function ColorPicker({ value, onChange }: Props) {
             boxSize="9"
             borderRadius="md"
             borderWidth="2px"
-            borderColor={open ? 'brand.500' : 'border.default'}
+            borderColor={open ? 'brand' : 'line'}
             _hover={{ borderColor: 'brand.500' }}
           />
         </ChakraColorPicker.Trigger>
@@ -100,7 +100,7 @@ export function ColorPicker({ value, onChange }: Props) {
                 </ChakraColorPicker.SwatchTrigger>
               ))}
             </ChakraColorPicker.SwatchGroup>
-            <Text fontSize="xs" color="text.secondary">
+            <Text fontSize="xs" color="text2">
               Personalizado
             </Text>
             <ChakraColorPicker.Area />

@@ -51,7 +51,16 @@ export function ChakraProvider({ children }: { children: ReactNode }) {
     <EmotionRegistry>
       <ChakraUIProvider value={system}>
         {/* Dark by default; light is opt-in from Ajustes → Apariencia. */}
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem={false}
+          disableTransitionOnChange
+          // The inline script only matters in the server HTML (it sets the
+          // theme before paint). On the client React 19 warns about rendering
+          // an executable <script>, so it is marked inert there.
+          scriptProps={typeof window === 'undefined' ? undefined : { type: 'application/json' }}
+        >
           {children}
         </ThemeProvider>
         <DialogOverlayGuard />

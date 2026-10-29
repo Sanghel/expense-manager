@@ -186,10 +186,10 @@ export function TransactionEditForm({ isOpen, onClose, userId, categories, accou
             <Button
               variant="ghost"
               size="xs"
-              color="#6366f1"
+              color="brand"
               mt={1}
               px={0}
-              _hover={{ color: '#818cf8', bg: 'transparent' }}
+              _hover={{ color: 'brand', bg: 'transparent' }}
               onClick={() => setQuickCategoryOpen(true)}
             >
               <FiPlus style={{ marginRight: 4 }} />

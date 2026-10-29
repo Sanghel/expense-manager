@@ -128,7 +128,7 @@ function GroupFields({ userId, categories, editingGroup, onClose, onSuccess }: F
         />
 
         <Box>
-          <Text fontSize="sm" color="#B0B0B0" mb={2}>
+          <Text fontSize="sm" color="text2" mb={2}>
             Categorías del grupo ({selected.length})
           </Text>
           <SimpleGrid columns={{ base: 1, md: 2 }} gap={2} maxH="260px" overflowY="auto">

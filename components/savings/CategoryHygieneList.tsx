@@ -28,7 +28,7 @@ export function CategoryHygieneList({ userId, period, suggestions }: Props) {
 
   if (suggestions.length === 0) {
     return (
-      <Text fontSize="sm" color="#6b7280">
+      <Text fontSize="sm" color="text3">
         Tus categorías están ordenadas. Nada que limpiar.
       </Text>
     )
@@ -49,9 +49,9 @@ export function CategoryHygieneList({ userId, period, suggestions }: Props) {
           <Box
             key={s.title}
             borderWidth="1px"
-            borderColor="#2d2d35"
+            borderColor="line"
             borderRadius="xl"
-            bg="#1a1a23"
+            bg="surface"
             p={4}
           >
             <VStack align="stretch" gap={2}>
@@ -60,7 +60,7 @@ export function CategoryHygieneList({ userId, period, suggestions }: Props) {
                   <Badge size="sm" colorPalette={kind.palette} variant="subtle">
                     {kind.label}
                   </Badge>
-                  <Text fontWeight="600" color="white" lineClamp={1}>{s.title}</Text>
+                  <Text fontWeight="600" color="text" lineClamp={1}>{s.title}</Text>
                 </HStack>
                 <ActionIconButton
                   kind="discard"
@@ -72,14 +72,14 @@ export function CategoryHygieneList({ userId, period, suggestions }: Props) {
                 />
               </HStack>
 
-              <Text fontSize="sm" color="#B0B0B0">{s.detail}</Text>
+              <Text fontSize="sm" color="text2">{s.detail}</Text>
 
               {/* No automatic merge: reassigning transactions is destructive and
                   the user should see what changes before it happens. */}
               <Link
                 href={s.kind === 'categorize' ? '/movimientos?tab=transacciones' : '/settings?tab=categorias'}
               >
-                <HStack gap={1} color="#8B93FF" fontSize="xs">
+                <HStack gap={1} color="brand" fontSize="xs">
                   <Text>{s.kind === 'categorize' ? 'Ir a transacciones' : 'Ir a categorías'}</Text>
                   <FiArrowRight />
                 </HStack>

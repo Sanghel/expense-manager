@@ -18,7 +18,7 @@ function LoginContent() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: '#0f0f13',
+        background: 'var(--chakra-colors-bg)',
         fontFamily:
           "'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
         padding: '24px',
@@ -28,8 +28,8 @@ function LoginContent() {
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
 
         .login-card {
-          background: #18181d;
-          border: 1px solid #2d2d35;
+          background: var(--chakra-colors-surface);
+          border: 1px solid var(--chakra-colors-line);
           border-radius: 24px;
           padding: 48px 44px 44px;
           width: 100%;
@@ -53,14 +53,14 @@ function LoginContent() {
         .login-logo-name {
           font-size: 15px;
           font-weight: 600;
-          color: #e5e7eb;
+          color: var(--chakra-colors-text);
           letter-spacing: -0.2px;
         }
 
         .login-heading {
           font-size: 30px;
           font-weight: 700;
-          color: #f9fafb;
+          color: var(--chakra-colors-text);
           letter-spacing: -0.8px;
           line-height: 1.2;
           margin: 0 0 10px 0;
@@ -68,7 +68,7 @@ function LoginContent() {
 
         .login-subheading {
           font-size: 15px;
-          color: #9ca3af;
+          color: var(--chakra-colors-text2);
           font-weight: 400;
           line-height: 1.5;
           margin: 0 0 32px 0;
@@ -77,7 +77,7 @@ function LoginContent() {
         .login-error {
           background: rgba(225, 29, 72, 0.1);
           border: 1px solid rgba(225, 29, 72, 0.3);
-          color: #fb7185;
+          color: var(--chakra-colors-neg);
           border-radius: 12px;
           padding: 12px 14px;
           font-size: 13.5px;
@@ -96,9 +96,9 @@ function LoginContent() {
           gap: 12px;
           padding: 13px 20px;
           border-radius: 14px;
-          border: 1.5px solid #2d2d35;
-          background: #1e1e24;
-          color: #e5e7eb;
+          border: 1.5px solid var(--chakra-colors-line);
+          background: var(--chakra-colors-surface2);
+          color: var(--chakra-colors-text);
           font-size: 15px;
           font-weight: 600;
           font-family: inherit;
@@ -109,8 +109,8 @@ function LoginContent() {
         }
 
         .login-google-btn:hover {
-          border-color: #4F46E5;
-          background: #23232d;
+          border-color: var(--chakra-colors-brand-solid);
+          background: var(--chakra-colors-surface2);
           box-shadow: 0 4px 16px rgba(79,70,229,0.2);
           transform: translateY(-1px);
         }
@@ -124,7 +124,7 @@ function LoginContent() {
           margin-top: 28px;
           text-align: center;
           font-size: 12.5px;
-          color: #6b7280;
+          color: var(--chakra-colors-text3);
           line-height: 1.5;
         }
 

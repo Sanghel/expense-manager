@@ -135,7 +135,7 @@ export function ComboboxField({
             {label}
             {required && <Field.RequiredIndicator />}
             {optional && (
-              <Text as="span" color="text.secondary" fontWeight="normal" ms={1}>
+              <Text as="span" color="text2" fontWeight="normal" ms={1}>
                 (opcional)
               </Text>
             )}

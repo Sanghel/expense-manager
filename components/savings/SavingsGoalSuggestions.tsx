@@ -107,17 +107,17 @@ export function SavingsGoalSuggestions({ userId, period, suggestions, goals, cap
     <>
       <VStack gap={4} align="stretch">
         {/* Capacidad de ahorro */}
-        <Card borderLeftWidth="4px" borderLeftColor={positive ? '#4ade80' : '#dc2626'}>
+        <Card borderLeftWidth="4px" borderLeftColor={positive ? 'pos' : 'neg'}>
           <HStack gap={3} align="start">
-            <Icon as={positive ? FiTrendingUp : FiTrendingDown} color={positive ? '#4ade80' : '#dc2626'} boxSize={6} mt={1} />
+            <Icon as={positive ? FiTrendingUp : FiTrendingDown} color={positive ? 'pos' : 'neg'} boxSize={6} mt={1} />
             <Box>
-              <Text fontSize="sm" color="#B0B0B0">
+              <Text fontSize="sm" color="text2">
                 Capacidad de ahorro mensual estimada
               </Text>
-              <Text fontSize="2xl" fontWeight="bold" color={positive ? '#4ade80' : '#dc2626'}>
+              <Text fontSize="2xl" fontWeight="bold" color={positive ? 'pos' : 'neg'}>
                 {formatCurrency(capacity.monthlySavingsCapacity, currency)}
               </Text>
-              <Text fontSize="xs" color="#B0B0B0" mt={1}>
+              <Text fontSize="xs" color="text2" mt={1}>
                 Ingreso prom. {formatCurrency(capacity.avgMonthlyIncome, currency)} − Gasto prom.{' '}
                 {formatCurrency(capacity.avgMonthlyExpense, currency)} · {capacity.monthsAnalyzed}{' '}
                 {capacity.monthsAnalyzed === 1 ? 'mes analizado' : 'meses analizados'}
@@ -128,7 +128,7 @@ export function SavingsGoalSuggestions({ userId, period, suggestions, goals, cap
 
         {/* Metas sugeridas */}
         {visibleSuggestions.length === 0 ? (
-          <Text color="#B0B0B0" fontSize="sm">
+          <Text color="text2" fontSize="sm">
             No hay metas sugeridas para este periodo.
           </Text>
         ) : (
@@ -139,32 +139,32 @@ export function SavingsGoalSuggestions({ userId, period, suggestions, goals, cap
               key={i}
               borderWidth="1px"
               borderRadius="lg"
-              borderColor="#2d2d35"
-              bg="#1a1a23"
+              borderColor="line"
+              bg="surface"
               p={4}
             >
               <HStack justify="space-between" align="start" gap={4} flexWrap="wrap">
                 <Box flex={1} minW="200px">
                   <HStack gap={2}>
-                    <Icon as={FiTarget} color="#6366f1" />
-                    <Text fontWeight="semibold" color="white">
+                    <Icon as={FiTarget} color="brand" />
+                    <Text fontWeight="semibold" color="text">
                       {s.name}
                     </Text>
                   </HStack>
-                  <Text fontSize="sm" color="#B0B0B0" mt={1}>
+                  <Text fontSize="sm" color="text2" mt={1}>
                     {s.rationale}
                   </Text>
                   <HStack gap={4} mt={2} flexWrap="wrap">
-                    <Text fontSize="sm" color="#4ade80" fontWeight="medium">
+                    <Text fontSize="sm" color="pos" fontWeight="medium">
                       Objetivo: {formatCurrency(s.target_amount, currency)}
                     </Text>
                     {s.monthly_contribution != null && (
-                      <Text fontSize="sm" color="#B0B0B0">
+                      <Text fontSize="sm" color="text2">
                         Aporte: {formatCurrency(s.monthly_contribution, currency)}/mes
                       </Text>
                     )}
                     {s.deadline && (
-                      <Text fontSize="sm" color="#B0B0B0">
+                      <Text fontSize="sm" color="text2">
                         Para: {s.deadline}
                       </Text>
                     )}
@@ -182,9 +182,9 @@ export function SavingsGoalSuggestions({ userId, period, suggestions, goals, cap
                   ) : (
                     <Button
                       size="sm"
-                      bg="#4F46E5"
+                      bg="brandSolid"
                       color="white"
-                      _hover={{ bg: '#4338CA' }}
+                      _hover={{ bg: 'brand.600' }}
                       onClick={() => handleCreate(s)}
                     >
                       Crear meta

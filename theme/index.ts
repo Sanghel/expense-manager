@@ -77,22 +77,14 @@ const config = defineConfig({
         // ── Pulso design tokens ────────────────────────────────────────────
         bg: {
           DEFAULT: mode('#FAFAFB', '#0B0B0F'),
+          // Chakra's own surfaces (used by its recipes) follow the Pulso palette.
           panel: { value: '{colors.surface}' },
-          // Legacy aliases, see below.
-          canvas: { value: '{colors.surface}' },
-          default: { value: '{colors.bg}' },
           subtle: { value: '{colors.surface2}' },
         },
         surface: mode('#F1F1F4', '#131319'),
         surface2: mode('#E7E7EC', '#1B1B23'),
         line: mode('rgba(16,16,32,.09)', 'rgba(255,255,255,.08)'),
-        text: {
-          DEFAULT: mode('#101016', '#F5F5F7'),
-          // Legacy aliases, see below.
-          primary: { value: '{colors.text}' },
-          secondary: { value: '{colors.text2}' },
-          muted: { value: '{colors.text3}' },
-        },
+        text: { DEFAULT: mode('#101016', '#F5F5F7') },
         text2: mode('#52525C', '#A6A6B0'),
         text3: mode('#85858F', '#72727D'),
         brandSolid: { value: '{colors.brand.500}' },
@@ -121,19 +113,7 @@ const config = defineConfig({
 
         // Chakra's own surfaces follow the Pulso palette.
         fg: { DEFAULT: { value: '{colors.text}' } },
-        border: {
-          DEFAULT: { value: '{colors.line}' },
-          // Legacy aliases, see below.
-          default: { value: '{colors.line}' },
-          subtle: { value: '{colors.line}' },
-        },
-
-        // ── Legacy aliases ─────────────────────────────────────────────────
-        // `bg.canvas`, `text.primary`, `border.default`… (nested above) and
-        // these shadows are kept while screens migrate to the Pulso tokens;
-        // removed in the final cleanup (#564).
-        'shadow.sm': mode('rgba(16,16,32,.08)', 'rgba(0,0,0,.3)'),
-        'shadow.md': mode('rgba(16,16,32,.14)', 'rgba(0,0,0,.5)'),
+        border: { DEFAULT: { value: '{colors.line}' } },
       },
       shadows: {
         overlay: mode('0 30px 80px rgba(16,16,32,.2)', '0 30px 80px rgba(0,0,0,.6)'),

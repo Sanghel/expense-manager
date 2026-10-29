@@ -100,18 +100,18 @@ export function NotificationsPanel({
     <>
       <Box p={4} maxH="70vh" overflowY="auto">
         <HStack justify="space-between" mb={3}>
-          <Text fontWeight="semibold" color="white">
+          <Text fontWeight="semibold" color="text">
             Recordatorios
           </Text>
           <Link href="/movimientos?tab=recordatorios" onClick={onClosePanel}>
-            <Text fontSize="xs" color="#8B93FF">
+            <Text fontSize="xs" color="brand">
               Ver todos
             </Text>
           </Link>
         </HStack>
 
         {grouped.length === 0 ? (
-          <Text fontSize="sm" color="#B0B0B0" py={4} textAlign="center">
+          <Text fontSize="sm" color="text2" py={4} textAlign="center">
             Nada pendiente. Todo al día. 🎉
           </Text>
         ) : (
@@ -121,7 +121,7 @@ export function NotificationsPanel({
                 <HStack gap={2}>
                   <Text
                     fontSize="xs"
-                    color="#B0B0B0"
+                    color="text2"
                     textTransform="uppercase"
                     letterSpacing="wide"
                   >
@@ -143,24 +143,26 @@ export function NotificationsPanel({
                   return (
                     <Box
                       key={key}
-                      borderWidth="1px"
-                      borderColor={
-                        section.status === 'overdue' ? '#7f1d33' : '#2d2d35'
+                      // Tonal card; only overdue ones get a red ring.
+                      boxShadow={
+                        section.status === 'overdue'
+                          ? 'inset 0 0 0 1px var(--chakra-colors-neg)'
+                          : 'none'
                       }
-                      borderRadius="lg"
-                      bg="#1a1a23"
-                      px={3}
-                      py={2}
+                      borderRadius="tile"
+                      bg="surface2"
+                      px={3.5}
+                      py={3}
                     >
                       <VStack align="stretch" gap={2}>
                         <HStack justify="space-between" align="start" gap={2}>
                           <VStack align="start" gap={1} minW={0}>
-                            <Text fontSize="sm" color="white" lineClamp={1}>
+                            <Text fontSize="sm" color="text" lineClamp={1}>
                               {occurrence.reminder.category?.icon ?? '🔔'}{' '}
                               {occurrence.reminder.description}
                             </Text>
                             <HStack gap={2} flexWrap="wrap">
-                              <Text fontSize="xs" color="#B0B0B0">
+                              <Text fontSize="xs" color="text2">
                                 {formatDate(occurrence.date)}
                               </Text>
                               <Badge
@@ -219,9 +221,9 @@ export function NotificationsPanel({
                         <HStack justify="space-between" gap={2}>
                           <Button
                             size="xs"
-                            bg="#10B981"
-                            color="white"
-                            _hover={{ bg: '#059669' }}
+                            bg="pos"
+                            color="bg"
+                            _hover={{ bg: 'pos' }}
                             onClick={() => setSettling(occurrence)}
                           >
                             <LuCircleCheck />
@@ -249,7 +251,7 @@ export function NotificationsPanel({
                           >
                             <Switch.HiddenInput />
                             <Switch.Control />
-                            <Switch.Label fontSize="xs" color="#B0B0B0">
+                            <Switch.Label fontSize="xs" color="text2">
                               Activo
                             </Switch.Label>
                           </Switch.Root>
@@ -259,7 +261,7 @@ export function NotificationsPanel({
                   )
                 })}
 
-                <Separator borderColor="#2d2d35" />
+                <Separator borderColor="line" />
               </VStack>
             ))}
           </VStack>

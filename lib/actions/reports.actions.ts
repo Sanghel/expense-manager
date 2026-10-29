@@ -4,167 +4,143 @@ import { endOfMonth, parseISO, startOfMonth, subMonths } from 'date-fns'
 import { insforgeAdmin } from '@/lib/insforge-admin'
 import { getAllRatePairs } from '@/lib/actions/exchangeRates.actions'
 import { getBudgets } from '@/lib/actions/budgets.actions'
-import { getCategoryGroups } from '@/lib/actions/categoryGroups.actions'
 import { buildConverter, type RateRow } from '@/lib/utils/currency-converter'
+import { getBudgetCap } from '@/lib/utils/budget-grouping'
+import { getSavingsPace } from '@/lib/utils/savings-pace'
 import { safeRatio, toNumber } from '@/lib/utils/numbers'
 import { getLocalDateString } from '@/lib/utils/dates'
 import type {
   BudgetWithSpent,
-  CategoryGroupWithMembers,
   Currency,
   ReminderWithCategory,
-  TransactionSource,
+  SavingsGoal,
 } from '@/types/database.types'
-
-export interface ReportFiltersInput {
-  startDate: string
-  endDate: string
-  categoryIds: string[]
-  transactionType: 'all' | 'income' | 'expense'
-}
 
 export interface NamedAmount {
   id: string
   label: string
   icon: string | null
-  color: string | null
   value: number
 }
 
-export interface ReportDataset {
+/** Everything the Análisis section of the Resumen needs, in the preferred currency. */
+export interface AnalysisDataset {
   currency: Currency
-  totals: {
-    income: number
-    expense: number
-    net: number
-    incomeCount: number
-    expenseCount: number
+  /** `YYYY-MM` analysed and the previous one. */
+  month: string
+  prevMonth: string
+  daysInMonth: number
+  /** Last day with data: today for the month in progress, else the last day. */
+  lastDay: number
+  isCurrentMonth: boolean
+  totals: { income: number; expense: number }
+  pace: {
+    /** Cumulative expense per day, index 0 = day 1, up to `lastDay`. */
+    current: number[]
+    /** Cumulative expense per day for the whole previous month. */
+    previous: number[]
+    /** Expected expense at month end at the current rhythm. */
+    projection: number
+    /** Previous month's cumulative expense at the same day. */
+    previousAtSameDay: number
+    /** Monthly budget cap, when there are budgets. */
+    cap: number | null
+    mostExpensiveDay: { day: number; value: number } | null
   }
-  /** Expense share per category, descending. */
-  expenseByCategory: NamedAmount[]
-  incomeByCategory: NamedAmount[]
-  /** Expense share per category group (empty when the user has no groups). */
-  expenseByGroup: NamedAmount[]
-  expenseByAccount: NamedAmount[]
-  expenseBySource: NamedAmount[]
-  /** 0 = Sunday. */
-  expenseByWeekday: { weekday: number; label: string; value: number }[]
-  /** Every month of the filtered range. */
-  monthly: { month: string; income: number; expense: number }[]
+  /** Last 12 months; null when no income came in that month. */
   savingsRate: { month: string; rate: number | null }[]
-  cumulative: { date: string; balance: number }[]
-  /** One entry per day with expenses, for the calendar heatmap. */
-  daily: { day: string; value: number }[]
-  /** Expenses that match an active reminder vs. one-off ones. */
-  recurringSplit: { month: string; recurring: number; oneOff: number }[]
-  /** Spend below the threshold ("gastos hormiga") vs. the rest. */
-  antExpenses: { threshold: number; ant: number; rest: number; count: number }
-  /** Percent of each budget's limit consumed, for the polar chart. */
-  budgetUsage: { id: string; label: string; percent: number }[]
-  /** Expense per group, this period vs. the previous one of equal length. */
-  profile: { axis: string; current: number; previous: number }[]
+  /** Per-category change vs the previous month, largest moves first. */
+  categoryDeltas: (NamedAmount & { previous: number; delta: number })[]
+  ant: {
+    threshold: number
+    total: number
+    count: number
+    /** Share of the month's expense, 0-100. */
+    share: number
+    byCategory: NamedAmount[]
+  }
+  /** Expense matching an active reminder (fixed) vs the rest. */
+  fixedVsVariable: { fixed: number; variable: number }
+  /** Account balances per currency: native amount and converted value. */
+  exposure: { currency: Currency; balance: number; converted: number }[]
+  /** Average expense per weekday, Monday first. */
+  weekday: { label: string; value: number }[]
+  /** First open goal with a deadline, to make the "gastos hormiga" tip concrete. */
+  goal: { name: string; requiredMonthly: number; currency: Currency } | null
 }
 
-const WEEKDAY_LABELS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
-
-const SOURCE_LABELS: Record<TransactionSource, string> = {
-  manual: 'Manual',
-  conversational: 'Chat IA',
-  import: 'Importado',
-  gmail: 'Gmail',
-}
-
-/** Amount below which an expense counts as a "gasto hormiga". */
-const ANT_THRESHOLD_RATIO = 0.02
-
-interface RawTransaction {
+interface Row {
   amount: number
   currency: Currency
   type: 'income' | 'expense'
   category_id: string | null
-  account_id: string | null
   description: string
   date: string
-  source: TransactionSource
 }
 
-function shiftRange(startDate: string, endDate: string) {
-  const start = new Date(`${startDate}T00:00:00`)
-  const end = new Date(`${endDate}T00:00:00`)
-  const span = Math.max(end.getTime() - start.getTime(), 0)
-  const prevEnd = new Date(start.getTime() - 86400000)
-  const prevStart = new Date(prevEnd.getTime() - span)
-  return {
-    prevStart: prevStart.toISOString().slice(0, 10),
-    prevEnd: prevEnd.toISOString().slice(0, 10),
-  }
-}
+/** Purchases below this share of the month's spend count as "gastos hormiga". */
+const ANT_THRESHOLD_RATIO = 0.02
+const TREND_MONTHS = 12
+/** Monday-first labels; JS getDay() is Sunday = 0. */
+const WEEKDAYS = [
+  { label: 'Lun', jsDay: 1 },
+  { label: 'Mar', jsDay: 2 },
+  { label: 'Mié', jsDay: 3 },
+  { label: 'Jue', jsDay: 4 },
+  { label: 'Vie', jsDay: 5 },
+  { label: 'Sáb', jsDay: 6 },
+  { label: 'Dom', jsDay: 0 },
+]
 
-function sortDesc(list: NamedAmount[]): NamedAmount[] {
-  return [...list].sort((a, b) => b.value - a.value)
+function cumulative(daily: number[]): number[] {
+  let running = 0
+  return daily.map((v) => (running += v))
 }
 
 /**
- * Single source of truth for the reports page.
- *
- * Every chart used to fetch and filter its own 500 rows on the client, each
- * with a copy of the same filter block, and three of them silently dropped
- * transactions whose currency was not the most frequent one. This runs one
- * query, converts everything into the user's preferred currency, and returns
- * the series already aggregated.
+ * Data for the Análisis cards. One 12-month transactions query covers the
+ * month, the previous month and the savings-rate trend; amounts are converted
+ * into the user's preferred currency.
  */
-/** Months of history behind the savings-rate trend, independent of the filter. */
-const TREND_MONTHS = 12
-
-export async function getReportDataset(
+export async function getAnalysisDataset(
   userId: string,
-  filters: ReportFiltersInput
-): Promise<{ success: boolean; data?: ReportDataset; error?: string }> {
+  month: string
+): Promise<{ success: boolean; data?: AnalysisDataset; error?: string }> {
   if (!userId) return { success: false, error: 'Falta el identificador de usuario' }
 
   try {
-    const { prevStart, prevEnd } = shiftRange(filters.startDate, filters.endDate)
+    const monthStart = parseISO(`${month}-01`)
+    const monthEnd = endOfMonth(monthStart)
+    const prevStart = startOfMonth(subMonths(monthStart, 1))
+    const trendStart = startOfMonth(subMonths(monthStart, TREND_MONTHS - 1))
+    const prevMonth = getLocalDateString(prevStart).slice(0, 7)
 
-    // The savings rate is a trend, not a snapshot. Bound to the report filter it
-    // collapsed to a single point (the default filter is the current month), so
-    // the line chart rendered as one dot — indistinguishable from empty. It gets
-    // its own bounded 12-month window ending at the filter's end date.
-    const trendEnd = endOfMonth(parseISO(filters.endDate))
-    const trendStart = startOfMonth(subMonths(trendEnd, TREND_MONTHS - 1))
-    const trendStartKey = getLocalDateString(trendStart)
-    const trendEndKey = getLocalDateString(trendEnd)
-
-    const [userRes, txRes, prevTxRes, categoriesRes, accountsRes, remindersRes, trendTxRes, ratePairs, groupsResult, budgetsResult] =
+    const [userRes, txRes, categoriesRes, accountsRes, remindersRes, goalsRes, ratePairs, budgetsResult] =
       await Promise.all([
         insforgeAdmin.database.from('users').select('preferred_currency').eq('id', userId).single(),
         insforgeAdmin.database
           .from('transactions')
-          .select('amount, currency, type, category_id, account_id, description, date, source')
+          .select('amount, currency, type, category_id, description, date')
           .eq('user_id', userId)
-          .gte('date', filters.startDate)
-          .lte('date', filters.endDate),
+          .gte('date', getLocalDateString(trendStart))
+          .lte('date', getLocalDateString(monthEnd)),
+        insforgeAdmin.database.from('categories').select('id, name, icon'),
         insforgeAdmin.database
-          .from('transactions')
-          .select('amount, currency, type, category_id, date')
-          .eq('user_id', userId)
-          .eq('type', 'expense')
-          .gte('date', prevStart)
-          .lte('date', prevEnd),
-        insforgeAdmin.database.from('categories').select('id, name, icon, color, type'),
-        insforgeAdmin.database.from('accounts').select('id, name, icon').eq('user_id', userId),
+          .from('accounts')
+          .select('balance, currency, is_active')
+          .eq('user_id', userId),
         insforgeAdmin.database
           .from('reminders')
           .select('description, category_id')
           .eq('user_id', userId)
           .eq('is_active', true),
         insforgeAdmin.database
-          .from('transactions')
-          .select('amount, currency, type, date')
+          .from('savings_goals')
+          .select('*')
           .eq('user_id', userId)
-          .gte('date', trendStartKey)
-          .lte('date', trendEndKey),
+          .eq('is_completed', false)
+          .order('deadline', { ascending: true }),
         getAllRatePairs(),
-        getCategoryGroups(userId),
         getBudgets(userId),
       ])
 
@@ -172,252 +148,185 @@ export async function getReportDataset(
 
     const currency = ((userRes.data?.preferred_currency as Currency) ?? 'COP') as Currency
     const convert = buildConverter((ratePairs.success ? ratePairs.data : []) as RateRow[])
+    const amountOf = (t: Pick<Row, 'amount' | 'currency'>) => convert(toNumber(t.amount), t.currency, currency)
 
-    const categories = (categoriesRes.data ?? []) as {
-      id: string
-      name: string
-      icon: string | null
-      color: string | null
-    }[]
+    const categories = (categoriesRes.data ?? []) as { id: string; name: string; icon: string | null }[]
     const categoryById = new Map(categories.map((c) => [c.id, c]))
-
-    const accounts = (accountsRes.data ?? []) as { id: string; name: string; icon: string | null }[]
-    const accountById = new Map(accounts.map((a) => [a.id, a]))
-
-    const reminderKeys = new Set(
-      ((remindersRes.data ?? []) as Pick<ReminderWithCategory, 'description' | 'category_id'>[]).map(
-        (r) => `${r.description}|${r.category_id ?? ''}`
-      )
-    )
-
-    const groups = (groupsResult.success ? (groupsResult.data ?? []) : []) as CategoryGroupWithMembers[]
-    const budgets = (budgetsResult.success ? (budgetsResult.data ?? []) : []) as BudgetWithSpent[]
-
-    // The client-side filter block, applied once here.
-    const rows = ((txRes.data ?? []) as RawTransaction[]).filter((t) => {
-      if (filters.transactionType !== 'all' && t.type !== filters.transactionType) return false
-      if (filters.categoryIds.length && !filters.categoryIds.includes(t.category_id ?? '')) return false
-      return true
-    })
-
-    const amountOf = (t: { amount: number; currency: Currency }) =>
-      convert(toNumber(t.amount), t.currency, currency)
-
-    const totals = { income: 0, expense: 0, net: 0, incomeCount: 0, expenseCount: 0 }
-    const expenseByCategory = new Map<string, number>()
-    const incomeByCategory = new Map<string, number>()
-    const expenseByAccount = new Map<string, number>()
-    const expenseBySource = new Map<string, number>()
-    const expenseByWeekday = new Array(7).fill(0) as number[]
-    const monthly = new Map<string, { income: number; expense: number }>()
-    const daily = new Map<string, number>()
-    const recurringSplit = new Map<string, { recurring: number; oneOff: number }>()
-    const expenseAmounts: number[] = []
-
-    for (const t of rows) {
-      const value = amountOf(t)
-      const month = t.date.slice(0, 7)
-      const bucket = monthly.get(month) ?? { income: 0, expense: 0 }
-
-      if (t.type === 'income') {
-        totals.income += value
-        totals.incomeCount += 1
-        bucket.income += value
-        incomeByCategory.set(t.category_id ?? '', (incomeByCategory.get(t.category_id ?? '') ?? 0) + value)
-      } else {
-        totals.expense += value
-        totals.expenseCount += 1
-        bucket.expense += value
-        expenseAmounts.push(value)
-        expenseByCategory.set(t.category_id ?? '', (expenseByCategory.get(t.category_id ?? '') ?? 0) + value)
-        expenseByAccount.set(t.account_id ?? '', (expenseByAccount.get(t.account_id ?? '') ?? 0) + value)
-        expenseBySource.set(t.source, (expenseBySource.get(t.source) ?? 0) + value)
-        expenseByWeekday[new Date(`${t.date}T12:00:00`).getDay()] += value
-        daily.set(t.date, (daily.get(t.date) ?? 0) + value)
-
-        const split = recurringSplit.get(month) ?? { recurring: 0, oneOff: 0 }
-        if (reminderKeys.has(`${t.description}|${t.category_id ?? ''}`)) split.recurring += value
-        else split.oneOff += value
-        recurringSplit.set(month, split)
-      }
-
-      monthly.set(month, bucket)
+    const named = (id: string, value: number): NamedAmount => {
+      const c = categoryById.get(id)
+      return { id: id || 'sin-categoria', label: c?.name ?? 'Sin categoría', icon: c?.icon ?? null, value }
     }
 
-    totals.net = totals.income - totals.expense
+    // A transaction is "fixed" when it shares the category of an active
+    // reminder and its description contains the reminder's (ignoring case and
+    // accents): bank descriptions rarely match the reminder name exactly.
+    const normalize = (text: string) =>
+      text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
+    const reminders = ((remindersRes.data ?? []) as Pick<ReminderWithCategory, 'description' | 'category_id'>[]).map(
+      (r) => ({ text: normalize(r.description), category: r.category_id ?? '' })
+    )
+    const isFixed = (t: Row) => {
+      const text = normalize(t.description)
+      return reminders.some((r) => r.text && r.category === (t.category_id ?? '') && text.includes(r.text))
+    }
 
-    const toNamed = (map: Map<string, number>): NamedAmount[] =>
-      sortDesc(
-        [...map.entries()].map(([id, value]) => {
-          const category = categoryById.get(id)
-          return {
-            id: id || 'sin-categoria',
-            label: category?.name ?? 'Sin categoría',
-            icon: category?.icon ?? null,
-            color: category?.color ?? null,
-            value,
-          }
-        })
-      )
+    const rows = (txRes.data ?? []) as Row[]
+    const current = rows.filter((t) => t.date.startsWith(month))
+    const previous = rows.filter((t) => t.date.startsWith(prevMonth))
 
-    // Ant expenses: everything below a small slice of the period's total spend.
-    const antThreshold = totals.expense * ANT_THRESHOLD_RATIO
-    const ant = expenseAmounts.filter((a) => a <= antThreshold)
-    const antTotal = ant.reduce((sum, a) => sum + a, 0)
+    // ── Pace ──────────────────────────────────────────────────────────────
+    const daysInMonth = monthEnd.getDate()
+    const prevDays = endOfMonth(prevStart).getDate()
+    const isCurrentMonth = getLocalDateString().startsWith(month)
+    const lastDay = isCurrentMonth ? new Date().getDate() : daysInMonth
 
-    const groupMembers = groups.map((g) => ({ group: g, members: new Set(g.category_ids) }))
-    const expenseByGroup: NamedAmount[] = sortDesc(
-      groupMembers.map(({ group, members }) => ({
-        id: group.id,
-        label: group.name,
-        icon: group.icon,
-        color: group.color,
-        value: [...expenseByCategory.entries()]
-          .filter(([categoryId]) => members.has(categoryId))
-          .reduce((sum, [, value]) => sum + value, 0),
-      }))
-    ).filter((g) => g.value > 0)
+    const dailyExpense = new Array(daysInMonth).fill(0) as number[]
+    const prevDaily = new Array(prevDays).fill(0) as number[]
+    const totals = { income: 0, expense: 0 }
+    const byCategory = new Map<string, number>()
+    let fixed = 0
 
-    // Previous period, same length, for the radar comparison.
-    const prevByCategory = new Map<string, number>()
-    for (const t of (prevTxRes.data ?? []) as RawTransaction[]) {
+    for (const t of current) {
       const value = amountOf(t)
+      if (t.type === 'income') {
+        totals.income += value
+        continue
+      }
+      totals.expense += value
+      dailyExpense[Number(t.date.slice(8, 10)) - 1] += value
+      byCategory.set(t.category_id ?? '', (byCategory.get(t.category_id ?? '') ?? 0) + value)
+      if (isFixed(t)) fixed += value
+    }
+
+    const prevByCategory = new Map<string, number>()
+    for (const t of previous) {
+      if (t.type !== 'expense') continue
+      const value = amountOf(t)
+      prevDaily[Number(t.date.slice(8, 10)) - 1] += value
       prevByCategory.set(t.category_id ?? '', (prevByCategory.get(t.category_id ?? '') ?? 0) + value)
     }
 
-    const profileSource = groupMembers.length > 0 ? groupMembers : null
-    const profile = profileSource
-      ? profileSource.map(({ group, members }) => ({
-          axis: group.name,
-          current: [...expenseByCategory.entries()]
-            .filter(([id]) => members.has(id))
-            .reduce((sum, [, v]) => sum + v, 0),
-          previous: [...prevByCategory.entries()]
-            .filter(([id]) => members.has(id))
-            .reduce((sum, [, v]) => sum + v, 0),
-        }))
-      : // No groups yet — fall back to the top categories so the radar is still useful.
-        toNamed(expenseByCategory)
-          .slice(0, 6)
-          .map((c) => ({
-            axis: c.label,
-            current: c.value,
-            previous: prevByCategory.get(c.id === 'sin-categoria' ? '' : c.id) ?? 0,
-          }))
+    const currentCum = cumulative(dailyExpense).slice(0, lastDay)
+    const prevCum = cumulative(prevDaily)
+    const spentSoFar = currentCum[currentCum.length - 1] ?? 0
+    const maxDay = dailyExpense
+      .slice(0, lastDay)
+      .reduce<{ day: number; value: number } | null>(
+        (best, value, i) => (value > 0 && (!best || value > best.value) ? { day: i + 1, value } : best),
+        null
+      )
 
-    const monthKeys = [...monthly.keys()].sort()
+    const budgets = (budgetsResult.success ? (budgetsResult.data ?? []) : []) as BudgetWithSpent[]
+    const cap = getBudgetCap(budgets, currency, convert)
+
+    // ── Savings rate, 12 months ───────────────────────────────────────────
+    const trend = new Map<string, { income: number; expense: number }>()
+    for (let i = 0; i < TREND_MONTHS; i++) {
+      trend.set(getLocalDateString(subMonths(monthStart, TREND_MONTHS - 1 - i)).slice(0, 7), { income: 0, expense: 0 })
+    }
+    for (const t of rows) {
+      const bucket = trend.get(t.date.slice(0, 7))
+      if (bucket) bucket[t.type] += amountOf(t)
+    }
+
+    // ── Category deltas ───────────────────────────────────────────────────
+    const categoryIds = new Set([...byCategory.keys(), ...prevByCategory.keys()])
+    const categoryDeltas = [...categoryIds]
+      .map((id) => {
+        const now = byCategory.get(id) ?? 0
+        const before = prevByCategory.get(id) ?? 0
+        return { ...named(id, now), previous: before, delta: now - before }
+      })
+      .filter((c) => Math.abs(c.delta) > 0)
+      .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
+      .slice(0, 6)
+
+    // ── Ant expenses ──────────────────────────────────────────────────────
+    const threshold = totals.expense * ANT_THRESHOLD_RATIO
+    const antByCategory = new Map<string, number>()
+    let antTotal = 0
+    let antCount = 0
+    for (const t of current) {
+      if (t.type !== 'expense') continue
+      const value = amountOf(t)
+      if (value > threshold) continue
+      antTotal += value
+      antCount += 1
+      antByCategory.set(t.category_id ?? '', (antByCategory.get(t.category_id ?? '') ?? 0) + value)
+    }
+
+    // ── Currency exposure ─────────────────────────────────────────────────
+    const exposureMap = new Map<Currency, number>()
+    for (const a of (accountsRes.data ?? []) as { balance: number; currency: Currency; is_active: boolean }[]) {
+      if (a.is_active === false) continue
+      exposureMap.set(a.currency, (exposureMap.get(a.currency) ?? 0) + toNumber(a.balance))
+    }
+
+    // ── Weekday averages (days 1..lastDay) ────────────────────────────────
+    const weekdaySum = new Array(7).fill(0) as number[]
+    const weekdayCount = new Array(7).fill(0) as number[]
+    for (let d = 1; d <= lastDay; d++) {
+      const jsDay = new Date(monthStart.getFullYear(), monthStart.getMonth(), d).getDay()
+      weekdaySum[jsDay] += dailyExpense[d - 1]
+      weekdayCount[jsDay] += 1
+    }
+
+    const goalRow = ((goalsRes.data ?? []) as SavingsGoal[]).find((g) => g.deadline)
+    const goalPace = goalRow ? getSavingsPace(goalRow) : null
 
     return {
       success: true,
       data: {
         currency,
+        month,
+        prevMonth,
+        daysInMonth,
+        lastDay,
+        isCurrentMonth,
         totals,
-        expenseByCategory: toNamed(expenseByCategory),
-        incomeByCategory: toNamed(incomeByCategory),
-        expenseByGroup,
-        expenseByAccount: sortDesc(
-          [...expenseByAccount.entries()].map(([id, value]) => {
-            const account = accountById.get(id)
-            return {
-              id: id || 'sin-cuenta',
-              label: account?.name ?? 'Sin cuenta',
-              icon: account?.icon ?? null,
-              color: null,
-              value,
-            }
-          })
-        ),
-        expenseBySource: sortDesc(
-          [...expenseBySource.entries()].map(([source, value]) => ({
-            id: source,
-            label: SOURCE_LABELS[source as TransactionSource] ?? source,
-            icon: null,
-            color: null,
-            value,
-          }))
-        ),
-        expenseByWeekday: expenseByWeekday.map((value, weekday) => ({
-          weekday,
-          label: WEEKDAY_LABELS[weekday],
-          value,
-        })),
-        monthly: monthKeys.map((month) => ({
-          month,
-          income: monthly.get(month)!.income,
-          expense: monthly.get(month)!.expense,
-        })),
-        savingsRate: (() => {
-          const trend = new Map<string, { income: number; expense: number }>()
-          for (const t of (trendTxRes.data ?? []) as RawTransaction[]) {
-            const month = t.date.slice(0, 7)
-            const bucket = trend.get(month) ?? { income: 0, expense: 0 }
-            if (t.type === 'income') bucket.income += amountOf(t)
-            else bucket.expense += amountOf(t)
-            trend.set(month, bucket)
-          }
-          return [...trend.entries()]
-            .sort(([a], [b]) => a.localeCompare(b))
-            .map(([month, { income, expense }]) => ({
-              month,
-              // A month with no income has no meaningful savings rate — 0 % would
-              // read as "saved nothing" when the truth is "nothing came in".
-              rate: income > 0 ? safeRatio(income - expense, income) * 100 : null,
-            }))
-        })(),
-        cumulative: (() => {
-          const byDate = new Map<string, number>()
-          for (const t of rows) {
-            const delta = t.type === 'income' ? amountOf(t) : -amountOf(t)
-            byDate.set(t.date, (byDate.get(t.date) ?? 0) + delta)
-          }
-          let running = 0
-          return [...byDate.entries()]
-            .sort(([a], [b]) => a.localeCompare(b))
-            .map(([date, delta]) => {
-              running += delta
-              return { date, balance: running }
-            })
-        })(),
-        daily: [...daily.entries()]
-          .sort(([a], [b]) => a.localeCompare(b))
-          .map(([day, value]) => ({ day, value })),
-        recurringSplit: monthKeys.map((month) => ({
-          month,
-          recurring: recurringSplit.get(month)?.recurring ?? 0,
-          oneOff: recurringSplit.get(month)?.oneOff ?? 0,
-        })),
-        antExpenses: {
-          threshold: antThreshold,
-          ant: antTotal,
-          rest: totals.expense - antTotal,
-          count: ant.length,
+        pace: {
+          current: currentCum,
+          previous: prevCum,
+          projection: isCurrentMonth && lastDay > 0 ? (spentSoFar / lastDay) * daysInMonth : spentSoFar,
+          previousAtSameDay: prevCum[Math.min(lastDay, prevDays) - 1] ?? 0,
+          cap: cap?.limit ?? null,
+          mostExpensiveDay: maxDay,
         },
-        budgetUsage: budgets
-          .map((b) => ({
-            id: b.id,
-            label:
-              b.scope === 'total'
-                ? 'Todos los gastos'
-                : b.scope === 'group'
-                  ? (b.group?.name ?? 'Grupo')
-                  : (b.category?.name ?? 'Sin categoría'),
-            percent: Math.round(safeRatio(b.spent, b.limit_amount) * 100),
-            hasLimit: toNumber(b.limit_amount) > 0,
-          }))
-          // A budget sitting at 0 % is information, not noise — it used to be
-          // filtered out, so the chart looked empty for anyone who had budgets
-          // but no spend against them yet. Only budgets without a resolvable
-          // limit (a percentage budget in a period with no income) are dropped.
-          .filter((b) => b.hasLimit)
-          .slice(0, 8),
-        profile,
+        savingsRate: [...trend.entries()].map(([m, { income, expense }]) => ({
+          month: m,
+          // No income means no meaningful rate (0 % would read as "saved nothing").
+          rate: income > 0 ? safeRatio(income - expense, income) * 100 : null,
+        })),
+        categoryDeltas,
+        ant: {
+          threshold,
+          total: antTotal,
+          count: antCount,
+          share: totals.expense > 0 ? (antTotal / totals.expense) * 100 : 0,
+          byCategory: [...antByCategory.entries()]
+            .map(([id, value]) => named(id, value))
+            .sort((a, b) => b.value - a.value)
+            .slice(0, 3),
+        },
+        fixedVsVariable: { fixed, variable: totals.expense - fixed },
+        exposure: [...exposureMap.entries()]
+          .map(([c, balance]) => ({ currency: c, balance, converted: convert(balance, c, currency) }))
+          .sort((a, b) => b.converted - a.converted),
+        weekday: WEEKDAYS.map(({ label, jsDay }) => ({
+          label,
+          value: weekdayCount[jsDay] > 0 ? weekdaySum[jsDay] / weekdayCount[jsDay] : 0,
+        })),
+        goal:
+          goalRow && goalPace && goalPace.status !== 'done'
+            ? { name: goalRow.name, requiredMonthly: goalPace.requiredMonthly, currency: goalRow.currency }
+            : null,
       },
     }
   } catch (error) {
-    console.error('Get report dataset error:', error)
+    console.error('Get analysis dataset error:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'No se pudo cargar el reporte',
+      error: error instanceof Error ? error.message : 'No se pudo cargar el análisis',
     }
   }
 }

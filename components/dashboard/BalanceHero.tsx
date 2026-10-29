@@ -4,8 +4,7 @@ import { useMemo } from 'react'
 import { Box, Flex, Text } from '@chakra-ui/react'
 import { formatCurrency } from '@/lib/utils/currency'
 import { buildConverter } from '@/lib/utils/currency-converter'
-import { splitBudgetsByScope } from '@/lib/utils/budget-grouping'
-import { toNumber } from '@/lib/utils/numbers'
+import { getBudgetCap } from '@/lib/utils/budget-grouping'
 import type { BudgetWithSpent, Currency, ExchangeRate } from '@/types/database.types'
 
 const OTHER: Record<Currency, Currency[]> = { COP: ['USD', 'VES'], USD: ['COP', 'VES'], VES: ['USD', 'COP'] }
@@ -25,28 +24,19 @@ interface Props {
   isCurrentMonth: boolean
 }
 
-/**
- * How much can still be spent per day this month: the "total" budget if
- * there is one, otherwise the sum of the group budgets.
- */
+/** How much can still be spent per day this month against the budget cap. */
 function useAllowance(budgets: BudgetWithSpent[], currency: Currency, rates: ExchangeRate[]) {
   return useMemo(() => {
-    const { total, groups } = splitBudgetsByScope(budgets)
-    const source = total.length > 0 ? total : groups
-    if (source.length === 0) return null
-
-    const convert = buildConverter(rates)
-    const limit = source.reduce((s, b) => s + convert(toNumber(b.limit_amount), b.currency, currency), 0)
-    const spent = source.reduce((s, b) => s + convert(toNumber(b.spent), b.currency, currency), 0)
-    if (limit <= 0) return null
+    const cap = getBudgetCap(budgets, currency, buildConverter(rates))
+    if (!cap) return null
 
     const now = new Date()
     const day = now.getDate()
     const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
     const daysLeft = daysInMonth - day + 1
     return {
-      perDay: Math.max(0, limit - spent) / daysLeft,
-      percent: (spent / limit) * 100,
+      perDay: Math.max(0, cap.limit - cap.spent) / daysLeft,
+      percent: (cap.spent / cap.limit) * 100,
       day,
       daysInMonth,
     }

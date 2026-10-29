@@ -11,7 +11,6 @@ import {
   Grid,
   Icon,
   IconButton,
-  NativeSelect,
   Stack,
   Text,
 } from '@chakra-ui/react'
@@ -21,6 +20,7 @@ import { TransactionEditForm } from './TransactionEditForm'
 import { PortalContainerProvider } from '@/components/ui/FloatingPortal'
 import { SHEET_CONTENT_PROPS, SHEET_PLACEMENT } from '@/components/ui/dialog-sheet'
 import { Money } from '@/components/ui/Money'
+import { ComboboxField } from '@/components/ui/ComboboxField'
 import { commitGmailTransactions } from '@/lib/actions/gmail.actions'
 import { toaster } from '@/lib/toaster'
 import type { Account, Category, Currency, TransactionType, TransactionWithCategory } from '@/types/database.types'
@@ -246,33 +246,21 @@ export function GmailSyncReviewModal({ isOpen, onClose, userId, items, syncedAt,
       } as unknown as TransactionWithCategory)
     : null
 
-  const categorySelect = (r: ReviewItem, idx: number) => {
-    const missing = !r.excluded && !r.edited.category_id
-    return (
-      <NativeSelect.Root size="sm" disabled={r.excluded}>
-        <NativeSelect.Field
-          aria-label={`Categoría de ${r.edited.description}`}
-          value={r.edited.category_id}
-          onChange={(e) => updateRow(idx, { category_id: e.target.value })}
-          h="36px"
-          borderRadius="pill"
-          bg="surface2"
-          borderColor="transparent"
-          color={r.edited.category_id ? 'text' : 'text3'}
-          fontSize="13px"
-          boxShadow={missing ? 'inset 0 0 0 1.5px var(--chakra-colors-neg)' : 'none'}
-        >
-          <option value="">Elegir categoría</option>
-          {categoriesFor(r.edited.type).map((c) => (
-            <option key={c.id} value={c.id}>
-              {`${c.icon ?? ''} ${c.name}`.trim()}
-            </option>
-          ))}
-        </NativeSelect.Field>
-        <NativeSelect.Indicator color="text3" />
-      </NativeSelect.Root>
-    )
-  }
+  const categorySelect = (r: ReviewItem, idx: number) => (
+    <ComboboxField
+      label={`Categoría de ${r.edited.description}`}
+      hideLabel
+      size="sm"
+      pill
+      placeholder="Elegir categoría"
+      value={r.edited.category_id}
+      onChange={(category_id) => updateRow(idx, { category_id })}
+      options={categoriesFor(r.edited.type).map((c) => ({ value: c.id, label: c.name, icon: c.icon }))}
+      invalid={!r.excluded && !r.edited.category_id}
+      disabled={r.excluded}
+      clearable={false}
+    />
+  )
 
   const rowActions = (r: ReviewItem, idx: number) => (
     <Flex gap={0.5} justify="flex-end">

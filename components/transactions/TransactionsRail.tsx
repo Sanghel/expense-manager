@@ -1,8 +1,9 @@
 'use client'
 
-import { Box, Button, Checkbox, Flex, NativeSelect, Stack, Text } from '@chakra-ui/react'
+import { Box, Button, Checkbox, Flex, Stack, Text } from '@chakra-ui/react'
 import { LuDownload, LuPlus, LuUpload } from 'react-icons/lu'
 import type { ReactNode } from 'react'
+import { ComboboxField } from '@/components/ui/ComboboxField'
 import type { Account, Category } from '@/types/database.types'
 
 export interface FilterState {
@@ -138,26 +139,15 @@ export function TransactionsRail({
         </Section>
 
         <Section label="Categoría">
-          <NativeSelect.Root size="sm">
-            <NativeSelect.Field
-              aria-label="Categoría"
-              value={filters.category_id}
-              onChange={(e) => update({ category_id: e.target.value })}
-              h="36px"
-              borderRadius="input"
-              bg="surface2"
-              borderColor="transparent"
-              fontSize="13px"
-            >
-              <option value="">Todas</option>
-              {typeCategories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {`${c.icon ?? ''} ${c.name}`.trim()}
-                </option>
-              ))}
-            </NativeSelect.Field>
-            <NativeSelect.Indicator color="text3" />
-          </NativeSelect.Root>
+          <ComboboxField
+            label="Categoría"
+            hideLabel
+            size="sm"
+            placeholder="Todas"
+            value={filters.category_id}
+            onChange={(category_id) => update({ category_id })}
+            options={typeCategories.map((c) => ({ value: c.id, label: c.name, icon: c.icon }))}
+          />
         </Section>
       </Flex>
 

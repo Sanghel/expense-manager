@@ -1,11 +1,12 @@
 'use client'
 
-import { Box, Flex, Input, NativeSelect, Text, useDisclosure } from '@chakra-ui/react'
+import { Box, Flex, Input, Text, useDisclosure } from '@chakra-ui/react'
 import { useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { LuSearch } from 'react-icons/lu'
 import { Card } from '@/components/ui/Card'
 import { ActionIconButton } from '@/components/ui/ActionIconButton'
+import { ComboboxField } from '@/components/ui/ComboboxField'
 import { TransactionForm } from '@/components/transactions/TransactionForm'
 import { TransactionEditForm } from '@/components/transactions/TransactionEditForm'
 import { TransactionsTable } from '@/components/transactions/TransactionsTable'
@@ -139,29 +140,18 @@ export function TransactionsPageClient({
               bg="transparent"
               fontSize="14px"
             />
-            <NativeSelect.Root size="sm" w="auto" flexShrink={0}>
-              <NativeSelect.Field
-                aria-label="Mes"
+            <Box w={{ base: '140px', md: '170px' }} flexShrink={0}>
+              <ComboboxField
+                label="Mes"
+                hideLabel
+                size="sm"
+                pill
+                placeholder="Todos los meses"
                 value={filters.month}
-                onChange={(e) => setFilters({ ...filters, month: e.target.value })}
-                h="32px"
-                borderRadius="pill"
-                bg="surface2"
-                borderColor="transparent"
-                fontFamily="mono"
-                fontSize="12px"
-                ps={3}
-                pe={7}
-              >
-                <option value="">Todos los meses</option>
-                {months.map((m) => (
-                  <option key={m.value} value={m.value}>
-                    {m.label}
-                  </option>
-                ))}
-              </NativeSelect.Field>
-              <NativeSelect.Indicator color="text3" />
-            </NativeSelect.Root>
+                onChange={(month) => setFilters({ ...filters, month })}
+                options={months}
+              />
+            </Box>
             {gmailButton('icon')}
           </Flex>
 

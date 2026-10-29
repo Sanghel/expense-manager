@@ -32,7 +32,13 @@ export default async function SettingsPage() {
     groups: groupsResult.success ? (groupsResult.data ?? []) : [],
   }))
 
-  const ratesResult = await getAllRatePairs()
+  // Categories and accounts are the cached copies the layout already loaded;
+  // the Gmail sync dialog needs them.
+  const [ratesResult, categoriesResult, accountsResult] = await Promise.all([
+    getAllRatePairs(),
+    getCategoriesCached(user.id),
+    getAccountsCached(user.id),
+  ])
   const rates = (ratesResult.success ? ratesResult.data : []) as ExchangeRate[]
 
   const gmailStatus = {
@@ -47,6 +53,8 @@ export default async function SettingsPage() {
       userId={user.id}
       preferredCurrency={user.preferred_currency}
       initialRates={rates}
+      categories={categoriesResult.success ? (categoriesResult.data ?? []) : []}
+      accounts={(accountsResult.success ? accountsResult.data : []) as Account[]}
       cuentas={cuentas}
       categorias={categorias}
       gmailStatus={gmailStatus}

@@ -9,7 +9,9 @@ import {
   MenuContent,
   MenuItem,
   Button,
-  Circle,
+  AvatarFallback,
+  AvatarImage,
+  AvatarRoot,
   Icon,
   Text,
 } from '@chakra-ui/react'
@@ -135,9 +137,9 @@ export function Header({ userId, accounts, notifications }: Props) {
       borderBottomWidth="1px"
       borderColor="line"
       px={{ base: 4, md: 7 }}
-      py="14px"
+      pb="14px"
       flexShrink={0}
-      style={{ paddingTop: 'max(14px, env(safe-area-inset-top))' }}
+      className="app-header"
     >
       <Flex align="center" gap={{ base: 3, md: 5 }}>
         <Flex asChild align="center" gap={2.5} flexShrink={0}>
@@ -177,9 +179,16 @@ export function Header({ userId, accounts, notifications }: Props) {
                 h={{ base: '36px', md: '40px' }}
                 flexShrink={0}
               >
-                <Circle size="full" bg="brandSoft" color="brand" fontSize="13px" fontWeight="600">
-                  {initials(session.user.name).toUpperCase()}
-                </Circle>
+                {/* Google photo when there is one; initials as the fallback. */}
+                <AvatarRoot size="full" bg="brandSoft" color="brand">
+                  {session.user.image && (
+                    // Google avatar URLs can refuse requests that carry a referrer.
+                    <AvatarImage src={session.user.image} alt="" referrerPolicy="no-referrer" />
+                  )}
+                  <AvatarFallback fontSize="13px" fontWeight="600">
+                    {initials(session.user.name).toUpperCase()}
+                  </AvatarFallback>
+                </AvatarRoot>
               </Button>
             </MenuTrigger>
             <MenuPositioner>

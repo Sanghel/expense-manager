@@ -1,5 +1,41 @@
 # Changelog
 
+## [4.1.0] — 2026-10-30
+
+Los modales que faltaban pasan a **Pulso**, y editar abre siempre el mismo modal que crear ([épica #583](https://github.com/Sanghel/expense-manager/issues/583)).
+
+### Added
+
+- **Primitivas de formulario Pulso** en `components/ui/pulso` ([#595](https://github.com/Sanghel/expense-manager/pull/595)): `FormModal`, bloque de monto, chips, chips de cuenta con saldo, segmented, campo de fecha con calendario inline, input título, caja de resumen, switch, colores y grilla de íconos.
+- **Préstamo** ([#597](https://github.com/Sanghel/expense-manager/pull/597)): chips de personas recientes y, al editar, el progreso de abonos con "Registrar abono", "Marcar saldado" y "Eliminar".
+- **Recordatorio** ([#598](https://github.com/Sanghel/expense-manager/pull/598)): resumen con la próxima fecha.
+- **Meta** ([#599](https://github.com/Sanghel/expense-manager/pull/599)): plan calculado, "Necesitas apartar COP X al mes", con su equivalente por semana.
+- **Añadir fondos** ([#600](https://github.com/Sanghel/expense-manager/pull/600)): segmento fantasma con el aporte en vivo y montos rápidos (sugerido, 500.000, 1.000.000, completar).
+- **Presupuesto** ([#601](https://github.com/Sanghel/expense-manager/pull/601)): "En septiembre gastaste X en Mercado" y equivalencias en % de ingresos o gasto.
+- **Cuenta** ([#602](https://github.com/Sanghel/expense-manager/pull/602)): preview en vivo de la cuenta.
+- **Categoría** ([#603](https://github.com/Sanghel/expense-manager/pull/603)): preview del chip.
+
+### Changed
+
+- **Editar usa el modal de crear** en todas las entidades:
+  - Transacciones ([#596](https://github.com/Sanghel/expense-manager/pull/596)), también al editar una fila de la revisión de Gmail.
+  - Categorías, incluida la creación rápida dentro de "Nueva transacción" ([#603](https://github.com/Sanghel/expense-manager/pull/603)).
+- **Modales en Pulso**: Préstamo y abono, Recordatorio y pagar recordatorio, Meta, Añadir fondos, Presupuesto, Cuenta y transferencias, Categoría y grupo, Importar y Exportar ([#597](https://github.com/Sanghel/expense-manager/pull/597)–[#604](https://github.com/Sanghel/expense-manager/pull/604)).
+  - Radios y selects pasan a segmented y chips.
+  - Las cifras se escriben en el bloque de monto, con formato de miles en vivo.
+  - El primario resume la acción ("Registrar préstamo · COP 224.000") y queda atenuado hasta que el formulario es válido.
+- La server action nueva `getBudgetContext` trae los ingresos, el gasto y el gasto por categoría del mes anterior.
+
+### Removed
+
+- `TransactionEditForm`, `CategoryEditForm`, `QuickCategoryForm`, `IconPicker`, `ColorPicker`, `FormDialog` y los campos del kit anterior que quedaron sin uso ([#604](https://github.com/Sanghel/expense-manager/pull/604)).
+
+### Fixed
+
+- Editar una transacción abría un modal con el estilo anterior ([#585](https://github.com/Sanghel/expense-manager/issues/585)).
+- En móvil, los modales Pulso dejaban 16px de margen a cada lado de la hoja inferior ([#604](https://github.com/Sanghel/expense-manager/pull/604)).
+- Importar transacciones aún tenía colores fijos (`#888`, `#666`).
+
 ## [4.0.0] — 2026-10-29
 
 Rediseño completo de la interfaz: **Pulso** ([épica #552](https://github.com/Sanghel/expense-manager/issues/552)).

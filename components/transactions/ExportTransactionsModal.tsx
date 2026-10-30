@@ -1,16 +1,9 @@
 'use client'
 
-import {
-  VStack,
-  HStack,
-  Text,
-  Button,
-  Separator,
-} from '@chakra-ui/react'
+import { Flex } from '@chakra-ui/react'
 import { useState } from 'react'
 import { LuFileJson, LuFileSpreadsheet, LuFileText } from 'react-icons/lu'
-import { ComboboxField } from '@/components/ui/ComboboxField'
-import { FormDialog } from '@/components/ui/FormDialog'
+import { Chip, Field, FormModal, FormModalContent, SegmentedControl } from '@/components/ui/pulso'
 import { exportTransactions } from '@/lib/actions/export.actions'
 import { toaster } from '@/lib/toaster'
 
@@ -40,7 +33,14 @@ interface Props {
 
 type Format = 'csv' | 'xlsx' | 'json'
 
-export function ExportTransactionsModal({ isOpen, onClose, userId }: Props) {
+const FORMATS: { value: Format; label: string; icon: typeof LuFileText }[] = [
+  { value: 'csv', label: 'CSV', icon: LuFileText },
+  { value: 'xlsx', label: 'Excel', icon: LuFileSpreadsheet },
+  { value: 'json', label: 'JSON', icon: LuFileJson },
+]
+
+function ExportBody({ onClose, userId }: Omit<Props, 'isOpen'>) {
+  const [format, setFormat] = useState<Format>('xlsx')
   const [month, setMonth] = useState<string>('')
   const [year, setYear] = useState<string>(String(currentYear))
   const [loading, setLoading] = useState<Format | null>(null)
@@ -94,66 +94,59 @@ export function ExportTransactionsModal({ isOpen, onClose, userId }: Props) {
   }
 
   return (
-    <FormDialog isOpen={isOpen} onClose={onClose} title="Exportar Transacciones" size="sm">
-      <VStack gap={5} align="stretch">
-        <Text fontSize="sm" color="text2">
-          Selecciona el período y el formato de exportación.
-        </Text>
+    <FormModalContent
+      title="Exportar transacciones"
+      subtitle="Elige el periodo y el formato del archivo"
+      onClose={onClose}
+      onSubmit={() => handleExport(format)}
+      canSubmit
+      loading={loading !== null}
+      submitLabel={`Exportar ${FORMATS.find((f) => f.value === format)?.label}`}
+    >
+      <Field label="Mes">
+        <Flex wrap="wrap" gap={2}>
+          <Chip selected={month === ''} onClick={() => setMonth('')}>
+            Todos
+          </Chip>
+          {MONTHS.map((m) => (
+            <Chip key={m.value} selected={month === String(m.value)} onClick={() => setMonth(String(m.value))}>
+              {m.label.slice(0, 3)}
+            </Chip>
+          ))}
+        </Flex>
+      </Field>
 
-        <HStack gap={3} align="flex-end">
-          <ComboboxField
-            label="Mes"
-            placeholder="Todos"
-            value={month}
-            onChange={setMonth}
-            options={MONTHS.map((m) => ({ value: String(m.value), label: m.label }))}
-          />
-          <ComboboxField
-            label="Año"
-            placeholder="Todos"
-            value={year}
-            onChange={setYear}
-            options={YEARS.map((y) => ({ value: String(y), label: String(y) }))}
-          />
-        </HStack>
+      <Field label="Año">
+        <Flex wrap="wrap" gap={2}>
+          <Chip selected={year === ''} onClick={() => setYear('')}>
+            Todos
+          </Chip>
+          {YEARS.map((y) => (
+            <Chip key={y} selected={year === String(y)} onClick={() => setYear(String(y))} fontFamily="mono">
+              {y}
+            </Chip>
+          ))}
+        </Flex>
+      </Field>
 
-        <Separator />
+      <Field label="Formato">
+        <SegmentedControl
+          label="Formato"
+          value={format}
+          onChange={setFormat}
+          fullWidth
+          options={FORMATS.map((f) => ({ value: f.value, label: f.label, icon: f.icon }))}
+        />
+      </Field>
+    </FormModalContent>
+  )
+}
 
-        <VStack gap={2}>
-          <Button
-            w="full"
-            variant="outline"
-            loading={loading === 'csv'}
-            disabled={loading !== null && loading !== 'csv'}
-            onClick={() => handleExport('csv')}
-          >
-            <LuFileText />
-            Exportar como CSV
-          </Button>
-
-          <Button
-            w="full"
-            variant="outline"
-            loading={loading === 'xlsx'}
-            disabled={loading !== null && loading !== 'xlsx'}
-            onClick={() => handleExport('xlsx')}
-          >
-            <LuFileSpreadsheet />
-            Exportar como Excel (.xlsx)
-          </Button>
-
-          <Button
-            w="full"
-            variant="outline"
-            loading={loading === 'json'}
-            disabled={loading !== null && loading !== 'json'}
-            onClick={() => handleExport('json')}
-          >
-            <LuFileJson />
-            Exportar como JSON
-          </Button>
-        </VStack>
-      </VStack>
-    </FormDialog>
+/** Pulso "Exportar transacciones". */
+export function ExportTransactionsModal({ isOpen, ...props }: Props) {
+  return (
+    <FormModal isOpen={isOpen} onClose={props.onClose} title="Exportar transacciones">
+      <ExportBody {...props} />
+    </FormModal>
   )
 }

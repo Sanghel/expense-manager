@@ -8,7 +8,6 @@ import { useRouter } from 'next/navigation'
 import { toaster } from '@/lib/toaster'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { CategoryForm } from '@/components/categories/CategoryForm'
-import { CategoryEditForm } from '@/components/categories/CategoryEditForm'
 import { CategoryGroupsSection } from '@/components/categories/CategoryGroupsSection'
 import type { Category, CategoryGroupWithMembers, CategoryType } from '@/types/database.types'
 
@@ -190,11 +189,11 @@ export function CategoriesPageClient({ userId, initialCategories, initialGroups 
       />
 
       {selectedCategory && (
-        <CategoryEditForm
+        <CategoryForm
           isOpen={editDisclosure.open}
           onClose={editDisclosure.onClose}
           userId={userId}
-          category={selectedCategory}
+          editingCategory={selectedCategory}
           onSuccess={refresh}
         />
       )}

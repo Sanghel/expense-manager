@@ -1,102 +1,180 @@
 'use client'
 
-import { VStack, HStack, FieldRoot, FieldLabel } from '@chakra-ui/react'
 import { useState } from 'react'
-import { createCategory } from '@/lib/actions/categories.actions'
+import { Box, Flex, Input, Text } from '@chakra-ui/react'
+import { createCategory, updateCategory } from '@/lib/actions/categories.actions'
 import { toaster } from '@/lib/toaster'
-import { FormDialog } from '@/components/ui/FormDialog'
-import { FormInput } from '@/components/ui/FormInput'
-import { RadioSelect } from '@/components/ui/RadioSelect'
-import { PrimaryButton } from '@/components/ui/PrimaryButton'
-import { IconPicker } from './IconPicker'
-import { ColorPicker } from './ColorPicker'
-import type { CategoryType } from '@/types/database.types'
+import {
+  ColorSwatches,
+  EmojiGrid,
+  Field,
+  FormModal,
+  FormModalContent,
+  SegmentedControl,
+} from '@/components/ui/pulso'
+import type { Category, CategoryType } from '@/types/database.types'
 
-const TYPE_OPTIONS = [
-  { value: 'expense', label: 'Gasto' },
-  { value: 'income', label: 'Ingreso' },
-  { value: 'both', label: 'Ambos' },
+// The handoff's icons first, then the rest of the old picker's set.
+const ICONS = [
+  '🏷️', '🛒', '🍽️', '☕', '🚗', '🏠', '💡', '📺', '💊', '🎬', '✈️', '🎁', '🐾', '📚', '👕', '💼',
+  '🍔', '🍕', '🍜', '🍣', '🚌', '🏋️', '🎮', '👗', '👟', '💄', '💻', '📱', '🔧', '⚡', '🌊', '🌿',
+  '🏖️', '🎵', '💰', '💳', '🏦', '📈', '💸', '🎓', '🏥', '🛍️', '🍷', '🧾', '🔑', '🏡', '🚿', '🧹',
+  '📦', '🧺', '🎨', '✂️', '🖥️',
 ]
+
+const TYPE_LABEL: Record<CategoryType, string> = { expense: 'Gasto', income: 'Ingreso', both: 'Ambos' }
 
 interface Props {
   isOpen: boolean
   onClose: () => void
   userId: string
-  onSuccess: () => void
+  /** Edit mode: the same modal, prefilled, saving with `updateCategory`. */
+  editingCategory?: Category | null
   defaultType?: CategoryType
+  /** The type comes from the caller (quick create inside Nueva transacción). */
+  lockType?: boolean
+  onSuccess?: () => void
+  /** Receives the created category (quick create selects it). */
+  onCreated?: (category: Category) => void
 }
 
-const defaultForm = {
-  name: '',
-  type: 'expense' as CategoryType,
-  icon: '',
-  color: '#6366f1',
-}
-
-export function CategoryForm({ isOpen, onClose, userId, onSuccess, defaultType }: Props) {
+function CategoryFormBody({
+  onClose,
+  userId,
+  editingCategory,
+  defaultType,
+  lockType,
+  onSuccess,
+  onCreated,
+}: Omit<Props, 'isOpen'>) {
   const [loading, setLoading] = useState(false)
-  const [formData, setFormData] = useState({ ...defaultForm, type: defaultType ?? 'expense' as CategoryType })
+  const [formData, setFormData] = useState(() => ({
+    name: editingCategory?.name ?? '',
+    type: (editingCategory?.type ?? defaultType ?? 'expense') as CategoryType,
+    icon: editingCategory?.icon ?? '🏷️',
+    color: editingCategory?.color ?? '#6366f1',
+  }))
+  const set = (patch: Partial<typeof formData>) => setFormData((prev) => ({ ...prev, ...patch }))
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async () => {
     setLoading(true)
-
-    const result = await createCategory(userId, formData)
+    const data = { ...formData, name: formData.name.trim() }
+    const result = editingCategory
+      ? await updateCategory(editingCategory.id, userId, data)
+      : await createCategory(userId, data)
 
     if (result.success) {
-      toaster.create({ title: 'Categoría creada', type: 'success', duration: 3000 })
-      onSuccess()
+      toaster.create({
+        title: `${editingCategory ? 'Categoría actualizada' : 'Categoría creada'} · ${data.name}`,
+        type: 'success',
+        duration: 2600,
+      })
+      if (!editingCategory && result.data) onCreated?.(result.data as Category)
+      onSuccess?.()
       onClose()
-      setFormData({ ...defaultForm, type: defaultType ?? 'expense' })
     } else {
-      toaster.create({ title: 'Error al crear', description: result.error, type: 'error', duration: 4000 })
+      toaster.create({
+        title: editingCategory ? 'Error al actualizar' : 'Error al crear',
+        description: result.error,
+        type: 'error',
+        duration: 4000,
+      })
     }
     setLoading(false)
   }
 
   return (
-    <FormDialog isOpen={isOpen} onClose={onClose} title="Nueva Categoría">
-      <form onSubmit={handleSubmit}>
-        <VStack gap={4}>
-          <RadioSelect
+    <FormModalContent
+      title={editingCategory ? 'Editar categoría' : 'Nueva categoría'}
+      subtitle={lockType ? `Categoría de ${TYPE_LABEL[formData.type].toLowerCase()}` : undefined}
+      onClose={onClose}
+      onSubmit={handleSubmit}
+      canSubmit={!!formData.name.trim()}
+      loading={loading}
+      submitLabel={editingCategory ? 'Guardar cambios' : 'Crear categoría'}
+    >
+      {/* Preview: the chip as it shows in Ajustes → Categorías. */}
+      <Flex align="center" justify="space-between" gap={3} bg="bg" borderRadius="20px" px={4} py={5}>
+        <Flex
+          align="center"
+          gap={2}
+          h="36px"
+          px={3.5}
+          borderRadius="pill"
+          fontSize="13px"
+          fontWeight="500"
+          color="text"
+          minW={0}
+          style={{
+            background: `color-mix(in oklab, ${formData.color} 22%, transparent)`,
+            boxShadow: `inset 0 0 0 1px color-mix(in oklab, ${formData.color} 45%, transparent)`,
+          }}
+        >
+          <span>{formData.icon}</span>
+          <Text as="span" truncate>
+            {formData.name.trim() || 'Nueva categoría'}
+          </Text>
+        </Flex>
+        <Text fontFamily="mono" fontSize="11px" color="text3" textTransform="uppercase" letterSpacing="0.08em">
+          {TYPE_LABEL[formData.type]}
+        </Text>
+      </Flex>
+
+      {!lockType && (
+        <Field label="Tipo">
+          <SegmentedControl
             label="Tipo"
             value={formData.type}
-            onChange={(v) => setFormData({ ...formData, type: v as CategoryType })}
-            options={TYPE_OPTIONS}
-            required
+            onChange={(type) => set({ type })}
+            fullWidth
+            options={[
+              { value: 'expense', label: 'Gasto' },
+              { value: 'income', label: 'Ingreso' },
+              { value: 'both', label: 'Ambos' },
+            ]}
           />
+        </Field>
+      )}
 
-          <FormInput
-            label="Nombre"
-            value={formData.name}
-            onChange={(v) => setFormData({ ...formData, name: v })}
-            placeholder="Ej: Transporte"
-            required
-          />
+      <Field label="Nombre">
+        <Input
+          value={formData.name}
+          onChange={(e) => set({ name: e.target.value })}
+          placeholder="Ej: Transporte"
+          h="44px"
+          autoFocus={!editingCategory}
+        />
+      </Field>
 
-          <HStack gap={4} w="full">
-            <FieldRoot>
-              <FieldLabel>Icono</FieldLabel>
-              <IconPicker
-                value={formData.icon}
-                onChange={(icon) => setFormData({ ...formData, icon })}
-              />
-            </FieldRoot>
+      <Field label="Ícono">
+        <EmojiGrid
+          value={formData.icon}
+          onChange={(icon) => set({ icon })}
+          emojis={!formData.icon || ICONS.includes(formData.icon) ? ICONS : [formData.icon, ...ICONS]}
+        />
+      </Field>
 
-            <FieldRoot>
-              <FieldLabel>Color</FieldLabel>
-              <ColorPicker
-                value={formData.color}
-                onChange={(color) => setFormData({ ...formData, color })}
-              />
-            </FieldRoot>
-          </HStack>
+      <Box>
+        <Field label="Color">
+          <ColorSwatches value={formData.color} onChange={(color) => set({ color })} />
+        </Field>
+      </Box>
+    </FormModalContent>
+  )
+}
 
-          <PrimaryButton type="submit" width="full" loading={loading}>
-            Crear Categoría
-          </PrimaryButton>
-        </VStack>
-      </form>
-    </FormDialog>
+/**
+ * Pulso "Nueva categoría" / "Editar categoría": one modal for creating,
+ * editing and the quick create inside Nueva transacción (`lockType`).
+ */
+export function CategoryForm({ isOpen, ...props }: Props) {
+  return (
+    <FormModal
+      isOpen={isOpen}
+      onClose={props.onClose}
+      title={props.editingCategory ? 'Editar categoría' : 'Nueva categoría'}
+    >
+      <CategoryFormBody {...props} />
+    </FormModal>
   )
 }

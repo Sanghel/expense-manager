@@ -5,12 +5,10 @@ import { useEffect, useState } from 'react'
 import { convertCurrency } from '@/lib/actions/exchangeRates.actions'
 import { formatCurrency } from '@/lib/utils/currency'
 import { useDebounce } from '@/hooks/useDebounce'
+import { decimalsFor } from '@/lib/utils/amount-input'
 import type { Currency } from '@/types/database.types'
 
 const OTHER_CURRENCIES: Currency[] = ['COP', 'USD', 'VES']
-
-/** COP has no cents in practice; USD/VES keep them. */
-const decimalsFor = (currency: string) => (currency === 'COP' ? 0 : 2)
 
 interface Props {
   amount: number

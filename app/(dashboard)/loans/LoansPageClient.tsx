@@ -1,7 +1,7 @@
 'use client'
 
 import { Box, Button, Flex, Grid, IconButton, Text, useDisclosure } from '@chakra-ui/react'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { LuPlus } from 'react-icons/lu'
 import { Card } from '@/components/ui/Card'
@@ -99,6 +99,12 @@ export function LoansPageClient({ userId, initialLoans, accounts }: Props) {
     setPayingLoan(null)
   }, [onPaymentClose])
 
+  // Distinct people, most recent loan first, for the form's "Recientes" chips.
+  const recentPeople = useMemo(() => {
+    const sorted = [...initialLoans].sort((a, b) => b.created_at.localeCompare(a.created_at))
+    return [...new Set(sorted.map((l) => l.person_name.trim()).filter(Boolean))]
+  }, [initialLoans])
+
   const activeLoans = initialLoans.filter((l) => l.status === 'active')
   const settledLoans = initialLoans.filter((l) => l.status === 'settled')
 
@@ -189,6 +195,7 @@ export function LoansPageClient({ userId, initialLoans, accounts }: Props) {
         defaultType={createType}
         userId={userId}
         accounts={accounts}
+        recentPeople={recentPeople}
         onSuccess={refresh}
       />
 
@@ -199,6 +206,10 @@ export function LoansPageClient({ userId, initialLoans, accounts }: Props) {
           userId={userId}
           accounts={accounts}
           loan={editingLoan}
+          recentPeople={recentPeople}
+          onPayment={handlePayment}
+          onSettle={handleSettle}
+          onDelete={handleDelete}
           onSuccess={() => { refresh(); handleEditClose() }}
         />
       )}

@@ -75,7 +75,8 @@ export function FormModal({
           ref={contentRef}
           tabIndex={-1}
           aria-label={title}
-          w={`min(${width}px, calc(100vw - 32px))`}
+          // Full width as a bottom sheet on mobile; capped and centered on desktop.
+          w={{ base: 'full', md: `min(${width}px, calc(100vw - 32px))` }}
           {...SHEET_CONTENT_PROPS}
           maxW={{ base: 'full', md: 'none' }}
           display="flex"

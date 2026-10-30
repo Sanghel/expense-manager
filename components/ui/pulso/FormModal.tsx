@@ -24,11 +24,12 @@ interface ContentProps {
   subtitle?: React.ReactNode
   /** Replaces the title block (e.g. a type segmented); the close button stays. */
   header?: React.ReactNode
-  onSubmit: () => void | Promise<void>
+  onSubmit?: () => void | Promise<void>
   /** The primary stays at half opacity until the form is valid. */
-  canSubmit: boolean
+  canSubmit?: boolean
   loading?: boolean
-  submitLabel: React.ReactNode
+  /** Without it there is no footer: the body brings its own actions (multi-step flows). */
+  submitLabel?: React.ReactNode
   /** Left side of the footer: a destructive action or a secondary link. */
   footerStart?: React.ReactNode
   /** Nested dialogs, rendered outside the <form> so their submits don't bubble into it. */
@@ -37,7 +38,7 @@ interface ContentProps {
 }
 
 /**
- * Pulso form modal: centered on desktop (580px), bottom sheet on mobile.
+ * Pulso form modal: centered on desktop (580px by default), bottom sheet on mobile.
  * `children` unmount on close, so a form body that keeps its state inside
  * (and renders `FormModalContent`) starts fresh on every opening.
  */
@@ -45,12 +46,15 @@ export function FormModal({
   isOpen,
   onClose,
   title,
+  width = 580,
   children,
 }: {
   isOpen: boolean
   onClose: () => void
   /** The dialog's accessible name. */
   title: string
+  /** Desktop width in px (wide content such as a preview table). */
+  width?: number
   children: React.ReactNode
 }) {
   // Floating panels (pickers inside nested dialogs) render inside the dialog.
@@ -71,7 +75,8 @@ export function FormModal({
           ref={contentRef}
           tabIndex={-1}
           aria-label={title}
-          w="min(580px, calc(100vw - 32px))"
+          // Full width as a bottom sheet on mobile; capped and centered on desktop.
+          w={{ base: 'full', md: `min(${width}px, calc(100vw - 32px))` }}
           {...SHEET_CONTENT_PROPS}
           maxW={{ base: 'full', md: 'none' }}
           display="flex"
@@ -93,7 +98,7 @@ export function FormModalContent({
   subtitle,
   header,
   onSubmit,
-  canSubmit,
+  canSubmit = false,
   loading = false,
   submitLabel,
   footerStart,
@@ -102,7 +107,7 @@ export function FormModalContent({
 }: ContentProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (canSubmit && !loading) onSubmit()
+    if (canSubmit && !loading) onSubmit?.()
   }
 
   return (
@@ -142,39 +147,41 @@ export function FormModalContent({
           {children}
         </Stack>
 
-        <Flex
-          align="center"
-          gap={2}
-          px="22px"
-          pt="14px"
-          pb="18px"
-          borderTopWidth="1px"
-          borderColor="line"
-          flexShrink={0}
-          wrap="wrap"
-        >
-          {footerStart}
-          <Flex gap={2} ms="auto">
-            <Button variant="ghost" color="text2" onClick={onClose} disabled={loading}>
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              h="44px"
-              px={5}
-              fontSize="14px"
-              fontWeight="500"
-              bg="brandSolid"
-              color="white"
-              _hover={{ bg: 'brand.600' }}
-              loading={loading}
-              disabled={!canSubmit}
-              _disabled={{ opacity: 0.5, cursor: 'not-allowed' }}
-            >
-              {submitLabel}
-            </Button>
+        {submitLabel != null && (
+          <Flex
+            align="center"
+            gap={2}
+            px="22px"
+            pt="14px"
+            pb="18px"
+            borderTopWidth="1px"
+            borderColor="line"
+            flexShrink={0}
+            wrap="wrap"
+          >
+            {footerStart}
+            <Flex gap={2} ms="auto">
+              <Button variant="ghost" color="text2" onClick={onClose} disabled={loading}>
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                h="44px"
+                px={5}
+                fontSize="14px"
+                fontWeight="500"
+                bg="brandSolid"
+                color="white"
+                _hover={{ bg: 'brand.600' }}
+                loading={loading}
+                disabled={!canSubmit}
+                _disabled={{ opacity: 0.5, cursor: 'not-allowed' }}
+              >
+                {submitLabel}
+              </Button>
+            </Flex>
           </Flex>
-        </Flex>
+        )}
       </form>
       {overlays}
     </>

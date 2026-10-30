@@ -14,7 +14,7 @@ import {
 } from '@chakra-ui/react'
 import { useRef, useState, type RefObject } from 'react'
 import { FiUpload, FiCheckCircle, FiXCircle, FiAlertCircle } from 'react-icons/fi'
-import { FormDialog } from '@/components/ui/FormDialog'
+import { FormModal, FormModalContent } from '@/components/ui/pulso'
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
 import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import { parseImportFile } from '@/lib/utils/import-parser'
@@ -69,7 +69,7 @@ function Stepper({ current }: { current: Step }) {
                   {isDone ? '✓' : num}
                 </Text>
               </Box>
-              <Text fontSize="xs" color={isActive ? 'white' : '#888'} whiteSpace="nowrap">
+              <Text fontSize="xs" color={isActive ? 'text' : 'text3'} whiteSpace="nowrap">
                 {label}
               </Text>
             </VStack>
@@ -193,38 +193,44 @@ export function ImportTransactionsModal({ isOpen, onClose, userId, onSuccess }: 
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <FormDialog isOpen={isOpen} onClose={handleClose} title="Importar Transacciones" size="xl">
-      <Stepper current={step} />
+    <FormModal isOpen={isOpen} onClose={handleClose} title="Importar transacciones" width={880}>
+      <FormModalContent
+        title="Importar transacciones"
+        subtitle="Desde un archivo .xlsx o .csv"
+        onClose={handleClose}
+      >
+        <Stepper current={step} />
 
-      {step === 1 && (
-        <Step1
-          file={file}
-          loading={loading}
-          parseError={parseError}
-          fileInputRef={fileInputRef}
-          onFileSelect={handleFileSelect}
-          onDownloadTemplate={handleDownloadTemplate}
-        />
-      )}
+        {step === 1 && (
+          <Step1
+            file={file}
+            loading={loading}
+            parseError={parseError}
+            fileInputRef={fileInputRef}
+            onFileSelect={handleFileSelect}
+            onDownloadTemplate={handleDownloadTemplate}
+          />
+        )}
 
-      {step === 2 && (
-        <Step2
-          resolvedRows={resolvedRows}
-          validRows={validRows}
-          errorRows={errorRows}
-          importPartial={importPartial}
-          canImport={canImport}
-          loading={loading}
-          onImportPartialChange={setImportPartial}
-          onBack={() => { setStep(1); setFile(null); setParseError(null) }}
-          onImport={handleImport}
-        />
-      )}
+        {step === 2 && (
+          <Step2
+            resolvedRows={resolvedRows}
+            validRows={validRows}
+            errorRows={errorRows}
+            importPartial={importPartial}
+            canImport={canImport}
+            loading={loading}
+            onImportPartialChange={setImportPartial}
+            onBack={() => { setStep(1); setFile(null); setParseError(null) }}
+            onImport={handleImport}
+          />
+        )}
 
-      {step === 3 && importResult && (
-        <Step3 result={importResult} onClose={handleFinish} />
-      )}
-    </FormDialog>
+        {step === 3 && importResult && (
+          <Step3 result={importResult} onClose={handleFinish} />
+        )}
+      </FormModalContent>
+    </FormModal>
   )
 }
 
@@ -249,21 +255,21 @@ function Step1({ file, loading, parseError, fileInputRef, onFileSelect, onDownlo
   return (
     <VStack gap={5} align="stretch">
       {/* Template download */}
-      <HStack justify="space-between" align="center" p={3} bg="surface" borderRadius="md" borderWidth="1px" borderColor="line">
+      <HStack justify="space-between" align="center" p={3} bg="surface2" borderRadius="tile">
         <VStack align="start" gap={0}>
           <Text fontSize="sm" color="text" fontWeight="medium">¿Primera vez?</Text>
-          <Text fontSize="xs" color="#888">Descarga la plantilla y rellénala con tus datos</Text>
+          <Text fontSize="xs" color="text3">Descarga la plantilla y rellénala con tus datos</Text>
         </VStack>
         <ActionIconButton kind="template" label="Descargar plantilla" size="sm" variant="outline" onClick={onDownloadTemplate} />
       </HStack>
 
       {/* Column reference */}
-      <Box p={3} bg="surface" borderRadius="md" borderWidth="1px" borderColor="line">
-        <Text fontSize="xs" color="#888" mb={1}>Columnas esperadas:</Text>
+      <Box p={3} bg="surface2" borderRadius="tile">
+        <Text fontSize="xs" color="text3" mb={1}>Columnas esperadas:</Text>
         <Text fontSize="xs" color="text2" fontFamily="mono">
           fecha · descripcion · categoria · cuenta · tipo · monto · moneda · notas
         </Text>
-        <Text fontSize="xs" color="#666" mt={1}>
+        <Text fontSize="xs" color="text3" mt={1}>
           <strong>tipo:</strong> Ingreso / Gasto &nbsp;·&nbsp; <strong>moneda:</strong> COP / USD / VES &nbsp;·&nbsp; cuenta y notas son opcionales
         </Text>
       </Box>
@@ -293,7 +299,7 @@ function Step1({ file, loading, parseError, fileInputRef, onFileSelect, onDownlo
         {loading ? (
           <VStack gap={3}>
             <Spinner color="brand" size="lg" />
-            <Text color="#888" fontSize="sm">Analizando archivo...</Text>
+            <Text color="text3" fontSize="sm">Analizando archivo...</Text>
           </VStack>
         ) : (
           <VStack gap={2}>
@@ -301,12 +307,12 @@ function Step1({ file, loading, parseError, fileInputRef, onFileSelect, onDownlo
             {file ? (
               <>
                 <Text color="text" fontWeight="medium">{file.name}</Text>
-                <Text color="#888" fontSize="sm">{(file.size / 1024).toFixed(1)} KB · Haz clic para cambiar</Text>
+                <Text color="text3" fontSize="sm">{(file.size / 1024).toFixed(1)} KB · Haz clic para cambiar</Text>
               </>
             ) : (
               <>
                 <Text color="text2" fontWeight="medium">Arrastra tu archivo aquí o haz clic para seleccionar</Text>
-                <Text color="#888" fontSize="sm">Formatos soportados: .xlsx, .csv</Text>
+                <Text color="text3" fontSize="sm">Formatos soportados: .xlsx, .csv</Text>
               </>
             )}
           </VStack>
@@ -352,12 +358,12 @@ function Step2({ resolvedRows, validRows, errorRows, importPartial, canImport, l
             {errorRows.length} con errores
           </Badge>
         )}
-        <Text fontSize="sm" color="#888">de {resolvedRows.length} filas totales</Text>
+        <Text fontSize="sm" color="text3">de {resolvedRows.length} filas totales</Text>
       </HStack>
 
       {/* Partial import toggle */}
       {errorRows.length > 0 && (
-        <HStack p={3} bg="surface" borderRadius="md" borderWidth="1px" borderColor="line">
+        <HStack p={3} bg="surface2" borderRadius="tile">
           <Checkbox.Root
             checked={importPartial}
             onCheckedChange={({ checked }: { checked: boolean | 'indeterminate' }) => onImportPartialChange(Boolean(checked))}
@@ -374,12 +380,12 @@ function Step2({ resolvedRows, validRows, errorRows, importPartial, canImport, l
       )}
 
       {/* Preview table */}
-      <Box overflowX="auto" overflowY="auto" maxH="350px" borderWidth="1px" borderColor="line" borderRadius="md">
+      <Box overflowX="auto" overflowY="auto" maxH="350px" bg="bg" borderRadius="tile">
         <Table.Root size="sm" variant="outline">
-          <Table.Header bg="surface" position="sticky" top={0} zIndex={1}>
+          <Table.Header bg="surface2" position="sticky" top={0} zIndex={1}>
             <Table.Row borderColor="line">
               {['#', 'Fecha', 'Descripción', 'Categoría', 'Cuenta', 'Tipo', 'Monto', 'Moneda', ''].map((h) => (
-                <Table.ColumnHeader key={h} color="#888" fontSize="xs" px={3} py={2} whiteSpace="nowrap">
+                <Table.ColumnHeader key={h} color="text3" fontSize="xs" px={3} py={2} whiteSpace="nowrap">
                   {h}
                 </Table.ColumnHeader>
               ))}
@@ -395,7 +401,7 @@ function Step2({ resolvedRows, validRows, errorRows, importPartial, canImport, l
                   borderColor="line"
                   _hover={{ bg: isError ? 'negSoft' : 'brandSoft' }}
                 >
-                  <Table.Cell px={3} py={2} color="#888" fontSize="xs">{row.rowIndex}</Table.Cell>
+                  <Table.Cell px={3} py={2} color="text3" fontSize="xs">{row.rowIndex}</Table.Cell>
                   <Table.Cell px={3} py={2} color="text" fontSize="xs" whiteSpace="nowrap">{row.displayData.date}</Table.Cell>
                   <Table.Cell px={3} py={2} color="text" fontSize="xs" maxW="150px">
                     <Text truncate>{row.displayData.description}</Text>
@@ -432,7 +438,7 @@ function Step2({ resolvedRows, validRows, errorRows, importPartial, canImport, l
 
       {/* Error details */}
       {errorRows.length > 0 && (
-        <Box p={3} bg="surface" borderRadius="md" borderWidth="1px" borderColor="line">
+        <Box p={3} bg="surface2" borderRadius="tile">
           <Text fontSize="xs" color="neg" fontWeight="medium" mb={2}>Errores encontrados:</Text>
           <VStack align="start" gap={1}>
             {errorRows.slice(0, 5).map((row) =>
@@ -441,7 +447,7 @@ function Step2({ resolvedRows, validRows, errorRows, importPartial, canImport, l
               ))
             )}
             {errorRows.length > 5 && (
-              <Text fontSize="xs" color="#666">... y {errorRows.length - 5} filas más con errores</Text>
+              <Text fontSize="xs" color="text3">... y {errorRows.length - 5} filas más con errores</Text>
             )}
           </VStack>
         </Box>
@@ -479,13 +485,13 @@ function Step3({ result, onClose }: Step3Props) {
         <Text fontSize="xl" color="text" fontWeight="semibold" textAlign="center">
           {result.imported} transacci{result.imported === 1 ? 'ón importada' : 'ones importadas'}
         </Text>
-        <Text fontSize="sm" color="#888" textAlign="center">
+        <Text fontSize="sm" color="text3" textAlign="center">
           Las transacciones ya aparecen en tu lista
         </Text>
       </VStack>
 
       {result.failedRows.length > 0 && (
-        <Box p={4} bg="surface" borderRadius="md" borderWidth="1px" borderColor="line">
+        <Box p={4} bg="surface2" borderRadius="tile">
           <HStack mb={2}>
             <Icon as={FiAlertCircle} color="warn" />
             <Text fontSize="sm" color="warn" fontWeight="medium">
@@ -499,7 +505,7 @@ function Step3({ result, onClose }: Step3Props) {
               ))
             )}
             {result.failedRows.length > 10 && (
-              <Text fontSize="xs" color="#666">... y {result.failedRows.length - 10} filas más</Text>
+              <Text fontSize="xs" color="text3">... y {result.failedRows.length - 10} filas más</Text>
             )}
           </VStack>
         </Box>

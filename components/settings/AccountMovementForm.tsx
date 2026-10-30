@@ -1,16 +1,12 @@
 'use client'
 
-import { VStack } from '@chakra-ui/react'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { Input, Text } from '@chakra-ui/react'
 import { createAccountMovement } from '@/lib/actions/account_movements.actions'
 import { toaster } from '@/lib/toaster'
-import { FormDialog } from '@/components/ui/FormDialog'
-import { FormInput } from '@/components/ui/FormInput'
-import { DateInput } from '@/components/ui/DateInput'
-import { InputAmount } from '@/components/ui/InputAmount'
-import { AccountSelect } from '@/components/ui/AccountSelect'
-import { CurrencySelect } from '@/components/ui/CurrencySelect'
-import { PrimaryButton } from '@/components/ui/PrimaryButton'
+import { AccountChips, AmountBlock, DateField, Field, FormModal, FormModalContent } from '@/components/ui/pulso'
+import { formatCurrency } from '@/lib/utils/currency'
+import { decimalsFor } from '@/lib/utils/amount-input'
 import type { Account, Currency } from '@/types/database.types'
 import { getLocalDateString } from '@/lib/utils/dates'
 
@@ -23,144 +19,162 @@ interface Props {
   preselectedToAccountId?: string
 }
 
-const defaultForm = {
-  from_account_id: '',
-  from_amount: undefined as number | undefined,
-  from_currency: 'COP' as Currency,
-  to_account_id: '',
-  to_amount: undefined as number | undefined,
-  to_currency: 'COP' as Currency,
-  description: '',
-  date: getLocalDateString(),
-}
-
-export function AccountMovementForm({ isOpen, onClose, userId, accounts, onSuccess, preselectedToAccountId }: Props) {
+function AccountMovementBody({ onClose, userId, accounts, onSuccess, preselectedToAccountId }: Omit<Props, 'isOpen'>) {
   const [loading, setLoading] = useState(false)
-  const [formData, setFormData] = useState(defaultForm)
-
-  useEffect(() => {
-    if (isOpen) {
-      const toAccount = preselectedToAccountId
-        ? accounts.find((a) => a.id === preselectedToAccountId)
-        : undefined
-      setFormData({
-        ...defaultForm,
-        to_account_id: preselectedToAccountId ?? '',
-        to_currency: toAccount ? (toAccount.currency as Currency) : 'COP',
-        date: getLocalDateString(),
-      })
+  const [formData, setFormData] = useState(() => {
+    const toAccount = accounts.find((a) => a.id === preselectedToAccountId)
+    return {
+      from_account_id: '',
+      from_amount: undefined as number | undefined,
+      from_currency: 'COP' as Currency,
+      to_account_id: preselectedToAccountId ?? '',
+      to_amount: undefined as number | undefined,
+      to_currency: (toAccount?.currency ?? 'COP') as Currency,
+      description: '',
+      date: getLocalDateString(),
     }
-  }, [isOpen, preselectedToAccountId, accounts])
+  })
+  // While the received amount isn't typed and the currencies match, it mirrors the sent one.
+  const [toAmountTouched, setToAmountTouched] = useState(false)
+  const set = (patch: Partial<typeof formData>) => setFormData((prev) => ({ ...prev, ...patch }))
 
   const toAccount = accounts.find((a) => a.id === formData.to_account_id)
   const isCardPayment = toAccount?.type === 'card'
+  const mirrors = !toAmountTouched && formData.from_currency === formData.to_currency
+  const toAmount = mirrors ? formData.from_amount : formData.to_amount
 
-  const handleToAccountChange = (v: string) => {
-    const acc = accounts.find((a) => a.id === v)
-    setFormData((prev) => ({
-      ...prev,
-      to_account_id: v,
-      to_currency: acc ? (acc.currency as Currency) : prev.to_currency,
-    }))
-  }
+  const canSave =
+    !!formData.from_account_id &&
+    !!formData.to_account_id &&
+    formData.from_account_id !== formData.to_account_id &&
+    !!formData.from_amount &&
+    !!toAmount
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async () => {
     setLoading(true)
-
     const result = await createAccountMovement(userId, {
       from_account_id: formData.from_account_id,
       from_amount: formData.from_amount ?? 0,
       from_currency: formData.from_currency,
       to_account_id: formData.to_account_id,
-      to_amount: formData.to_amount ?? 0,
+      to_amount: toAmount ?? 0,
       to_currency: formData.to_currency,
       description: formData.description || null,
       date: formData.date,
     })
 
     if (result.success) {
-      toaster.create({ title: isCardPayment ? 'Pago de tarjeta registrado' : 'Movimiento registrado', type: 'success', duration: 3000 })
+      toaster.create({
+        title: `${isCardPayment ? 'Pago de tarjeta registrado' : 'Movimiento registrado'} · ${formatCurrency(
+          formData.from_amount ?? 0,
+          formData.from_currency,
+          decimalsFor(formData.from_currency)
+        )}`,
+        type: 'success',
+        duration: 2600,
+      })
       onSuccess()
       onClose()
-      setFormData(defaultForm)
     } else {
       toaster.create({ title: 'Error', description: result.error, type: 'error', duration: 4000 })
     }
     setLoading(false)
   }
 
+  const pickAccount = (side: 'from' | 'to', id: string) => {
+    const account = accounts.find((a) => a.id === id)
+    set(
+      side === 'from'
+        ? { from_account_id: id, from_currency: account?.currency ?? formData.from_currency }
+        : { to_account_id: id, to_currency: account?.currency ?? formData.to_currency }
+    )
+  }
+
   return (
-    <FormDialog isOpen={isOpen} onClose={onClose} title={isCardPayment ? 'Pago de Tarjeta' : 'Nuevo Movimiento entre Cuentas'}>
-      <form onSubmit={handleSubmit}>
-        <VStack gap={4}>
-          <AccountSelect
-            value={formData.from_account_id}
-            onChange={(v) => setFormData({ ...formData, from_account_id: v })}
-            accounts={accounts}
-            label="Cuenta origen"
-            required
-            placeholder="Seleccionar..."
-            excludeId={formData.to_account_id}
-          />
+    <FormModalContent
+      title={isCardPayment ? 'Pago de tarjeta' : 'Movimiento entre cuentas'}
+      subtitle={isCardPayment ? 'Paga la tarjeta desde otra cuenta' : 'Pasa dinero de una cuenta a otra'}
+      onClose={onClose}
+      onSubmit={handleSubmit}
+      canSubmit={canSave}
+      loading={loading}
+      submitLabel={
+        <>
+          {isCardPayment ? 'Registrar pago' : 'Registrar movimiento'}
+          {formData.from_amount && (
+            <Text as="span" fontFamily="mono" fontWeight="500">
+              · {formatCurrency(formData.from_amount, formData.from_currency, decimalsFor(formData.from_currency))}
+            </Text>
+          )}
+        </>
+      }
+    >
+      <Field label="Sale de">
+        <AccountChips
+          accounts={accounts.filter((a) => a.id !== formData.to_account_id)}
+          value={formData.from_account_id}
+          onChange={(id) => pickAccount('from', id)}
+        />
+      </Field>
 
-          <InputAmount
-            label="Monto enviado"
-            value={formData.from_amount}
-            onChange={(v) => setFormData({ ...formData, from_amount: v })}
-            isRequired
-          />
+      <AmountBlock
+        amount={formData.from_amount}
+        currency={formData.from_currency}
+        onAmountChange={(from_amount) => set({ from_amount })}
+        onCurrencyChange={(from_currency) => set({ from_currency })}
+        sign="−"
+        label="Monto enviado"
+      />
 
-          <CurrencySelect
-            value={formData.from_currency}
-            onChange={(v) => setFormData({ ...formData, from_currency: v })}
-            showFullLabel
-            required
-          />
+      <Field label={isCardPayment ? 'Tarjeta a pagar' : 'Va a'}>
+        <AccountChips
+          accounts={accounts.filter((a) => a.id !== formData.from_account_id)}
+          value={formData.to_account_id}
+          onChange={(id) => pickAccount('to', id)}
+        />
+      </Field>
 
-          <AccountSelect
-            value={formData.to_account_id}
-            onChange={handleToAccountChange}
-            accounts={accounts}
-            label={isCardPayment ? 'Tarjeta a pagar' : 'Cuenta destino'}
-            required
-            placeholder="Seleccionar..."
-            excludeId={formData.from_account_id}
-          />
+      <AmountBlock
+        amount={toAmount}
+        currency={formData.to_currency}
+        onAmountChange={(to_amount) => {
+          setToAmountTouched(true)
+          set({ to_amount })
+        }}
+        onCurrencyChange={(to_currency) => set({ to_currency })}
+        sign="+"
+        color="pos"
+        label={isCardPayment ? 'Monto del pago' : 'Monto recibido'}
+        footer={
+          mirrors ? (
+            <Text fontFamily="mono" fontSize="12px" color="text3">
+              Mismo monto que sale · edítalo si hubo comisión
+            </Text>
+          ) : undefined
+        }
+      />
 
-          <InputAmount
-            label={isCardPayment ? 'Monto del pago' : 'Monto recibido'}
-            value={formData.to_amount}
-            onChange={(v) => setFormData({ ...formData, to_amount: v })}
-            isRequired
-          />
+      <Field label="Descripción" optional>
+        <Input
+          value={formData.description}
+          onChange={(e) => set({ description: e.target.value })}
+          placeholder={isCardPayment ? 'Ej: Pago mensual tarjeta' : 'Ej: Cambio de dólares'}
+          h="44px"
+        />
+      </Field>
 
-          <CurrencySelect
-            value={formData.to_currency}
-            onChange={(v) => setFormData({ ...formData, to_currency: v })}
-            showFullLabel
-            required
-          />
+      <Field label="Fecha">
+        <DateField value={formData.date} onChange={(date) => set({ date })} />
+      </Field>
+    </FormModalContent>
+  )
+}
 
-          <FormInput
-            label="Descripción (opcional)"
-            value={formData.description}
-            onChange={(v) => setFormData({ ...formData, description: v })}
-            placeholder={isCardPayment ? 'Ej: Pago mensual tarjeta' : 'Ej: Cambio de dólares'}
-          />
-
-          <DateInput
-            label="Fecha"
-            value={formData.date}
-            onChange={(v) => setFormData({ ...formData, date: v })}
-            required
-          />
-
-          <PrimaryButton type="submit" width="full" loading={loading}>
-            {isCardPayment ? 'Registrar Pago' : 'Registrar Movimiento'}
-          </PrimaryButton>
-        </VStack>
-      </form>
-    </FormDialog>
+/** Pulso transfer between accounts / credit card payment. */
+export function AccountMovementForm({ isOpen, ...props }: Props) {
+  return (
+    <FormModal isOpen={isOpen} onClose={props.onClose} title="Movimiento entre cuentas">
+      <AccountMovementBody {...props} />
+    </FormModal>
   )
 }

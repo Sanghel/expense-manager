@@ -1,14 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { VStack, Button, Text } from '@chakra-ui/react'
-import { FormDialog } from '@/components/ui/FormDialog'
-import { InputAmount } from '@/components/ui/InputAmount'
-import { DateInput } from '@/components/ui/DateInput'
-import { FormTextarea } from '@/components/ui/FormTextarea'
+import { Text, Textarea } from '@chakra-ui/react'
+import { LuInfo } from 'react-icons/lu'
+import { AmountBlock, DateField, Field, FormModal, FormModalContent, SummaryBox } from '@/components/ui/pulso'
 import { addLoanPayment } from '@/lib/actions/loans.actions'
 import { toaster } from '@/lib/toaster'
 import { formatCurrency } from '@/lib/utils/currency'
+import { decimalsFor } from '@/lib/utils/amount-input'
 import { getLocalDateString } from '@/lib/utils/dates'
 import type { LoanWithAccount } from '@/types/database.types'
 
@@ -20,39 +19,26 @@ interface Props {
   onSuccess: () => void
 }
 
-export function LoanPaymentForm({ isOpen, onClose, loan, userId, onSuccess }: Props) {
+function LoanPaymentFormBody({ onClose, loan, userId, onSuccess }: Omit<Props, 'isOpen'>) {
   const [amount, setAmount] = useState<number | undefined>(undefined)
   const [date, setDate] = useState(getLocalDateString())
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
 
+  const fmt = (n: number) => formatCurrency(n, loan.currency, decimalsFor(loan.currency))
   const remaining = Number(loan.amount) - Number(loan.paid_amount ?? 0)
-  const label = loan.type === 'lent' ? 'Monto recibido' : 'Monto abonado'
+  const overRemaining = !!amount && amount > remaining
+  const isLent = loan.type === 'lent'
 
   const handleSubmit = async () => {
-    if (!amount || amount <= 0) {
-      toaster.create({ title: 'Ingresa un monto válido', type: 'error', duration: 3000 })
-      return
-    }
-    if (amount > remaining) {
-      toaster.create({
-        title: `El monto supera el saldo pendiente (${formatCurrency(remaining, loan.currency)})`,
-        type: 'error',
-        duration: 4000,
-      })
-      return
-    }
-
+    if (!amount || overRemaining) return
     setLoading(true)
     const result = await addLoanPayment(userId, loan.id, amount, date || undefined, notes || undefined)
     setLoading(false)
 
     if (result.success) {
-      const msg = result.settled ? 'Préstamo saldado completamente' : 'Abono registrado'
-      toaster.create({ title: msg, type: 'success', duration: 3000 })
-      setAmount(undefined)
-      setDate(getLocalDateString())
-      setNotes('')
+      const msg = result.settled ? 'Préstamo saldado completamente' : isLent ? 'Cobro registrado' : 'Abono registrado'
+      toaster.create({ title: `${msg} · ${fmt(amount)}`, type: 'success', duration: 2600 })
       onClose()
       onSuccess()
     } else {
@@ -61,53 +47,72 @@ export function LoanPaymentForm({ isOpen, onClose, loan, userId, onSuccess }: Pr
   }
 
   return (
-    <FormDialog
-      isOpen={isOpen}
+    <FormModalContent
+      title={isLent ? 'Registrar cobro parcial' : 'Registrar abono'}
+      subtitle={loan.person_name}
       onClose={onClose}
-      title={loan.type === 'lent' ? 'Registrar cobro parcial' : 'Registrar abono'}
+      onSubmit={handleSubmit}
+      canSubmit={!!amount && !overRemaining}
+      loading={loading}
+      submitLabel={
+        <>
+          Registrar
+          {amount && (
+            <Text as="span" fontFamily="mono" fontWeight="500">
+              · {fmt(amount)}
+            </Text>
+          )}
+        </>
+      }
     >
-      <VStack gap={4} align="stretch">
-        <Text fontSize="sm" color="text2">
-          Saldo pendiente:{' '}
-          <Text as="span" color="text" fontWeight="600">
-            {formatCurrency(remaining, loan.currency)}
+      <AmountBlock
+        amount={amount}
+        currency={loan.currency}
+        onAmountChange={setAmount}
+        color="pos"
+        label={isLent ? 'Monto recibido' : 'Monto abonado'}
+        autoFocus
+        footer={
+          <Text fontFamily="mono" fontSize="12px" color={overRemaining ? 'neg' : 'text3'}>
+            Pendiente · {fmt(remaining)}
           </Text>
-        </Text>
+        }
+      />
 
-        <InputAmount
-          label={label}
-          value={amount}
-          onChange={setAmount}
-          isRequired
-        />
+      <Field label="Fecha">
+        <DateField value={date} onChange={setDate} />
+      </Field>
 
-        <DateInput
-          label="Fecha del abono"
-          value={date}
-          onChange={setDate}
-          required
-        />
-
-        <FormTextarea
-          label="Notas (opcional)"
+      <Field label="Notas" optional>
+        <Textarea
           value={notes}
-          onChange={setNotes}
+          onChange={(e) => setNotes(e.target.value)}
+          rows={2}
+          resize="none"
           placeholder="Ej: Transferencia Bancolombia"
         />
+      </Field>
 
-        <Button
-          bg="brandSolid"
-          color="white"
-          _hover={{ bg: 'brand.600' }}
-          onClick={handleSubmit}
-          loading={loading}
-          loadingText="Registrando..."
-          w="full"
-          mt={2}
-        >
-          Registrar
-        </Button>
-      </VStack>
-    </FormDialog>
+      {amount && !overRemaining && (
+        <SummaryBox icon={LuInfo} tone="brand">
+          {amount === remaining
+            ? 'Con este pago el préstamo queda saldado.'
+            : `Después de este pago faltarán ${fmt(remaining - amount)}.`}
+        </SummaryBox>
+      )}
+    </FormModalContent>
+  )
+}
+
+/** Pulso partial payment of a loan: "Registrar abono" / "Registrar cobro parcial". */
+export function LoanPaymentForm({ isOpen, ...props }: Props) {
+  return (
+    <FormModal
+      isOpen={isOpen}
+      onClose={props.onClose}
+      title={props.loan.type === 'lent' ? 'Registrar cobro parcial' : 'Registrar abono'}
+    >
+      <LoanPaymentFormBody {...props} />
+    </FormModal>
   )
 }

@@ -307,3 +307,62 @@ export async function deleteBudget(id: string, userId: string) {
     return { success: false, error: errorMessage(error, 'No se pudo eliminar el presupuesto') }
   }
 }
+
+export interface BudgetContext {
+  /** 'YYYY-MM' of the month the figures come from (the previous one). */
+  month: string
+  income: number
+  expense: number
+  /** Expense per category id. */
+  expenseByCategory: Record<string, number>
+}
+
+/**
+ * Last month's income, expense and expense per category, in `currency`: the
+ * budget form uses them for "En septiembre gastaste…" and the % equivalences.
+ */
+export async function getBudgetContext(userId: string, currency: Currency) {
+  if (!userId) {
+    console.error('getBudgetContext: userId is missing')
+    return { success: false as const, error: 'Falta el identificador de usuario' }
+  }
+  try {
+    const now = new Date()
+    const from = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    const to = new Date(now.getFullYear(), now.getMonth(), 0)
+
+    const [{ data: transactions, error }, ratePairs] = await Promise.all([
+      insforgeAdmin.database
+        .from('transactions')
+        .select('category_id, amount, currency, type')
+        .eq('user_id', userId)
+        .gte('date', getLocalDateString(from))
+        .lte('date', getLocalDateString(to)),
+      getAllRatePairs(),
+    ])
+    if (error) throw error
+
+    const convert = buildConverter((ratePairs.success ? ratePairs.data : []) as RateRow[])
+    const context: BudgetContext = {
+      month: getLocalDateString(from).slice(0, 7),
+      income: 0,
+      expense: 0,
+      expenseByCategory: {},
+    }
+    for (const t of transactions ?? []) {
+      const value = convert(toNumber(t.amount), t.currency as Currency, currency)
+      if (t.type === 'income') {
+        context.income += value
+        continue
+      }
+      context.expense += value
+      if (t.category_id) {
+        context.expenseByCategory[t.category_id] = (context.expenseByCategory[t.category_id] ?? 0) + value
+      }
+    }
+    return { success: true as const, data: context }
+  } catch (error) {
+    console.error('Get budget context error:', error)
+    return { success: false as const, error: errorMessage(error, 'No se pudo cargar el historial') }
+  }
+}

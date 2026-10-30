@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import { Box, Button, Grid, Input, Text, Textarea } from '@chakra-ui/react'
 import { LuArrowDownLeft, LuArrowUpRight, LuPlus, LuSparkles } from 'react-icons/lu'
-import { createTransaction } from '@/lib/actions/transactions.actions'
+import { createTransaction, updateTransaction } from '@/lib/actions/transactions.actions'
 import { toaster } from '@/lib/toaster'
 import { openAiChat } from '@/lib/ai-chat'
 import { InlineCalendar } from '@/components/ui/InlineCalendar'
@@ -18,10 +18,21 @@ import {
   SegmentedControl,
 } from '@/components/ui/pulso'
 import { QuickCategoryForm } from '@/components/categories/QuickCategoryForm'
-import type { Account, Category, Currency, TransactionType } from '@/types/database.types'
+import type { Account, Category, Currency, Transaction, TransactionType } from '@/types/database.types'
 import { getLocalDateString } from '@/lib/utils/dates'
 import { formatCurrency } from '@/lib/utils/currency'
 import { decimalsFor } from '@/lib/utils/amount-input'
+
+export interface TransactionFormValues {
+  type: TransactionType
+  amount: number
+  currency: Currency
+  category_id: string
+  account_id: string | null
+  description: string
+  date: string
+  notes: string
+}
 
 const TOP_CATEGORIES = 8
 
@@ -39,6 +50,13 @@ interface Props {
   initialType?: 'income' | 'expense'
   /** Past transactions, used to show the most frequent categories first. */
   history?: { category_id: string | null }[]
+  /** Edit mode: the same modal, prefilled, saving with `updateTransaction`. */
+  transaction?: Pick<
+    Transaction,
+    'id' | 'type' | 'amount' | 'currency' | 'category_id' | 'account_id' | 'description' | 'date' | 'notes'
+  >
+  /** Hand the values back instead of saving (Gmail review edits a row in memory). */
+  onSubmitOverride?: (values: TransactionFormValues) => void
 }
 
 const defaultForm = {
@@ -70,15 +88,31 @@ function TransactionFormBody({
   prefillCategoryId,
   initialType,
   history = [],
+  transaction,
+  onSubmitOverride,
 }: BodyProps) {
+  const isEdit = !!transaction
   const [loading, setLoading] = useState(false)
-  const [formData, setFormData] = useState(() => ({
-    ...defaultForm,
-    type: initialType ?? defaultForm.type,
-    date: initialDate ?? getLocalDateString(),
-    description: prefillDescription ?? '',
-    category_id: prefillCategoryId ?? '',
-  }))
+  const [formData, setFormData] = useState(() =>
+    transaction
+      ? {
+          type: transaction.type,
+          amount: Number(transaction.amount) || undefined,
+          currency: transaction.currency as Currency,
+          category_id: transaction.category_id ?? '',
+          account_id: transaction.account_id ?? '',
+          description: transaction.description,
+          date: transaction.date,
+          notes: transaction.notes ?? '',
+        }
+      : {
+          ...defaultForm,
+          type: initialType ?? defaultForm.type,
+          date: initialDate ?? getLocalDateString(),
+          description: prefillDescription ?? '',
+          category_id: prefillCategoryId ?? '',
+        }
+  )
   const [localCategories, setLocalCategories] = useState<Category[]>(categories)
   const [quickCategoryOpen, setQuickCategoryOpen] = useState(false)
   const [showAllCategories, setShowAllCategories] = useState(false)
@@ -133,21 +167,31 @@ function TransactionFormBody({
   }
 
   const handleSubmit = async () => {
-    setLoading(true)
-
-    const result = await createTransaction(userId, {
+    const values: TransactionFormValues = {
       ...formData,
       amount: formData.amount ?? 0,
       account_id: formData.account_id || null,
       // The description is required by the schema; the category name is a
       // sensible default when the user leaves it empty.
       description: formData.description.trim() || selectedCategory?.name || 'Transacción',
-    })
+    }
+
+    if (onSubmitOverride) {
+      onSubmitOverride(values)
+      onSuccess()
+      onClose()
+      return
+    }
+
+    setLoading(true)
+    const result = transaction
+      ? await updateTransaction(transaction.id, userId, values)
+      : await createTransaction(userId, values)
 
     if (result.success) {
       toaster.create({
         title: [
-          isExpense ? 'Gasto registrado' : 'Ingreso registrado',
+          isEdit ? 'Transacción actualizada' : isExpense ? 'Gasto registrado' : 'Ingreso registrado',
           selectedCategory?.name,
           formatCurrency(formData.amount ?? 0, formData.currency, decimalsFor(formData.currency)),
         ]
@@ -159,7 +203,7 @@ function TransactionFormBody({
       onSuccess()
       onClose()
     } else {
-      toaster.create({ title: 'Error al crear', description: result.error, type: 'error', duration: 4000 })
+      toaster.create({ title: isEdit ? 'Error al actualizar' : 'Error al crear', description: result.error, type: 'error', duration: 4000 })
     }
     setLoading(false)
   }
@@ -170,7 +214,7 @@ function TransactionFormBody({
 
   return (
     <FormModalContent
-      title="Nueva transacción"
+      title={isEdit ? 'Editar transacción' : 'Nueva transacción'}
       onClose={onClose}
       header={
         <SegmentedControl
@@ -188,7 +232,7 @@ function TransactionFormBody({
       loading={loading}
       submitLabel={
         <>
-          {isExpense ? 'Guardar gasto' : 'Guardar ingreso'}
+          {isEdit ? 'Guardar cambios' : isExpense ? 'Guardar gasto' : 'Guardar ingreso'}
           {amountLabel && (
             <Text as="span" fontFamily="mono" fontWeight="500">
               · {amountLabel}
@@ -197,6 +241,7 @@ function TransactionFormBody({
         </>
       }
       footerStart={
+        !isEdit && (
         <Button
           variant="ghost"
           color="brand"
@@ -211,6 +256,7 @@ function TransactionFormBody({
           <LuSparkles />
           Mejor díctalo
         </Button>
+        )
       }
       overlays={
         <QuickCategoryForm
@@ -230,7 +276,7 @@ function TransactionFormBody({
         onCurrencyChange={(currency) => setFormData((prev) => ({ ...prev, currency }))}
         currencyLocked={!!selectedAccount}
         sign={isExpense ? '−' : '+'}
-        autoFocus
+        autoFocus={!isEdit}
       />
 
       <Field label="Categoría">
@@ -337,10 +383,17 @@ function TransactionFormBody({
   )
 }
 
-/** Pulso "Nueva transacción": centered on desktop, bottom sheet on mobile. */
+/**
+ * Pulso "Nueva transacción" (and "Editar transacción" with `transaction`):
+ * centered on desktop, bottom sheet on mobile.
+ */
 export function TransactionForm({ isOpen, ...props }: Props) {
   return (
-    <FormModal isOpen={isOpen} onClose={props.onClose} title="Nueva transacción">
+    <FormModal
+      isOpen={isOpen}
+      onClose={props.onClose}
+      title={props.transaction ? 'Editar transacción' : 'Nueva transacción'}
+    >
       <TransactionFormBody {...props} />
     </FormModal>
   )

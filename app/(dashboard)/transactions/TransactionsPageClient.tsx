@@ -8,7 +8,6 @@ import { Card } from '@/components/ui/Card'
 import { ActionIconButton } from '@/components/ui/ActionIconButton'
 import { ComboboxField } from '@/components/ui/ComboboxField'
 import { TransactionForm } from '@/components/transactions/TransactionForm'
-import { TransactionEditForm } from '@/components/transactions/TransactionEditForm'
 import { TransactionsTable } from '@/components/transactions/TransactionsTable'
 import {
   TransactionsRail,
@@ -94,7 +93,7 @@ export function TransactionsPageClient({
   }, [onEditOpen])
 
   const handleEditClose = useCallback(() => {
-    // Do NOT clear editingTransaction here. Doing so unmounts TransactionEditForm
+    // Do NOT clear editingTransaction here. Doing so unmounts the edit TransactionForm
     // in the same React commit as isOpen→false, which tears down the dialog DOM
     // before Zag can call layerStack.remove(node) — the node is already gone,
     // remove() short-circuits, and body.style.pointerEvents="none" gets stuck.
@@ -215,7 +214,7 @@ export function TransactionsPageClient({
       />
 
       {editingTransaction && (
-        <TransactionEditForm
+        <TransactionForm
           isOpen={isEditOpen}
           onClose={handleEditClose}
           userId={userId}

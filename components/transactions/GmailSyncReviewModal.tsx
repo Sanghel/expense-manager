@@ -16,7 +16,7 @@ import {
 } from '@chakra-ui/react'
 import { useState, useMemo, useRef } from 'react'
 import { LuCheck, LuMail, LuPencil, LuUndo2, LuX } from 'react-icons/lu'
-import { TransactionEditForm } from './TransactionEditForm'
+import { TransactionForm } from './TransactionForm'
 import { PortalContainerProvider } from '@/components/ui/FloatingPortal'
 import { SHEET_CONTENT_PROPS, SHEET_PLACEMENT } from '@/components/ui/dialog-sheet'
 import { Money } from '@/components/ui/Money'
@@ -512,7 +512,7 @@ export function GmailSyncReviewModal({ isOpen, onClose, userId, items, syncedAt,
       </DialogRoot>
 
       {editingAsTransaction && lastEditing != null && (
-        <TransactionEditForm
+        <TransactionForm
           isOpen={editing != null}
           onClose={stopEditing}
           userId={userId}

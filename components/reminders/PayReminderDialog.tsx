@@ -1,15 +1,14 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { VStack, HStack, Text, Box, Badge } from '@chakra-ui/react'
-import { FormDialog } from '@/components/ui/FormDialog'
-import { InputAmount } from '@/components/ui/InputAmount'
-import { AccountSelect } from '@/components/ui/AccountSelect'
-import { PrimaryButton } from '@/components/ui/PrimaryButton'
+import { Box, Flex, Text } from '@chakra-ui/react'
+import { AccountChips, AmountBlock, Field, FormModal, FormModalContent } from '@/components/ui/pulso'
 import { createTransaction } from '@/lib/actions/transactions.actions'
 import { toaster } from '@/lib/toaster'
 import { getLocalDateString } from '@/lib/utils/dates'
-import type { Account, ReminderWithCategory } from '@/types/database.types'
+import { formatCurrency } from '@/lib/utils/currency'
+import { decimalsFor } from '@/lib/utils/amount-input'
+import type { Account, Currency, ReminderWithCategory } from '@/types/database.types'
 
 interface Props {
   isOpen: boolean
@@ -33,30 +32,27 @@ function pickInitialAccount(reminder: ReminderWithCategory, accounts: Account[])
   return accounts[0] ?? null
 }
 
-export function PayReminderDialog({ isOpen, onClose, userId, accounts, reminder, onSuccess, date }: Props) {
+function PayReminderBody({ onClose, userId, accounts, reminder, onSuccess, date }: Omit<Props, 'isOpen'>) {
   const initialAccount = useMemo(() => pickInitialAccount(reminder, accounts), [reminder, accounts])
   const [accountId, setAccountId] = useState<string>(initialAccount?.id ?? '')
   const [amount, setAmount] = useState<number | undefined>(undefined)
   const [loading, setLoading] = useState(false)
 
   const selectedAccount = accounts.find((a) => a.id === accountId) ?? null
-  const currency = selectedAccount?.currency ?? 'COP'
+  const currency = (selectedAccount?.currency ?? 'COP') as Currency
   const isIncome = reminder.type === 'income'
   const occurrenceDate = date ?? getLocalDateString()
-  const todayLabel = new Date(occurrenceDate + 'T12:00:00').toLocaleDateString('es-CO', {
+  const dateLabel = new Date(occurrenceDate + 'T12:00:00').toLocaleDateString('es-CO', {
     day: 'numeric', month: 'long', year: 'numeric',
   })
+  const amountLabel = amount ? formatCurrency(amount, currency, decimalsFor(currency)) : null
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async () => {
     if (!reminder.category_id) {
       toaster.create({ title: 'Recordatorio sin categoría', description: 'Asigna una categoría al recordatorio antes de pagarlo.', type: 'error', duration: 4000 })
       return
     }
-    if (!amount || amount <= 0) {
-      toaster.create({ title: 'Monto inválido', description: 'Ingresa un monto mayor a 0.', type: 'error', duration: 4000 })
-      return
-    }
+    if (!amount) return
     setLoading(true)
     const result = await createTransaction(userId, {
       amount,
@@ -69,7 +65,11 @@ export function PayReminderDialog({ isOpen, onClose, userId, accounts, reminder,
     })
     setLoading(false)
     if (result.success) {
-      toaster.create({ title: isIncome ? 'Ingreso registrado' : 'Pago registrado', type: 'success', duration: 3000 })
+      toaster.create({
+        title: `${isIncome ? 'Ingreso registrado' : 'Pago registrado'} · ${reminder.description} · ${amountLabel}`,
+        type: 'success',
+        duration: 2600,
+      })
       onSuccess()
       onClose()
     } else {
@@ -78,49 +78,59 @@ export function PayReminderDialog({ isOpen, onClose, userId, accounts, reminder,
   }
 
   return (
-    <FormDialog isOpen={isOpen} onClose={onClose} title={isIncome ? 'Registrar ingreso' : 'Pagar recordatorio'}>
-      <form onSubmit={handleSubmit}>
-        <VStack gap={4} align="stretch">
-          <Box borderWidth="1px" borderColor="line" borderRadius="md" px={3} py={2} bg="surface">
-            <HStack gap={2} mb={1}>
-              <Text fontSize="xs" color="text2">Descripción</Text>
-            </HStack>
-            <Text color="text" fontWeight="semibold">
-              {reminder.category?.icon ?? '🔔'} {reminder.description}
+    <FormModalContent
+      title={isIncome ? 'Registrar ingreso' : 'Pagar recordatorio'}
+      onClose={onClose}
+      onSubmit={handleSubmit}
+      canSubmit={!!accountId && !!amount}
+      loading={loading}
+      submitLabel={
+        <>
+          {isIncome ? 'Registrar ingreso' : 'Registrar pago'}
+          {amountLabel && (
+            <Text as="span" fontFamily="mono" fontWeight="500">
+              · {amountLabel}
             </Text>
-            <HStack gap={2} mt={2} flexWrap="wrap">
-              {reminder.category && (
-                <Badge size="sm" variant="outline" colorPalette="purple">
-                  {reminder.category.name}
-                </Badge>
-              )}
-              <Badge size="sm" variant="outline" colorPalette="gray">
-                {todayLabel}
-              </Badge>
-            </HStack>
-          </Box>
+          )}
+        </>
+      }
+    >
+      <Flex align="center" gap={3} bg="bg" borderRadius="tile" px={4} py={3}>
+        <Text fontSize="22px">{reminder.category?.icon ?? '🔔'}</Text>
+        <Box minW={0}>
+          <Text fontSize="14px" fontWeight="500" color="text">
+            {reminder.description}
+          </Text>
+          <Text fontFamily="mono" fontSize="11px" color="text3" mt={0.5}>
+            {[reminder.category?.name, dateLabel].filter(Boolean).join(' · ')}
+          </Text>
+        </Box>
+      </Flex>
 
-          <AccountSelect
-            label="Cuenta"
-            required
-            value={accountId}
-            onChange={setAccountId}
-            accounts={accounts}
-            placeholder="Selecciona una cuenta"
-          />
+      <AmountBlock
+        amount={amount}
+        currency={currency}
+        onAmountChange={setAmount}
+        sign={isIncome ? '+' : '−'}
+        autoFocus
+      />
 
-          <InputAmount
-            label={`Monto (${currency})`}
-            value={amount}
-            onChange={setAmount}
-            isRequired
-          />
+      <Field label={isIncome ? 'Entra a' : 'Se paga con'}>
+        <AccountChips accounts={accounts} value={accountId} onChange={setAccountId} />
+      </Field>
+    </FormModalContent>
+  )
+}
 
-          <PrimaryButton type="submit" width="full" loading={loading} disabled={!accountId}>
-            {isIncome ? 'Registrar ingreso' : 'Registrar pago'}
-          </PrimaryButton>
-        </VStack>
-      </form>
-    </FormDialog>
+/** Pulso "Pagar recordatorio" / "Registrar ingreso": records the occurrence as a transaction. */
+export function PayReminderDialog({ isOpen, ...props }: Props) {
+  return (
+    <FormModal
+      isOpen={isOpen}
+      onClose={props.onClose}
+      title={props.reminder.type === 'income' ? 'Registrar ingreso' : 'Pagar recordatorio'}
+    >
+      <PayReminderBody {...props} />
+    </FormModal>
   )
 }

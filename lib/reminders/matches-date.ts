@@ -1,11 +1,17 @@
-import type { ReminderWithCategory } from '@/types/database.types'
+import type { Reminder, ReminderWithCategory } from '@/types/database.types'
+
+/** The fields that define when a reminder is due. */
+export type ReminderRule = Pick<
+  Reminder,
+  'is_active' | 'frequency' | 'specific_date' | 'day_of_week' | 'day_of_month' | 'month_of_year'
+>
 import { getLocalDateString } from '@/lib/utils/dates'
 
 function lastDayOfMonth(year: number, monthZeroBased: number): number {
   return new Date(year, monthZeroBased + 1, 0).getDate()
 }
 
-export function reminderMatchesDate(reminder: ReminderWithCategory, date: Date): boolean {
+export function reminderMatchesDate(reminder: ReminderRule, date: Date): boolean {
   if (!reminder.is_active) return false
 
   const dayOfWeek = date.getDay()
@@ -46,7 +52,7 @@ export function remindersForDate(
  * Next date (today included) on which the reminder is due, looking up to a
  * year ahead. Null for inactive or past one-off reminders.
  */
-export function nextOccurrence(reminder: ReminderWithCategory, from: Date = new Date()): Date | null {
+export function nextOccurrence(reminder: ReminderRule, from: Date = new Date()): Date | null {
   const day = new Date(from.getFullYear(), from.getMonth(), from.getDate())
   for (let i = 0; i <= 366; i++) {
     if (reminderMatchesDate(reminder, day)) return day

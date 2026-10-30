@@ -17,7 +17,7 @@ import {
   FormModalContent,
   SegmentedControl,
 } from '@/components/ui/pulso'
-import { QuickCategoryForm } from '@/components/categories/QuickCategoryForm'
+import { CategoryForm } from '@/components/categories/CategoryForm'
 import type { Account, Category, Currency, Transaction, TransactionType } from '@/types/database.types'
 import { getLocalDateString } from '@/lib/utils/dates'
 import { formatCurrency } from '@/lib/utils/currency'
@@ -259,11 +259,12 @@ function TransactionFormBody({
         )
       }
       overlays={
-        <QuickCategoryForm
+        <CategoryForm
           isOpen={quickCategoryOpen}
           onClose={() => setQuickCategoryOpen(false)}
           userId={userId}
           defaultType={formData.type}
+          lockType
           onCreated={handleCategoryCreated}
         />
       }

@@ -1,11 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { VStack, HStack, SimpleGrid, Box, Text, Checkbox } from '@chakra-ui/react'
-import { FormDialog } from '@/components/ui/FormDialog'
-import { FormInput } from '@/components/ui/FormInput'
-import { PrimaryButton } from '@/components/ui/PrimaryButton'
-import { CancelButton } from '@/components/ui/CancelButton'
+import { Flex, Grid, Input } from '@chakra-ui/react'
+import { Chip, Field, FormModal, FormModalContent } from '@/components/ui/pulso'
 import {
   createCategoryGroup,
   updateCategoryGroup,
@@ -23,34 +20,12 @@ interface Props {
   onSuccess: () => void
 }
 
-export function CategoryGroupForm({
-  isOpen,
-  onClose,
-  userId,
-  categories,
-  editingGroup,
-  onSuccess,
-}: Props) {
+/** Pulso "Nuevo grupo de categorías" / "Editar grupo". */
+export function CategoryGroupForm({ isOpen, onClose, editingGroup, ...props }: Props) {
   return (
-    <FormDialog
-      isOpen={isOpen}
-      onClose={onClose}
-      title={editingGroup ? 'Editar grupo' : 'Nuevo grupo de categorías'}
-      size="lg"
-    >
-      {/* Mounted only while open and keyed by the group, so the fields start
-          from the right values without an effect that re-syncs state. */}
-      {isOpen && (
-        <GroupFields
-          key={editingGroup?.id ?? 'new'}
-          userId={userId}
-          categories={categories}
-          editingGroup={editingGroup ?? null}
-          onClose={onClose}
-          onSuccess={onSuccess}
-        />
-      )}
-    </FormDialog>
+    <FormModal isOpen={isOpen} onClose={onClose} title={editingGroup ? 'Editar grupo' : 'Nuevo grupo de categorías'}>
+      <GroupFields onClose={onClose} editingGroup={editingGroup ?? null} {...props} />
+    </FormModal>
   )
 }
 
@@ -71,13 +46,7 @@ function GroupFields({ userId, categories, editingGroup, onClose, onSuccess }: F
   const toggle = (id: string) =>
     setSelected((prev) => (prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]))
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!name.trim()) {
-      toaster.create({ title: 'El nombre es obligatorio', type: 'error', duration: 3000 })
-      return
-    }
-
+  const handleSubmit = async () => {
     setLoading(true)
     const payload = { name: name.trim(), icon: icon.trim() || null }
 
@@ -98,9 +67,9 @@ function GroupFields({ userId, categories, editingGroup, onClose, onSuccess }: F
 
     if (result.success) {
       toaster.create({
-        title: editingGroup ? 'Grupo actualizado' : 'Grupo creado',
+        title: `${editingGroup ? 'Grupo actualizado' : 'Grupo creado'} · ${payload.name}`,
         type: 'success',
-        duration: 3000,
+        duration: 2600,
       })
       onSuccess()
       onClose()
@@ -110,51 +79,48 @@ function GroupFields({ userId, categories, editingGroup, onClose, onSuccess }: F
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <VStack gap={4} align="stretch">
-        <FormInput
-          label="Nombre del grupo"
-          value={name}
-          onChange={setName}
-          placeholder="Ej: Gastos hormiga"
-          required
-        />
+    <FormModalContent
+      title={editingGroup ? 'Editar grupo' : 'Nuevo grupo de categorías'}
+      subtitle="Su presupuesto es la suma de los de sus categorías"
+      onClose={onClose}
+      onSubmit={handleSubmit}
+      canSubmit={!!name.trim()}
+      loading={loading}
+      submitLabel={editingGroup ? 'Guardar cambios' : 'Crear grupo'}
+    >
+      <Grid templateColumns="88px 1fr" gap={3}>
+        <Field label="Ícono">
+          <Input
+            value={icon}
+            onChange={(e) => setIcon(e.target.value)}
+            placeholder="📦"
+            aria-label="Ícono (emoji)"
+            h="44px"
+            textAlign="center"
+            fontSize="18px"
+          />
+        </Field>
+        <Field label="Nombre">
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Ej: Gastos hormiga"
+            h="44px"
+            autoFocus={!editingGroup}
+          />
+        </Field>
+      </Grid>
 
-        <FormInput
-          label="Icono (emoji)"
-          value={icon}
-          onChange={setIcon}
-          placeholder="📦"
-        />
-
-        <Box>
-          <Text fontSize="sm" color="text2" mb={2}>
-            Categorías del grupo ({selected.length})
-          </Text>
-          <SimpleGrid columns={{ base: 1, md: 2 }} gap={2} maxH="260px" overflowY="auto">
-            {categories.map((cat) => (
-              <Checkbox.Root
-                key={cat.id}
-                checked={selected.includes(cat.id)}
-                onCheckedChange={() => toggle(cat.id)}
-              >
-                <Checkbox.HiddenInput />
-                <Checkbox.Control />
-                <Checkbox.Label>
-                  {cat.icon} {cat.name}
-                </Checkbox.Label>
-              </Checkbox.Root>
-            ))}
-          </SimpleGrid>
-        </Box>
-
-        <HStack gap={4} pt={2} justifyContent="flex-end">
-          <CancelButton onClick={onClose} />
-          <PrimaryButton type="submit" loading={loading}>
-            {editingGroup ? 'Guardar cambios' : 'Crear grupo'}
-          </PrimaryButton>
-        </HStack>
-      </VStack>
-    </form>
+      <Field label={`Categorías del grupo · ${selected.length}`}>
+        <Flex wrap="wrap" gap={2}>
+          {categories.map((cat) => (
+            <Chip key={cat.id} selected={selected.includes(cat.id)} onClick={() => toggle(cat.id)}>
+              {cat.icon && <span>{cat.icon}</span>}
+              {cat.name}
+            </Chip>
+          ))}
+        </Flex>
+      </Field>
+    </FormModalContent>
   )
 }

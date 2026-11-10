@@ -209,6 +209,7 @@ export function SavingsGoalCard({ goal, userId, accounts, onEdit, onCreate }: Pr
             userId={userId}
             goalId={goal.id}
             goalCurrency={goal.currency}
+            accounts={accounts}
             onChange={() => router.refresh()}
           />
         </Box>

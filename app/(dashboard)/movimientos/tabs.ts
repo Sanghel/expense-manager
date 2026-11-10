@@ -1,3 +1,4 @@
+import type { OccurrenceTransaction } from '@/lib/reminders/pending'
 import type {
   LoanWithAccount,
   ReminderWithCategory,
@@ -16,7 +17,8 @@ export interface TransaccionesData {
 
 export interface RecordatoriosData {
   reminders: ReminderWithCategory[]
-  todaysTransactions: { description: string; category_id: string | null }[]
+  /** Transactions around today, to tell which reminder occurrences are paid. */
+  recentTransactions: OccurrenceTransaction[]
 }
 
 export type PrestamosData = LoanWithAccount[]

@@ -37,6 +37,8 @@ export async function createTransaction(
     revalidatePath('/dashboard')
     revalidatePath('/settings')
     revalidatePath('/calendar')
+    // The dashboard layout derives the notification bell from transactions.
+    revalidatePath('/', 'layout')
     return { success: true, data: transaction }
   } catch (error) {
     console.error('Create transaction error:', error)

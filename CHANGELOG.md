@@ -1,5 +1,41 @@
 # Changelog
 
+## [4.1.1] — 2026-11-10
+
+Ajustes de metas de ahorro, recordatorios, notificaciones y toasts.
+
+### Added
+
+- **Monto habitual en recordatorios** ([#618](https://github.com/Sanghel/expense-manager/pull/618)): campo opcional en el formulario. "Pagar recordatorio" sale con ese monto ya puesto si la cuenta que paga está en la misma moneda, y si no, lo muestra como referencia.
+
+### Changed
+
+- **Revertir aportes de una meta** ([#613](https://github.com/Sanghel/expense-manager/pull/613)): el icono pequeño de eliminar pasa a ser un botón "Revertir" con texto. El diálogo y el toast dicen cuánto se descuenta y a qué cuenta vuelve el saldo.
+- **Toasts** ([#616](https://github.com/Sanghel/expense-manager/pull/616)): superficie del tema con borde y radio `tile`, en lugar del pill blanco invertido. El indicador cambia de color según el tipo.
+- `getLocalDateString()` sin argumentos devuelve hoy en `America/Bogota`, y se añaden `todayString`, `appToday` y `shiftDays` en `lib/utils/dates.ts`.
+
+### Fixed
+
+- **Pagar desde notificaciones** ([#615](https://github.com/Sanghel/expense-manager/pull/615)): el modal se renderizaba dentro del popover de la campana, por eso salía desplazado y con el popover abierto y borroso detrás. Ahora el popover se cierra y el modal sale centrado. `FormModal` se renderiza en un `Portal`.
+- **Recordatorios pagados** ([#617](https://github.com/Sanghel/expense-manager/pull/617)):
+  - Desde la página, el pago se registraba con la fecha de hoy y no con la de la ocurrencia, así que la notificación no se limpiaba.
+  - El servidor (UTC) calculaba "hoy" distinto que el cliente (Bogotá).
+  - La lista seguía mostrando "· hoy" en un recordatorio ya pagado. Ahora muestra el próximo vencimiento sin pagar.
+- **Toasts** ([#616](https://github.com/Sanghel/expense-manager/pull/616)): la X ya no tapa el texto.
+
+### Database
+
+Migración manual en InsForge, **antes** del deploy:
+
+```sql
+-- Recordatorios: monto habitual opcional para precargar el pago.
+ALTER TABLE reminders
+  ADD COLUMN IF NOT EXISTS amount numeric,
+  ADD COLUMN IF NOT EXISTS currency text;
+```
+
+Cambio de datos ya aplicado ([#608](https://github.com/Sanghel/expense-manager/issues/608)): la meta "Manchester" pasa de COP a USD (objetivo US$ 7.000, acumulado US$ 1.300). El `converted_amount` de sus aportes se reparte de forma proporcional y su `amount` sigue en COP.
+
 ## [4.1.0] — 2026-10-30
 
 Los modales que faltaban pasan a **Pulso**, y editar abre siempre el mismo modal que crear ([épica #583](https://github.com/Sanghel/expense-manager/issues/583)).

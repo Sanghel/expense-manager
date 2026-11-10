@@ -49,9 +49,9 @@ function RecordatoriosContent({
   data,
   ...props
 }: Pick<Props, 'userId' | 'categories' | 'accounts'> & { data: Promise<RecordatoriosData> }) {
-  const { reminders, todaysTransactions } = use(data)
+  const { reminders, recentTransactions } = use(data)
   return (
-    <RecordatoriosTab {...props} initialReminders={reminders} todaysTransactions={todaysTransactions} />
+    <RecordatoriosTab {...props} initialReminders={reminders} recentTransactions={recentTransactions} />
   )
 }
 

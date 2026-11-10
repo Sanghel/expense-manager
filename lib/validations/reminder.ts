@@ -11,6 +11,8 @@ export const reminderSchema = z.object({
   month_of_year: z.number().int().min(1).max(12).nullable().optional(),
   specific_date: z.string().nullable().optional(),
   is_active: z.boolean().optional().default(true),
+  amount: z.number().positive('El monto debe ser mayor a 0').nullable().optional(),
+  currency: z.enum(['COP', 'USD', 'VES']).nullable().optional(),
 })
 
 export type ReminderFormData = z.infer<typeof reminderSchema>

@@ -1,5 +1,22 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- **Monto habitual en recordatorios** ([#610](https://github.com/Sanghel/expense-manager/issues/610)): campo opcional que se precarga al registrar el pago.
+
+### Database
+
+Migración manual a aplicar en InsForge **antes** de desplegar #610:
+
+```sql
+-- Recordatorios: monto habitual opcional para precargar el pago.
+ALTER TABLE reminders
+  ADD COLUMN IF NOT EXISTS amount numeric,
+  ADD COLUMN IF NOT EXISTS currency text;
+```
+
 ## [4.1.0] — 2026-10-30
 
 Los modales que faltaban pasan a **Pulso**, y editar abre siempre el mismo modal que crear ([épica #583](https://github.com/Sanghel/expense-manager/issues/583)).

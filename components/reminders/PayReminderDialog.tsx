@@ -35,7 +35,12 @@ function pickInitialAccount(reminder: ReminderWithCategory, accounts: Account[])
 function PayReminderBody({ onClose, userId, accounts, reminder, onSuccess, date }: Omit<Props, 'isOpen'>) {
   const initialAccount = useMemo(() => pickInitialAccount(reminder, accounts), [reminder, accounts])
   const [accountId, setAccountId] = useState<string>(initialAccount?.id ?? '')
-  const [amount, setAmount] = useState<number | undefined>(undefined)
+  // The usual amount is prefilled only when it is in the paying account's currency.
+  const usualAmountFor = (account: Account | null) =>
+    reminder.amount && (!reminder.currency || reminder.currency === account?.currency)
+      ? reminder.amount
+      : undefined
+  const [amount, setAmount] = useState<number | undefined>(() => usualAmountFor(initialAccount))
   const [loading, setLoading] = useState(false)
 
   const selectedAccount = accounts.find((a) => a.id === accountId) ?? null
@@ -46,6 +51,18 @@ function PayReminderBody({ onClose, userId, accounts, reminder, onSuccess, date 
     day: 'numeric', month: 'long', year: 'numeric',
   })
   const amountLabel = amount ? formatCurrency(amount, currency, decimalsFor(currency)) : null
+  const usualLabel =
+    reminder.amount && reminder.currency && reminder.currency !== currency
+      ? `Monto habitual: ${formatCurrency(reminder.amount, reminder.currency, decimalsFor(reminder.currency))}`
+      : null
+
+  const changeAccount = (id: string) => {
+    const prev = accounts.find((a) => a.id === accountId) ?? null
+    const next = accounts.find((a) => a.id === id) ?? null
+    setAccountId(id)
+    // Swap the prefill along with the account, unless the user typed their own amount.
+    if (amount === undefined || amount === usualAmountFor(prev)) setAmount(usualAmountFor(next))
+  }
 
   const handleSubmit = async () => {
     if (!reminder.category_id) {
@@ -113,10 +130,19 @@ function PayReminderBody({ onClose, userId, accounts, reminder, onSuccess, date 
         onAmountChange={setAmount}
         sign={isIncome ? '+' : '−'}
         autoFocus
+        {...(usualLabel
+          ? {
+              footer: (
+                <Text fontSize="12px" color="text3">
+                  {usualLabel}
+                </Text>
+              ),
+            }
+          : {})}
       />
 
       <Field label={isIncome ? 'Entra a' : 'Se paga con'}>
-        <AccountChips accounts={accounts} value={accountId} onChange={setAccountId} />
+        <AccountChips accounts={accounts} value={accountId} onChange={changeAccount} />
       </Field>
     </FormModalContent>
   )

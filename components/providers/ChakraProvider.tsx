@@ -46,6 +46,14 @@ function DialogOverlayGuard() {
   return null
 }
 
+const TOAST_COLOR: Record<string, string> = {
+  success: 'pos',
+  error: 'neg',
+  warning: 'warn',
+  info: 'brand',
+  loading: 'text2',
+}
+
 export function ChakraProvider({ children }: { children: ReactNode }) {
   return (
     <EmotionRegistry>
@@ -69,27 +77,40 @@ export function ChakraProvider({ children }: { children: ReactNode }) {
             <Toast.Root
               key={toast.id}
               w="auto"
+              minW={{ base: 'calc(100vw - 32px)', sm: '320px' }}
               maxW="min(480px, calc(100vw - 32px))"
-              bg="text"
-              color="bg"
-              borderRadius="pill"
-              px={5}
-              py={3}
+              bg="surface2"
+              color="text"
+              borderWidth="1px"
+              borderColor="line"
+              borderRadius="tile"
+              ps={4}
+              pe={2}
+              py={2.5}
+              gap={3}
               alignItems="center"
               boxShadow="overlay"
             >
-              <Toast.Indicator color={toast.type === 'error' ? 'neg' : 'pos'} />
-              <Box flex="1" minW="0">
-                <Text fontWeight="medium" fontSize="sm">
+              <Toast.Indicator flexShrink={0} color={TOAST_COLOR[toast.type ?? 'info'] ?? 'brand'} />
+              <Box flex="1" minW="0" py={0.5}>
+                <Text fontWeight="medium" fontSize="sm" lineHeight="1.35">
                   {toast.title as string}
                 </Text>
                 {toast.description && (
-                  <Text fontSize="xs" opacity={0.7}>
+                  <Text fontSize="xs" color="text2" mt={0.5}>
                     {toast.description as string}
                   </Text>
                 )}
               </Box>
-              <Toast.CloseTrigger color="bg" />
+              {/* In the flex flow (the recipe makes it absolute) so it never covers the text. */}
+              <Toast.CloseTrigger
+                position="static"
+                flexShrink={0}
+                alignSelf="center"
+                color="text3"
+                borderRadius="pill"
+                _hover={{ color: 'text', bg: 'surface' }}
+              />
             </Toast.Root>
           )}
         </Toaster>

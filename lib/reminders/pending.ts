@@ -1,5 +1,5 @@
 import { reminderMatchesDate } from '@/lib/reminders/matches-date'
-import { getLocalDateString } from '@/lib/utils/dates'
+import { appToday, getLocalDateString, shiftDays } from '@/lib/utils/dates'
 import type { ReminderWithCategory } from '@/types/database.types'
 
 export type OccurrenceStatus = 'overdue' | 'today' | 'upcoming'
@@ -29,10 +29,46 @@ export interface PendingOptions {
   today?: Date
 }
 
-function addDays(date: Date, days: number): Date {
-  const next = new Date(date)
-  next.setDate(next.getDate() + days)
-  return next
+type SettlingReminder = Pick<ReminderWithCategory, 'description' | 'category_id'>
+
+function settledKey(date: string, description: string, categoryId: string | null): string {
+  return `${date}|${description}|${categoryId ?? ''}`
+}
+
+/** Keys of the occurrences the given transactions settle. */
+export function buildSettledSet(transactions: OccurrenceTransaction[]): Set<string> {
+  return new Set(transactions.map((t) => settledKey(t.date, t.description, t.category_id)))
+}
+
+/**
+ * Reminders have no occurrence table: an occurrence counts as handled when a
+ * transaction on that date has the same description and category.
+ */
+export function isOccurrenceSettled(
+  reminder: SettlingReminder,
+  date: string,
+  settled: Set<string>
+): boolean {
+  return settled.has(settledKey(date, reminder.description, reminder.category_id))
+}
+
+/**
+ * Next date (today included) on which the reminder is due and not yet paid,
+ * looking up to a year ahead. Null for inactive or past one-off reminders.
+ */
+export function nextPendingOccurrence(
+  reminder: ReminderWithCategory,
+  settled: Set<string>,
+  from: Date = appToday()
+): Date | null {
+  const day = new Date(from.getFullYear(), from.getMonth(), from.getDate(), 12)
+  for (let i = 0; i <= 366; i++) {
+    if (reminderMatchesDate(reminder, day) && !isOccurrenceSettled(reminder, getLocalDateString(day), settled)) {
+      return new Date(day)
+    }
+    day.setDate(day.getDate() + 1)
+  }
+  return null
 }
 
 /**
@@ -52,14 +88,12 @@ export function getPendingOccurrences(
   {
     lookbackDays = 7,
     lookaheadDays = 7,
-    today = new Date(),
+    today = appToday(),
   }: PendingOptions = {}
 ): ReminderOccurrence[] {
   const todayStr = getLocalDateString(today)
 
-  const settled = new Set(
-    transactions.map((t) => `${t.date}|${t.description}|${t.category_id ?? ''}`)
-  )
+  const settled = buildSettledSet(transactions)
 
   const dismissedByKey = new Map(
     dismissals.map((d) => [`${d.reminder_id}|${d.occurrence_date}`, d])
@@ -68,19 +102,13 @@ export function getPendingOccurrences(
   const occurrences: ReminderOccurrence[] = []
 
   for (let offset = -lookbackDays; offset <= lookaheadDays; offset++) {
-    const date = addDays(today, offset)
+    const date = shiftDays(today, offset)
     const dateStr = getLocalDateString(date)
 
     for (const reminder of reminders) {
       if (!reminderMatchesDate(reminder, date)) continue
 
-      if (
-        settled.has(
-          `${dateStr}|${reminder.description}|${reminder.category_id ?? ''}`
-        )
-      ) {
-        continue
-      }
+      if (isOccurrenceSettled(reminder, dateStr, settled)) continue
 
       const dismissal = dismissedByKey.get(`${reminder.id}|${dateStr}`)
       if (dismissal) {

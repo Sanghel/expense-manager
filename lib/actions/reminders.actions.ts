@@ -9,7 +9,7 @@ import {
   type OccurrenceDismissal,
   type OccurrenceTransaction,
 } from '@/lib/reminders/pending'
-import { getLocalDateString } from '@/lib/utils/dates'
+import { appToday, getLocalDateString, shiftDays } from '@/lib/utils/dates'
 import type { ReminderWithCategory } from '@/types/database.types'
 
 export async function getReminders(userId: string) {
@@ -83,9 +83,10 @@ export async function getReminderNotifications(
 ) {
   if (!userId) return { success: false, error: 'Falta el identificador de usuario' }
 
-  const today = new Date()
-  const from = getLocalDateString(new Date(today.getTime() - lookbackDays * 86400000))
-  const to = getLocalDateString(new Date(today.getTime() + lookaheadDays * 86400000))
+  // Calendar day in Bogotá, not the server's UTC clock (see appToday).
+  const today = appToday()
+  const from = getLocalDateString(shiftDays(today, -lookbackDays))
+  const to = getLocalDateString(shiftDays(today, lookaheadDays))
 
   try {
     const [remindersResult, txResult, dismissalsResult] = await Promise.all([

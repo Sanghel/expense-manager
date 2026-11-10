@@ -20,7 +20,13 @@ export async function getReminders(userId: string) {
     .order('created_at', { ascending: false })
 
   if (error) return { success: false, error: error.message }
-  return { success: true, data }
+  return { success: true, data: (data ?? []).map(normalizeReminder) }
+}
+
+/** numeric columns arrive as strings. */
+function normalizeReminder<T extends { amount?: unknown }>(r: T): T {
+  const amount = r.amount == null || r.amount === '' ? null : Number(r.amount)
+  return { ...r, amount: Number.isFinite(amount) ? amount : null }
 }
 
 export async function createReminder(userId: string, input: ReminderFormData) {

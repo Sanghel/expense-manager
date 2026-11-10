@@ -7,6 +7,7 @@ import { createReminder, updateReminder } from '@/lib/actions/reminders.actions'
 import { toaster } from '@/lib/toaster'
 import {
   AccountChips,
+  AmountBlock,
   Chip,
   DateField,
   Field,
@@ -17,7 +18,7 @@ import {
   TitleInput,
 } from '@/components/ui/pulso'
 import { nextOccurrence } from '@/lib/reminders/matches-date'
-import type { Account, Category, Reminder, ReminderFrequency, ReminderType } from '@/types/database.types'
+import type { Account, Category, Currency, Reminder, ReminderFrequency, ReminderType } from '@/types/database.types'
 import { getLocalDateString } from '@/lib/utils/dates'
 
 const TOP_CATEGORIES = 10
@@ -59,9 +60,17 @@ interface Props {
   prefillDate?: string
 }
 
-function initialForm(editing?: Reminder | null, prefillDate?: string) {
+/** Currency of the chosen account, else the default account's. */
+function accountCurrency(accounts: Account[], accountId: string): Currency {
+  const account = accounts.find((a) => a.id === accountId) ?? accounts.find((a) => a.is_default) ?? accounts[0]
+  return (account?.currency ?? 'COP') as Currency
+}
+
+function initialForm(accounts: Account[], editing?: Reminder | null, prefillDate?: string) {
   if (editing) {
     return {
+      amount: editing.amount ?? undefined,
+      currency: (editing.currency ?? accountCurrency(accounts, editing.account_id ?? '')) as Currency,
       description: editing.description,
       type: editing.type ?? 'expense',
       category_id: editing.category_id ?? '',
@@ -76,6 +85,8 @@ function initialForm(editing?: Reminder | null, prefillDate?: string) {
   const date = prefillDate ?? getLocalDateString()
   const d = new Date(`${date}T12:00:00`)
   return {
+    amount: undefined as number | undefined,
+    currency: accountCurrency(accounts, ''),
     description: '',
     type: 'expense' as ReminderType,
     category_id: '',
@@ -100,7 +111,7 @@ function ReminderFormBody({
   prefillDate,
 }: BodyProps) {
   const [loading, setLoading] = useState(false)
-  const [formData, setFormData] = useState(() => initialForm(editingReminder, prefillDate))
+  const [formData, setFormData] = useState(() => initialForm(accounts, editingReminder, prefillDate))
   const [showAllCategories, setShowAllCategories] = useState(false)
   const set = (patch: Partial<typeof formData>) => setFormData((prev) => ({ ...prev, ...patch }))
 
@@ -158,6 +169,8 @@ function ReminderFormBody({
       type: formData.type,
       category_id: formData.category_id || null,
       account_id: formData.account_id || null,
+      amount: formData.amount ?? null,
+      currency: formData.amount ? formData.currency : null,
       ...rule,
     }
 
@@ -242,12 +255,28 @@ function ReminderFormBody({
         </Flex>
       </Field>
 
+      <Field label="Monto habitual" optional>
+        <AmountBlock
+          amount={formData.amount}
+          currency={formData.currency}
+          onAmountChange={(amount) => set({ amount })}
+          onCurrencyChange={(currency) => set({ currency })}
+          currencyLocked={!!formData.account_id}
+          sign={formData.type === 'expense' ? '−' : '+'}
+          footer={
+            <Text fontSize="12px" color="text3">
+              Se precarga al registrar el pago; podrás cambiarlo.
+            </Text>
+          }
+        />
+      </Field>
+
       {accounts.length > 0 && (
         <Field label={formData.type === 'expense' ? 'Se paga con' : 'Entra a'}>
           <AccountChips
             accounts={accounts}
             value={formData.account_id}
-            onChange={(account_id) => set({ account_id })}
+            onChange={(account_id) => set({ account_id, currency: accountCurrency(accounts, account_id) })}
             leading={{ value: '', label: '⭐ Cuenta por defecto', hint: 'Se decide al pagar' }}
           />
         </Field>

@@ -252,6 +252,9 @@ export interface Reminder {
   month_of_year: number | null
   specific_date: string | null
   is_active: boolean
+  /** Usual amount, to prefill the payment. Optional. */
+  amount: number | null
+  currency: Currency | null
   created_at: string
 }
 

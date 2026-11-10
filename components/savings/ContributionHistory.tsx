@@ -1,22 +1,23 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Box, Flex, Text, Spinner } from '@chakra-ui/react'
-import { ActionIconButton } from '@/components/ui/ActionIconButton'
+import { Box, Button, Flex, Text, Spinner } from '@chakra-ui/react'
+import { LuRotateCcw } from 'react-icons/lu'
 import { getGoalContributions, deleteGoalContribution } from '@/lib/actions/savings.actions'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { toaster } from '@/lib/toaster'
 import { formatCurrency } from '@/lib/utils/currency'
-import type { Currency, SavingsContribution } from '@/types/database.types'
+import type { Account, Currency, SavingsContribution } from '@/types/database.types'
 
 interface Props {
   userId: string
   goalId: string
   goalCurrency: Currency
+  accounts: Account[]
   onChange: () => void
 }
 
-export function ContributionHistory({ userId, goalId, goalCurrency, onChange }: Props) {
+export function ContributionHistory({ userId, goalId, goalCurrency, accounts, onChange }: Props) {
   const [contributions, setContributions] = useState<SavingsContribution[]>([])
   const [loading, setLoading] = useState(true)
   const [pendingDelete, setPendingDelete] = useState<SavingsContribution | null>(null)
@@ -35,15 +36,24 @@ export function ContributionHistory({ userId, goalId, goalCurrency, onChange }: 
     }
   }, [userId, goalId, reloadKey])
 
+  const accountName = (id: string | null) => (id ? accounts.find((a) => a.id === id)?.name : undefined)
+  const fmtAmount = (c: SavingsContribution) => formatCurrency(c.amount, c.currency, c.currency === 'COP' ? 0 : 2)
+
   const confirmDelete = async () => {
     if (!pendingDelete) return
+    const reverted = pendingDelete
     setDeleting(true)
     const result = await deleteGoalContribution(userId, pendingDelete.id)
     setDeleting(false)
     setPendingDelete(null)
 
     if (result.success) {
-      toaster.create({ title: 'Aporte eliminado', type: 'success', duration: 3000 })
+      const name = accountName(reverted.account_id)
+      toaster.create({
+        title: name ? `Aporte revertido · ${fmtAmount(reverted)} devuelto a ${name}` : 'Aporte revertido',
+        type: 'success',
+        duration: 4000,
+      })
       setReloadKey((k) => k + 1)
       onChange()
     } else {
@@ -85,21 +95,26 @@ export function ContributionHistory({ userId, goalId, goalCurrency, onChange }: 
               {new Date(c.created_at).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: '2-digit' }).replace(/ de /g, ' ').replace('.', '')}
             </Text>
             <Text flex="1" minW={0} fontFamily="mono" fontSize="14px" color="text" textAlign="right">
-              +{formatCurrency(c.amount, c.currency, c.currency === 'COP' ? 0 : 2)}
+              +{fmtAmount(c)}
               {c.currency !== goalCurrency && (
                 <Text as="span" color="text3" fontSize="12px">
                   {' '}→ {formatCurrency(c.converted_amount, goalCurrency)}
                 </Text>
               )}
             </Text>
-            <ActionIconButton
-              kind="delete"
-              tone="danger"
-              label="Eliminar aporte"
+            <Button
               size="xs"
               variant="ghost"
+              color="text2"
+              boxShadow="inset 0 0 0 1px var(--chakra-colors-line)"
+              _hover={{ color: 'neg', bg: 'negSoft' }}
+              flexShrink={0}
+              aria-label={`Revertir aporte de ${fmtAmount(c)}`}
               onClick={() => setPendingDelete(c)}
-            />
+            >
+              <LuRotateCcw />
+              Revertir
+            </Button>
           </Flex>
         ))}
       </Box>
@@ -108,8 +123,15 @@ export function ContributionHistory({ userId, goalId, goalCurrency, onChange }: 
         isOpen={!!pendingDelete}
         onClose={() => setPendingDelete(null)}
         onConfirm={confirmDelete}
-        title="Eliminar aporte"
-        description="Se descontará de la meta y se reintegrará el saldo a la cuenta de origen."
+        title="Revertir aporte"
+        description={
+          pendingDelete
+            ? pendingDelete.account_id
+              ? `Se descontará ${fmtAmount(pendingDelete)} de la meta y se devolverá a ${accountName(pendingDelete.account_id) ?? 'la cuenta de origen'}.`
+              : `Se descontará ${fmtAmount(pendingDelete)} de la meta. Este aporte no salió de ninguna cuenta, así que no se reintegra saldo.`
+            : ''
+        }
+        confirmLabel="Revertir"
         isLoading={deleting}
       />
     </>

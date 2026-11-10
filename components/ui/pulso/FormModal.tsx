@@ -10,6 +10,7 @@ import {
   DialogRoot,
   Flex,
   IconButton,
+  Portal,
   Stack,
   Text,
 } from '@chakra-ui/react'
@@ -69,24 +70,28 @@ export function FormModal({
       unmountOnExit
       closeOnInteractOutside={false}
     >
-      <DialogBackdrop />
-      <DialogPositioner>
-        <DialogContent
-          ref={contentRef}
-          tabIndex={-1}
-          aria-label={title}
-          // Full width as a bottom sheet on mobile; capped and centered on desktop.
-          w={{ base: 'full', md: `min(${width}px, calc(100vw - 32px))` }}
-          {...SHEET_CONTENT_PROPS}
-          maxW={{ base: 'full', md: 'none' }}
-          display="flex"
-          flexDirection="column"
-        >
-          <PortalContainerProvider container={contentRef}>
-            {children}
-          </PortalContainerProvider>
-        </DialogContent>
-      </DialogPositioner>
+      {/* Portaled to <body>: a dialog opened from a popover or menu would otherwise be
+          positioned against that panel's transform instead of the viewport. */}
+      <Portal>
+        <DialogBackdrop />
+        <DialogPositioner>
+          <DialogContent
+            ref={contentRef}
+            tabIndex={-1}
+            aria-label={title}
+            // Full width as a bottom sheet on mobile; capped and centered on desktop.
+            w={{ base: 'full', md: `min(${width}px, calc(100vw - 32px))` }}
+            {...SHEET_CONTENT_PROPS}
+            maxW={{ base: 'full', md: 'none' }}
+            display="flex"
+            flexDirection="column"
+          >
+            <PortalContainerProvider container={contentRef}>
+              {children}
+            </PortalContainerProvider>
+          </DialogContent>
+        </DialogPositioner>
+      </Portal>
     </DialogRoot>
   )
 }

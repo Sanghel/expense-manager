@@ -15,7 +15,6 @@ import {
 } from '@chakra-ui/react'
 import { LuCircleCheck } from 'react-icons/lu'
 import { ActionIconButton } from '@/components/ui/ActionIconButton'
-import { PayReminderDialog } from '@/components/reminders/PayReminderDialog'
 import {
   dismissReminderOccurrence,
   snoozeReminderOccurrence,
@@ -27,13 +26,13 @@ import type {
   OccurrenceStatus,
   ReminderOccurrence,
 } from '@/lib/reminders/pending'
-import type { Account } from '@/types/database.types'
 
 interface Props {
   userId: string
-  accounts: Account[]
   occurrences: ReminderOccurrence[]
   onClosePanel: () => void
+  /** Opens the pay dialog outside the popover (a fixed dialog inside the popover's transform is misplaced). */
+  onPay: (occurrence: ReminderOccurrence) => void
 }
 
 const SECTIONS: { status: OccurrenceStatus; label: string; palette: string }[] =
@@ -58,12 +57,11 @@ function addDays(days: number): string {
 
 export function NotificationsPanel({
   userId,
-  accounts,
   occurrences,
   onClosePanel,
+  onPay,
 }: Props) {
   const router = useRouter()
-  const [settling, setSettling] = useState<ReminderOccurrence | null>(null)
   const [busyKey, setBusyKey] = useState<string | null>(null)
 
   const grouped = useMemo(
@@ -224,7 +222,7 @@ export function NotificationsPanel({
                             bg="pos"
                             color="bg"
                             _hover={{ bg: 'pos' }}
-                            onClick={() => setSettling(occurrence)}
+                            onClick={() => onPay(occurrence)}
                           >
                             <LuCircleCheck />
                             {isIncome ? 'Registrar ingreso' : 'Registrar pago'}
@@ -267,22 +265,6 @@ export function NotificationsPanel({
           </VStack>
         )}
       </Box>
-
-      {settling && (
-        <PayReminderDialog
-          isOpen
-          onClose={() => setSettling(null)}
-          userId={userId}
-          accounts={accounts}
-          reminder={settling.reminder}
-          date={settling.date}
-          onSuccess={() => {
-            setSettling(null)
-            onClosePanel()
-            router.refresh()
-          }}
-        />
-      )}
     </>
   )
 }

@@ -4,7 +4,8 @@ import { Box, Flex, Grid, IconButton, Menu, Portal, Text } from '@chakra-ui/reac
 import { useMemo, useState } from 'react'
 import { LuEllipsisVertical, LuPencil, LuTrash2 } from 'react-icons/lu'
 import { deleteReminder } from '@/lib/actions/reminders.actions'
-import { nextOccurrence } from '@/lib/reminders/matches-date'
+import { nextPendingOccurrence } from '@/lib/reminders/pending'
+import { appToday } from '@/lib/utils/dates'
 import { toaster } from '@/lib/toaster'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { ReminderForm } from './ReminderForm'
@@ -24,26 +25,28 @@ interface Props {
   reminders: ReminderWithCategory[]
   categories: Category[]
   accounts?: Account[]
+  /** Paid occurrences (buildSettledSet), so a reminder paid today moves on to its next date. */
+  settled?: Set<string>
   onRefresh: () => void
 }
 
 /** Grid of reminder cards, soonest first, with the next due date as a mono block. */
-export function RemindersList({ userId, reminders, categories, accounts = [], onRefresh }: Props) {
+export function RemindersList({ userId, reminders, categories, accounts = [], settled, onRefresh }: Props) {
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingReminder, setEditingReminder] = useState<ReminderWithCategory | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
 
   const sorted = useMemo(() => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    const today = appToday()
+    const paid = settled ?? new Set<string>()
     return reminders
       .map((r) => {
-        const next = nextOccurrence(r, today)
+        const next = nextPendingOccurrence(r, paid, today)
         return { reminder: r, next, daysAway: next ? Math.round((next.getTime() - today.getTime()) / DAY_MS) : null }
       })
       .sort((a, b) => (a.daysAway ?? Infinity) - (b.daysAway ?? Infinity))
-  }, [reminders])
+  }, [reminders, settled])
 
   const handleDelete = async () => {
     if (!deletingId) return

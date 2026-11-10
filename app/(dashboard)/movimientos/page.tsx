@@ -1,8 +1,9 @@
 import { redirect } from 'next/navigation'
 import { getCurrentDbUser } from '@/lib/utils/auth'
 import { getAccountsCached, getCategoriesCached } from '@/lib/data/cached'
-import { getTransactions, getTransactionsByDate } from '@/lib/actions/transactions.actions'
-import { getLocalDateString } from '@/lib/utils/dates'
+import { getTransactions, getTransactionsBetween } from '@/lib/actions/transactions.actions'
+import { appToday, getLocalDateString, shiftDays } from '@/lib/utils/dates'
+import type { OccurrenceTransaction } from '@/lib/reminders/pending'
 import { getLoans } from '@/lib/actions/loans.actions'
 import { getReminders } from '@/lib/actions/reminders.actions'
 import { MovimientosPageClient } from './MovimientosPageClient'
@@ -36,13 +37,17 @@ export default async function MovimientosPage() {
 
   const recordatorios: Promise<RecordatoriosData> = Promise.all([
     getReminders(user.id),
-    getTransactionsByDate(user.id, getLocalDateString()),
+    getTransactionsBetween(
+      user.id,
+      getLocalDateString(shiftDays(appToday(), -7)),
+      getLocalDateString(shiftDays(appToday(), 31))
+    ),
   ]).then(([remindersResult, txResult]) => ({
     reminders: remindersResult.success
       ? ((remindersResult.data ?? []) as ReminderWithCategory[])
       : [],
-    todaysTransactions: txResult.success
-      ? (txResult.data as { description: string; category_id: string | null }[])
+    recentTransactions: txResult.success
+      ? (txResult.data as OccurrenceTransaction[])
       : [],
   }))
 

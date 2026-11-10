@@ -8,6 +8,13 @@ import { ReminderForm } from '@/components/reminders/ReminderForm'
 import { RemindersList } from '@/components/reminders/RemindersList'
 import { PayReminderDialog } from '@/components/reminders/PayReminderDialog'
 import { remindersForDate } from '@/lib/reminders/matches-date'
+import {
+  buildSettledSet,
+  getPendingOccurrences,
+  type OccurrenceTransaction,
+  type ReminderOccurrence,
+} from '@/lib/reminders/pending'
+import { appToday } from '@/lib/utils/dates'
 import { Card } from '@/components/ui/Card'
 import type { Account, Category, ReminderWithCategory } from '@/types/database.types'
 
@@ -16,7 +23,7 @@ interface Props {
   categories: Category[]
   accounts: Account[]
   initialReminders: ReminderWithCategory[]
-  todaysTransactions: { description: string; category_id: string | null }[]
+  recentTransactions: OccurrenceTransaction[]
 }
 
 export function RecordatoriosTab({
@@ -24,24 +31,26 @@ export function RecordatoriosTab({
   categories,
   accounts,
   initialReminders,
-  todaysTransactions,
+  recentTransactions,
 }: Props) {
   const router = useRouter()
   const [isFormOpen, setIsFormOpen] = useState(false)
-  const [payingReminder, setPayingReminder] = useState<ReminderWithCategory | null>(null)
+  const [paying, setPaying] = useState<ReminderOccurrence | null>(null)
 
   const refresh = () => router.refresh()
-  const today = useMemo(() => new Date(), [])
+  const today = useMemo(() => appToday(), [])
+  const settled = useMemo(() => buildSettledSet(recentTransactions), [recentTransactions])
 
-  const pinnedToday = useMemo(() => {
-    const matches = remindersForDate(initialReminders, today)
-    return matches.filter(
-      (r) =>
-        !todaysTransactions.some(
-          (tx) => tx.description === r.description && tx.category_id === r.category_id,
-        ),
-    )
-  }, [initialReminders, today, todaysTransactions])
+  // Today's occurrences not yet paid (same rule as the notification bell).
+  const pinnedToday = useMemo(
+    () =>
+      getPendingOccurrences(initialReminders, recentTransactions, [], {
+        lookbackDays: 0,
+        lookaheadDays: 0,
+        today,
+      }),
+    [initialReminders, recentTransactions, today]
+  )
 
   // One bar per day for the next 30 days: height = payments due that day;
   // amber when it falls within the next 5 days.
@@ -109,7 +118,7 @@ export function RecordatoriosTab({
             Para hoy
           </Text>
           <VStack gap={2} align="stretch">
-            {pinnedToday.map((r) => (
+            {pinnedToday.map(({ reminder: r, date }) => (
               <Flex
                 key={r.id}
                 align="center"
@@ -133,7 +142,7 @@ export function RecordatoriosTab({
                   bg="text"
                   color="bg"
                   _hover={{ opacity: 0.9 }}
-                  onClick={() => setPayingReminder(r)}
+                  onClick={() => setPaying({ reminder: r, date, status: 'today' })}
                   flexShrink={0}
                 >
                   <LuCircleCheck />
@@ -150,6 +159,7 @@ export function RecordatoriosTab({
         reminders={initialReminders}
         categories={categories}
         accounts={accounts}
+        settled={settled}
         onRefresh={refresh}
       />
 
@@ -165,15 +175,16 @@ export function RecordatoriosTab({
         }}
       />
 
-      {payingReminder && (
+      {paying && (
         <PayReminderDialog
           isOpen
-          onClose={() => setPayingReminder(null)}
+          onClose={() => setPaying(null)}
           userId={userId}
           accounts={accounts}
-          reminder={payingReminder}
+          reminder={paying.reminder}
+          date={paying.date}
           onSuccess={() => {
-            setPayingReminder(null)
+            setPaying(null)
             refresh()
           }}
         />
